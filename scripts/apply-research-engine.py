@@ -153,7 +153,8 @@ function audit(raw: unknown[], intervalMs: number, keep: number): Audit {
     if (!Number.isFinite(c.closeTime) || c.closeTime >= now) continue;
     const valid = [c.time, c.open, c.high, c.low, c.close, c.volume].every(Number.isFinite)
       && c.time > 0 && c.open > 0 && c.high > 0 && c.low > 0 && c.close > 0 && c.volume >= 0
-      && c.time % intervalMs === 0 && c.closeTime === c.time + intervalMs - 1\n      && c.high >= Math.max(c.open, c.close, c.low) && c.low <= Math.min(c.open, c.close, c.high);
+      && c.time % intervalMs === 0 && c.closeTime === c.time + intervalMs - 1
+      && c.high >= Math.max(c.open, c.close, c.low) && c.low <= Math.min(c.open, c.close, c.high);
     if (!valid) { invalid++; continue; }
     if (unique.has(c.time)) duplicates++;
     unique.set(c.time, c);
