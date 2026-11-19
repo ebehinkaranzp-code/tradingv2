@@ -25,7 +25,7 @@ select,button{background:#0c1421;color:var(--text);border:1px solid var(--line);
 footer{padding:25px 0 10px;text-align:center;color:#718096;font-size:10px}
 @media(max-width:900px){.span-3,.span-4,.span-5,.span-7,.span-8{grid-column:span 6}.span-12{grid-column:span 12}.indicators{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:580px){header{padding:0 15px}main{padding:17px 13px}.topline{align-items:flex-start;flex-direction:column}.span-3,.span-4,.span-5,.span-7,.span-8,.span-12{grid-column:span 12}.chartwrap{height:230px}.status{font-size:0}.status:before{font-size:12px}}
-</style></head>
+.paper-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:13px}.paper-stat{background:#0b1421;border:1px solid #223047;border-radius:8px;padding:11px}.paper-stat span{display:block;color:var(--muted);font-size:10px}.paper-stat strong{display:block;font-size:18px;margin-top:5px}.paper-controls{display:flex;gap:9px;align-items:end;flex-wrap:wrap}.paper-controls label{display:grid;gap:5px;color:var(--muted);font-size:10px}.paper-controls input{width:145px;background:#0c1421;color:var(--text);border:1px solid var(--line);border-radius:7px;padding:9px 10px;font:inherit}.paper-buy{color:#8ee4c4;border-color:#28634e}.paper-sell{color:#ff9ca5;border-color:#70404a}.paper-status{min-height:18px;margin-top:9px;color:var(--muted);font-size:11px}.paper-warning{margin-bottom:13px;border:1px solid #725b2c;background:#2a2316;color:#f1cb7d;padding:9px 11px;border-radius:7px;font-size:11px}.paper-table-wrap{overflow:auto}.paper-table{width:100%;border-collapse:collapse;font-size:11px}.paper-table th,.paper-table td{text-align:left;padding:8px 6px;border-bottom:1px solid #1d2a3c}.paper-table th{color:var(--muted);font-weight:600}.paper-table td{white-space:nowrap}.paper-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.paper-actions button{font-size:11px;padding:7px 10px}@media(max-width:700px){.paper-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}</style></head>
 <body>
 <header><div class="brand"><div class="logo">T2</div><div>TRADING V2<small>MARKET INTELLIGENCE</small></div></div><div class="status" id="feedStatus">DATA SOURCE · CONNECTING</div></header>
 <main>
@@ -38,10 +38,28 @@ footer{padding:25px 0 10px;text-align:center;color:#718096;font-size:10px}
 <section class="card span-3"><div class="metric-label">VOLATILITY (ATR)</div><div class="metric" id="atr">—</div><div class="tiny">Normalized ATR · demo</div></section>
 <section class="card span-8"><div class="cardhead"><h2>Price structure</h2><span class="tag">Candles · EMA · bands</span></div><div class="chartwrap"><svg id="priceChart" viewBox="0 0 760 280" role="img" aria-label="Illustrative candlestick chart"></svg></div><div class="legend"><span><i class="dot" style="background:#42bd96"></i>Up candle</span><span><i class="dot" style="background:#ed7883"></i>Down candle</span><span><i class="dot" style="background:#e6b75d"></i>EMA 20</span><span><i class="dot" style="background:#5c9fbd"></i>Bollinger envelope</span></div></section>
 <section class="card span-4"><div class="cardhead"><h2>Confluence assessment</h2><span class="tag">0–100 evidence score</span></div><div class="score"><div class="ring"><strong id="score">—</strong></div><div><b id="scoreLabel">Waiting for validated data</b><p class="tiny">A rule-based technical alignment score, not a probability of profit.</p></div></div><div class="signal"><i class="signalmark" style="background:var(--green)"></i><div><b>Trend structure</b><p>Trend and momentum are calculated from the selected closed-candle dataset.</p></div></div><div class="signal"><i class="signalmark" style="background:var(--green)"></i><div><b>Momentum</b><p>RSI, MACD and EMA alignment are recalculated on each refresh.</p></div></div><div class="signal"><i class="signalmark" style="background:var(--amber)"></i><div><b>Volatility quality</b><p>ATR is calculated from the latest 14 closed candles.</p></div></div></section>
-<section class="card span-12"><div class="cardhead"><h2>Indicator monitor</h2><span class="tag">Illustrative calculations</span></div><div class="indicators"><div class="ind"><b>RSI · 14</b><strong id="rsi">—</strong><small>Relative momentum</small></div><div class="ind"><b>MACD · 12 / 26 / 9</b><strong id="macd">—</strong><small>Momentum change</small></div><div class="ind"><b>EMA · 20 / 50 / 200</b><strong id="ema">—</strong><small>Trend reference</small></div><div class="ind"><b>OBV</b><strong id="obv">—</strong><small>Volume direction</small></div></div></section>
+<section class="card span-12" id="paperTrading">
+<div class="cardhead"><h2>Demo trading simulator</h2><span class="tag">SIMULATION ONLY · NO REAL ORDERS</span></div>
+<div class="paper-warning">Virtual account only. Trades are simulated locally in this browser using the latest market price, with configurable trade size and simulated fees/slippage. No exchange account, API key, wallet, or real funds are connected.</div>
+<div class="paper-grid">
+ <div class="paper-stat"><span>VIRTUAL CASH · USDT</span><strong id="paperCash">$10,000.00</strong></div>
+ <div class="paper-stat"><span>ACCOUNT EQUITY</span><strong id="paperEquity">$10,000.00</strong></div>
+ <div class="paper-stat"><span>OPEN P/L</span><strong id="paperOpenPnl">$0.00</strong></div>
+ <div class="paper-stat"><span>REALIZED P/L</span><strong id="paperRealized">$0.00</strong></div>
+</div>
+<div class="paper-controls">
+ <label>TRADE SIZE · USDT<input id="paperSize" type="number" min="10" step="10" value="500"></label>
+ <button id="paperBuy" class="paper-buy" type="button" disabled>Simulate buy</button>
+ <button id="paperSell" class="paper-sell" type="button" disabled>Simulate sell</button>
+ <div class="spacer"></div><div class="paper-actions"><span class="tiny" id="paperPosition">No open position</span><button id="paperReset" type="button">Reset demo account</button></div>
+</div>
+<div class="paper-status" id="paperStatus">Waiting for validated market data.</div>
+<div class="paper-table-wrap"><table class="paper-table"><thead><tr><th>TIME</th><th>MARKET</th><th>SIDE</th><th>PRICE</th><th>QUANTITY</th><th>FEE</th><th>REALIZED P/L</th></tr></thead><tbody id="paperHistory"><tr><td colspan="7" class="tiny">No simulated trades yet.</td></tr></tbody></table></div>
+<div class="tiny" style="margin-top:9px">Simulation assumptions: 0.10% fee and 0.05% adverse slippage per side. Demo ledger is stored in this browser only and is separate from market-data storage.</div>
+</section><section class="card span-12"><div class="cardhead"><h2>Indicator monitor</h2><span class="tag">Illustrative calculations</span></div><div class="indicators"><div class="ind"><b>RSI · 14</b><strong id="rsi">—</strong><small>Relative momentum</small></div><div class="ind"><b>MACD · 12 / 26 / 9</b><strong id="macd">—</strong><small>Momentum change</small></div><div class="ind"><b>EMA · 20 / 50 / 200</b><strong id="ema">—</strong><small>Trend reference</small></div><div class="ind"><b>OBV</b><strong id="obv">—</strong><small>Volume direction</small></div></div></section>
 <section class="card span-7"><div class="cardhead"><h2>Multi-factor evidence</h2><span class="tag">Current demo snapshot</span></div><table class="table"><thead><tr><th>Factor</th><th>Reading</th><th>Contribution</th><th>Comment</th></tr></thead><tbody id="factorRows"><tr><td colspan="4">Waiting for validated market data…</td></tr></tbody></table></section>
 <section class="card span-5"><div class="cardhead"><h2>Research & validation</h2><span class="tag">Backtest workspace</span></div><div class="signal"><i class="signalmark" style="background:var(--amber)"></i><div><b>Historical test results</b><p>Connect a validated historical dataset before interpreting test results.</p></div></div><div class="signal"><i class="signalmark" style="background:var(--amber)"></i><div><b>Walk-forward validation</b><p>Pending out-of-sample dataset and parameter review.</p></div></div><div class="signal"><i class="signalmark" style="background:var(--amber)"></i><div><b>Data provenance</b><p>Feed status and source are shown in the header.</p></div></div><div class="note">Analysis-only interface. Market data is read from GitHub snapshots first, then public exchange endpoints directly from this browser, then the last valid local cache. No exchange keys or trading permissions are used. No orders are placed.</div></section>
-</div><footer>TRADING V2 · MARKET DATA FALLBACK ENABLED · ANALYTICS ONLY · NO ORDER EXECUTION</footer>
+</div><footer>TRADING V2 · ANALYSIS + LOCAL DEMO SIMULATOR · NO REAL ORDER EXECUTION</footer>
 </main>
 <script>
 const $=id=>document.getElementById(id);
@@ -118,6 +136,72 @@ function renderChart(candles){
  candles.forEach((c,i)=>{const xx=x(i),up=c.close>=c.open,top=y(Math.max(c.open,c.close)),bot=y(Math.min(c.open,c.close));out+='<line class="'+(up?'candle-up':'candle-down')+'" x1="'+xx+'" x2="'+xx+'" y1="'+y(c.high)+'" y2="'+y(c.low)+'" stroke-width="1.2"/><rect class="'+(up?'candle-up':'candle-down')+'" x="'+(xx-3.1)+'" y="'+top+'" width="6.2" height="'+Math.max(1.5,bot-top)+'" rx="1"/>';});
  out+='<path class="ema" d="'+line(fast)+'"/><text class="axis" x="'+L+'" y="'+(H-5)+'">'+candles.length+' closed candles</text><text class="axis" x="'+(W-R-35)+'" y="'+(H-5)+'">LATEST</text>';svg.innerHTML=out;
 }
+const PAPER_KEY='trading-v2-paper-account-v1',PAPER_FEE=0.001,PAPER_SLIPPAGE=0.0005;
+function freshPaper(){return {version:1,cash:10000,realized:0,positions:{},history:[]};}
+function loadPaper(){try{const p=JSON.parse(localStorage.getItem(PAPER_KEY));if(p?.version===1&&Number.isFinite(p.cash)&&p.positions&&Array.isArray(p.history))return p;}catch{}return freshPaper();}
+let paper=loadPaper(),paperMarkPrices={};
+function savePaper(){try{localStorage.setItem(PAPER_KEY,JSON.stringify(paper));}catch{$('paperStatus').textContent='Browser storage unavailable; demo changes may not persist after closing this page.';}}
+function paperFmt(v){return '
+ currentCandles=data.candles;const cs=currentCandles.map(c=>c.close),last=currentCandles.at(-1),first=cs[0],pct=(last.close/first-1)*100,fast=ema(cs,20),slow=ema(cs,50),r=rsi(cs),macd=ema(cs,12).at(-1)-ema(cs,26).at(-1);
+ paperMarkPrices[SYMBOLS[sym]]=last.close;renderPaper();renderChart(currentCandles);$('price').textContent='$'+last.close.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+ $('change').textContent=(pct>=0?'+':'')+pct.toFixed(2)+'%';$('change').className='metric '+(pct>=0?'positive':'negative');
+ const bias=last.close>slow.at(-1)&&r>52?'Bullish':last.close<slow.at(-1)&&r<48?'Bearish':'Neutral';$('bias').textContent=bias;$('bias').className='metric '+(bias==='Bullish'?'positive':bias==='Bearish'?'negative':'neutral');
+ const ranges=currentCandles.slice(-14).map(c=>c.high-c.low),atr=ranges.reduce((a,b)=>a+b,0)/ranges.length/last.close*100;$('atr').textContent=atr.toFixed(2)+'%';
+ $('rsi').textContent=r.toFixed(1);$('rsi').className=r>=70?'negative':r<=30?'positive':'neutral';$('macd').textContent=(macd>=0?'+':'')+macd.toFixed(2);$('ema').textContent=last.close>fast.at(-1)?'Above 20':'Below 20';
+ let obv=0;for(let i=1;i<currentCandles.length;i++)obv+=Math.sign(cs[i]-cs[i-1])*currentCandles[i].volume;$('obv').textContent=obv>=0?'Rising':'Falling';
+ const score=Math.round((last.close>fast.at(-1)?25:0)+(fast.at(-1)>slow.at(-1)?25:0)+(r>50?20:0)+(macd>0?20:0)+(atr<4?10:0));$('score').textContent=score;$('scoreLabel').textContent=score>=75?'Strong technical alignment':score>=50?'Mixed technical alignment':'Weak technical alignment';
+ const factors=[['Trend',last.close>slow.at(-1)?'Positive':'Negative',last.close>slow.at(-1)?'+20':'−10','Close vs EMA 50'],['Momentum',r>55?'Positive':r<45?'Negative':'Mixed',r>55?'+15':r<45?'−10':'+5','RSI '+r.toFixed(1)],['MACD',macd>0?'Positive':'Negative',macd>0?'+15':'−10','MACD '+macd.toFixed(2)],['Volume',obv>=0?'Positive':'Negative',obv>=0?'+10':'−5','OBV direction'],['Volatility',atr<4?'Normal':'Elevated',atr<4?'+10':'0','ATR '+atr.toFixed(2)+'%']];
+ $('factorRows').innerHTML=factors.map(f=>'<tr><td>'+f[0]+'</td><td class="'+(f[1]==='Positive'||f[1]==='Normal'?'positive':f[1]==='Negative'?'negative':'neutral')+'">'+f[1]+'</td><td>'+f[2]+'</td><td>'+f[3]+'</td></tr>').join('');
+ const badge=$('feedBadge'),status=$('feedStatus');badge.textContent=data.source.toUpperCase();badge.style.borderColor=data.source.includes('cache')?'#725b2c':'#28634e';badge.style.background=data.source.includes('cache')?'#2a2316':'#10271f';badge.style.color=data.source.includes('cache')?'#f1cb7d':'#79dfb5';status.textContent='DATA · '+data.source.toUpperCase();$('updatedAt').textContent='Snapshot: '+new Date(data.time).toLocaleString()+' · '+currentCandles.length+' closed candles';
+}
+async function refreshData(){
+ staleGithubSnapshot=null;
+ $('feedStatus').textContent='DATA · CONNECTING';$('feedBadge').textContent='FETCHING MARKET DATA…';$('updatedAt').textContent='Trying GitHub → Binance → Bybit → local cache';
+ const providers=[githubSource,binanceSource,bybitSource,krakenSource];let errors=[];
+ for(const provider of providers){try{const data=await provider();if(!validCandles(data.candles))throw new Error('Candle validation failed');try{localStorage.setItem(CACHE_PREFIX+SYMBOLS[sym]+':'+tf,JSON.stringify(data));}catch{}applyData(data);return;}catch(e){errors.push(e.message);}}
+ const cached=cachedSource(),fallback=[staleGithubSnapshot,cached].filter(Boolean).sort((a,b)=>Date.parse(b.time)-Date.parse(a.time))[0];
+ if(fallback){applyData(fallback);$('updatedAt').textContent+=' · Live providers unavailable; showing stale fallback data';return;}
+ $('paperBuy').disabled=true;$('paperSell').disabled=true;$('paperStatus').textContent='Demo trading disabled until valid market data is available.';
+ $('feedStatus').textContent='DATA · UNAVAILABLE';$('feedBadge').textContent='NO VALID MARKET DATA';$('updatedAt').textContent='All sources failed: '+errors.join(' | ');$('price').textContent='—';$('change').textContent='—';$('bias').textContent='Unavailable';$('atr').textContent='—';$('priceChart').innerHTML='<text class="axis" x="180" y="130">No validated market data available</text>';
+}
+document.querySelectorAll('[data-tf]').forEach(b=>b.addEventListener('click',()=>{tf=b.dataset.tf;document.querySelectorAll('[data-tf]').forEach(x=>x.classList.toggle('active',x===b));refreshData();}));
+$('symbol').addEventListener('change',e=>{sym=e.target.value;refreshData();});$('refreshData').addEventListener('click',refreshData);
+refreshData();setInterval(refreshData,60000);
+</script></body></html>+Number(v||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function paperPosition(){return paper.positions[SYMBOLS[sym]]||{qty:0,avg:0};}
+function renderPaper(){
+ const pos=paperPosition(),mark=paperMarkPrices[SYMBOLS[sym]]||currentCandles.at(-1)?.close||0,openPnl=mark&&pos.qty?(mark-pos.avg)*pos.qty:0;
+ const equity=paper.cash+Object.entries(paper.positions).reduce((sum,[s,p])=>sum+(p.qty||0)*(paperMarkPrices[s]||p.avg||0),0);
+ $('paperCash').textContent=paperFmt(paper.cash);$('paperEquity').textContent=paperFmt(equity);$('paperOpenPnl').textContent=paperFmt(openPnl);$('paperOpenPnl').className=openPnl>=0?'positive':'negative';$('paperRealized').textContent=paperFmt(paper.realized);$('paperRealized').className=paper.realized>=0?'positive':'negative';
+ $('paperPosition').textContent=pos.qty>0?('Position: '+pos.qty.toFixed(6)+' '+SYMBOLS[sym].replace('USDT','')+' · avg '+paperFmt(pos.avg)):'No open position in '+SYMBOLS[sym];
+ const canTrade=!!(mark>0&&currentCandles.length);$('paperBuy').disabled=!canTrade;$('paperSell').disabled=!canTrade||!(pos.qty>0);
+ $('paperHistory').innerHTML=paper.history.length?paper.history.slice(0,30).map(t=>'<tr><td>'+new Date(t.time).toLocaleString()+'</td><td>'+t.symbol+'</td><td class="'+(t.side==='BUY'?'positive':'negative')+'">'+t.side+'</td><td>'+paperFmt(t.price)+'</td><td>'+Number(t.qty).toFixed(6)+'</td><td>'+paperFmt(t.fee)+'</td><td class="'+(t.realized>=0?'positive':'negative')+'">'+(t.side==='SELL'?paperFmt(t.realized):'—')+'</td></tr>').join(''):'<tr><td colspan="7" class="tiny">No simulated trades yet.</td></tr>';
+}
+function paperTrade(side){
+ const symbol=SYMBOLS[sym],mark=paperMarkPrices[symbol]||currentCandles.at(-1)?.close,size=Number($('paperSize').value);
+ if(!Number.isFinite(mark)||mark<=0||!Number.isFinite(size)||size<10){$('paperStatus').textContent='Enter a valid trade size of at least 10 USDT.';return;}
+ const pos=paperPosition();
+ if(side==='BUY'){
+  const gross=size,fee=gross*PAPER_FEE,total=gross+fee;
+  if(total>paper.cash){$('paperStatus').textContent='Insufficient virtual cash for this simulated buy.';return;}
+  const fill=mark*(1+PAPER_SLIPPAGE),qty=gross/fill,oldCost=pos.qty*pos.avg,newQty=pos.qty+qty;
+  paper.cash-=total;paper.positions[symbol]={qty:newQty,avg:(oldCost+gross)/newQty};
+  paper.history.unshift({time:new Date().toISOString(),symbol,side,price:fill,qty,fee,realized:0});
+  $('paperStatus').textContent='Simulated BUY completed. No real order was sent.';
+ }else{
+  if(!pos.qty){$('paperStatus').textContent='There is no position to sell for this market.';return;}
+  const fill=mark*(1-PAPER_SLIPPAGE),qty=Math.min(pos.qty,size/fill),gross=qty*fill,fee=gross*PAPER_FEE,realized=(fill-pos.avg)*qty-fee;
+  paper.cash+=gross-fee;paper.realized+=realized;const left=pos.qty-qty;
+  if(left<=1e-10)delete paper.positions[symbol];else paper.positions[symbol]={qty:left,avg:pos.avg};
+  paper.history.unshift({time:new Date().toISOString(),symbol,side,price:fill,qty,fee,realized});
+  $('paperStatus').textContent='Simulated SELL completed. Realized demo P/L: '+paperFmt(realized)+'. No real order was sent.';
+ }
+ paper.history=paper.history.slice(0,100);savePaper();renderPaper();
+}
+$('paperBuy').addEventListener('click',()=>paperTrade('BUY'));
+$('paperSell').addEventListener('click',()=>paperTrade('SELL'));
+$('paperReset').addEventListener('click',()=>{if(!confirm('Reset the virtual account to 10,000 USDT and erase its simulated trade history?'))return;paper=freshPaper();savePaper();$('paperStatus').textContent='Demo account reset to 10,000 USDT. This did not affect any real account.';renderPaper();});
+renderPaper();
 function applyData(data){
  currentCandles=data.candles;const cs=currentCandles.map(c=>c.close),last=currentCandles.at(-1),first=cs[0],pct=(last.close/first-1)*100,fast=ema(cs,20),slow=ema(cs,50),r=rsi(cs),macd=ema(cs,12).at(-1)-ema(cs,26).at(-1);
  renderChart(currentCandles);$('price').textContent='$'+last.close.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
