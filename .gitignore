@@ -1,0 +1,10 @@
+/target
+/data
+.env
+.env.*
+!.env.example
+web/node_modules
+web/dist
+web/src/wasm/pkg
+web/src/wasm/frost-script
+*.log
