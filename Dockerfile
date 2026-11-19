@@ -36,7 +36,10 @@ COPY tradoor-source/scripts scripts
 COPY tradoor-source/signers signers
 COPY tradoor-source/web web
 COPY scripts/disable-live-trading.py /tmp/disable-live-trading.py
+COPY scripts/apply-research-engine.py /tmp/apply-research-engine.py
+COPY web/analysis-legacy.html /tmp/analysis-legacy.html
 RUN python3 /tmp/disable-live-trading.py /src/web
+RUN python3 /tmp/apply-research-engine.py /src/web /tmp/analysis-legacy.html
 RUN cargo build --release --locked -p tradoor-server -p tradoor-recorder -p tradoor-backfill
 RUN ./scripts/build-wasm.sh
 ARG SITE_URL=""
