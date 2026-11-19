@@ -1,0 +1,87 @@
+name: Build and deploy full Trading V2 terminal
+
+on:
+  push:
+    branches: [main, integration/tradoor-terminal-core]
+    paths:
+      - "vendor/tradoor"
+      - ".gitmodules"
+      - "scripts/prepare-tradoor.py"
+      - ".github/workflows/build-tradoor.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: trading-v2-terminal-pages
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  WASM_BINDGEN: "0.2.128"
+  BINARYEN: version_132
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Trading V2 and pinned Tradoor source
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: "1.95"
+          targets: wasm32-unknown-unknown
+      - name: Go toolchain for upstream signer build
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: vendor/tradoor/signers/lighter/go.mod
+          cache-dependency-path: vendor/tradoor/signers/lighter/go.sum
+      - name: Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: "2.9.6"
+      - name: Install wasm-bindgen and wasm-opt
+        run: |
+          curl -fsSL "https://github.com/wasm-bindgen/wasm-bindgen/releases/download/${WASM_BINDGEN}/wasm-bindgen-${WASM_BINDGEN}-x86_64-unknown-linux-musl.tar.gz" | sudo tar -xz -C /usr/local/bin --strip-components=1 "wasm-bindgen-${WASM_BINDGEN}-x86_64-unknown-linux-musl/wasm-bindgen"
+          curl -fsSL "https://github.com/WebAssembly/binaryen/releases/download/${BINARYEN}/binaryen-${BINARYEN}-x86_64-linux.tar.gz" | sudo tar -xz -C /usr/local/bin --strip-components=2 "binaryen-${BINARYEN}/bin/wasm-opt"
+      - name: Apply Trading V2 policy and static-host compatibility
+        run: python3 scripts/prepare-tradoor.py
+      - name: Rust tests
+        working-directory: vendor/tradoor
+        run: cargo test --workspace --exclude tradoor-wasm --locked
+      - name: Build browser engines
+        working-directory: vendor/tradoor
+        run: ./scripts/build-wasm.sh
+      - name: Install web dependencies
+        working-directory: vendor/tradoor/web
+        run: deno install
+      - name: Type check
+        working-directory: vendor/tradoor/web
+        run: deno task check
+      - name: Web tests
+        working-directory: vendor/tradoor/web
+        run: deno task test
+      - name: Build production web app
+        working-directory: vendor/tradoor/web
+        env:
+          VITE_BASE: /tradingv2/
+          SITE_URL: https://ebehinkaranzp-code.github.io/tradingv2/
+        run: deno task build
+      - name: Bundle size budget
+        working-directory: vendor/tradoor/web
+        run: deno task size
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: vendor/tradoor/web/dist
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
