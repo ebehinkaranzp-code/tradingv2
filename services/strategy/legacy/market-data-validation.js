@@ -7,7 +7,7 @@ function validateCandles(candles, options = {}) {
   const timeframeMs = TIMEFRAMES[timeframe];
 
   if (!timeframeMs) throw new TypeError('Unsupported timeframe; use 4h or 1d.');
-  if (!Number.isFinite(now) || now <= 0) throw new TypeError('A finite UTC-millisecond now value is required.');
+  if (!Number.isSafeInteger(now) || now <= 0) throw new TypeError('A safe integer UTC-millisecond now value is required.');
   if (!Number.isFinite(maxAgeMs) || maxAgeMs < 0) throw new TypeError('A non-negative maxAgeMs is required.');
   if (!Number.isInteger(minBars) || minBars < 1) throw new TypeError('minBars must be a positive integer.');
   if (!Array.isArray(candles) || candles.length < minBars) {
@@ -28,7 +28,7 @@ function validateCandles(candles, options = {}) {
     const close = Number(row.close);
     const volume = row.volume == null ? undefined : Number(row.volume);
 
-    if (![time, open, high, low, close].every(Number.isFinite)) {
+    if (!Number.isSafeInteger(time) || ![open, high, low, close].every(Number.isFinite)) {
       throw new TypeError(`Non-finite OHLC/time value at index ${i}.`);
     }
     if (time < 0 || [open, high, low, close].some(value => value <= 0)) {
