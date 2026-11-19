@@ -1,0 +1,55 @@
+name: Publish market data snapshots
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+  push:
+    branches:
+      - work/rust-risk-core
+    paths:
+      - "scripts/fetch_market_data.py"
+      - "web/**"
+      - ".github/workflows/market-data.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: market-data-snapshots
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - name: Validate collector and dashboard JavaScript
+        run: |
+          python -m py_compile scripts/fetch_market_data.py
+          python - <<'PY'
+          from pathlib import Path
+          html = Path("web/index.html").read_text(encoding="utf-8")
+          start = html.find("<script>")
+          end = html.find("</script>", start)
+          if start < 0 or end < 0:
+              raise SystemExit("Dashboard inline script was not found")
+          Path("/tmp/trading-v2-dashboard.js").write_text(html[start + 8:end], encoding="utf-8")
+          PY
+          node --check /tmp/trading-v2-dashboard.js
+      - name: Fetch and validate public candles
+        run: python scripts/fetch_market_data.py
+      - name: Publish snapshots to this repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f data/market
+          if git diff --cached --quiet; then
+            echo "No market snapshot changes."
+          else
+            git commit -m "chore(data): refresh market snapshots"
+            git push
+          fi

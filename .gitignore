@@ -1,10 +1,6 @@
-/target
-/data
+/target/
 .env
 .env.*
-!.env.example
-web/node_modules
-web/dist
-web/src/wasm/pkg
-web/src/wasm/frost-script
+data/
 *.log
+dist/
