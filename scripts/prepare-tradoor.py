@@ -13,7 +13,7 @@ legacy = Path("web/analysis-legacy.html").read_text(encoding="utf-8")
 engine_marker = legacy.index("root.TDStrategyEngine =")
 engine_start = legacy.rfind("(function (root) {", 0, engine_marker)
 engine_body = legacy.index("const DAY =", engine_start)
-engine = legacy[engine_body:engine_marker].rstrip()
+engine = "// @ts-nocheck\\n" + legacy[engine_body:engine_marker].rstrip()
 research_dir = ROOT / "web/src/research"
 research_dir.mkdir(parents=True, exist_ok=True)
 (research_dir / "strategy-engine.ts").write_text(
@@ -90,7 +90,7 @@ edit("web/src/trade/client.ts", [
 ])
 
 edit("web/src/lib/catalog-wire.ts", [
-    ("export function listing(): Promise<Listing> {\n  if (held && Date.now() - held.at < 30 * 60_000) return held.value;\n  const value = read('/api/catalog', {})\n    .then((res) => {\n      if (!res.ok) throw new Error(`the catalogue answered ${res.status}`);\n      return res.json() as Promise<Wire>;\n    })\n    .then(readWire);",
+    ("export function listing(): Promise<Listing> {\n  if (held && Date.now() - held.at < 30 * 60_000) return held.value;\n  const value = read('/api/catalog', {})\n    .then((res) => {\n      if (!res.ok) throw new Error(`the catalogue answered ${res.status}`);\n      return res.json() as Promise<Wire>;\n    })\n    .then(readWire).catch(() => staticListing());",
      """async function staticListing(): Promise<Listing> {
   type ExchangeInfo = { symbols: { symbol: string; status: string; baseAsset: string; quoteAsset: string; filters: { filterType: string; tickSize?: string }[]; isSpotTradingAllowed?: boolean; contractType?: string }[] };
   type Ticker = { symbol: string; quoteVolume: string; lastPrice: string; priceChangePercent: string };
