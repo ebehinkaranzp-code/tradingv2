@@ -481,9 +481,10 @@ replace("src/engine/intervals.ts",
 "export function restInterval(venue: Venue, interval: string): string {\n  if (interval === '1w' && serves(venue, '1d')) return '1d';\n  if (serves(venue, interval)) return interval;")
 interval_test = '''import { restInterval } from './intervals.ts';
 
-Deno.test('Binance weekly candles are folded from daily UTC history', () => {
-  if (restInterval('binance-spot', '1w') !== '1d') throw new Error('Binance Spot weekly must be derived from daily bars');
-  if (restInterval('binance-perp', '1w') !== '1d') throw new Error('Binance Perpetual weekly must be derived from daily bars');
+Deno.test('weekly candles use daily UTC history when the venue provides it', () => {
+  for (const venue of ['binance-spot', 'binance-perp', 'okx-spot', 'hyperliquid-perp'] as const) {
+    if (restInterval(venue, '1w') !== '1d') throw new Error(venue + ' weekly must be derived from daily bars');
+  }
 });
 '''
 (web / "src/engine/intervals.test.ts").write_text(interval_test, encoding="utf-8")
