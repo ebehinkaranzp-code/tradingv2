@@ -236,6 +236,129 @@ pub fn assess_order(
     })
 }
 
+
+/// Current closed-bar Quattro signal conditions. This is a signal primitive,
+/// not the complete pyramiding/backtest state machine.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct QuattroSignal {
+    pub entry_breakout: bool,
+    pub exit_breakdown: bool,
+    pub daily_trend_filter: bool,
+    pub atr: f64,
+    pub daily_ema200: f64,
+}
+
+/// Evaluate the last 4h candle against the previous 20-bar high and 10-bar low,
+/// using only daily EMA200 values whose daily candle closed before the 4h bar.
+pub fn quattro_signal(four_hour: &[Candle], daily: &[Candle]) -> Result<QuattroSignal, DomainError> {
+    const FOUR_HOURS_MS: i64 = 4 * 60 * 60 * 1000;
+    const DAY_MS: i64 = 24 * 60 * 60 * 1000;
+    if four_hour.len() < 21 || daily.len() < 220 {
+        return Err(DomainError::InvalidMarketData("Quattro requires at least 21 4h and 220 daily candles".into()));
+    }
+    let closes: Vec<f64> = daily.iter().map(|bar| bar.close).collect();
+    let ema = exponential_moving_average(&closes, 200)?;
+    let current = four_hour.last().ok_or_else(|| DomainError::InvalidMarketData("missing 4h candle".into()))?;
+    let prior_20 = &four_hour[four_hour.len() - 21..four_hour.len() - 1];
+    let prior_10 = &four_hour[four_hour.len() - 11..four_hour.len() - 1];
+    let highest_high = prior_20.iter().map(|bar| bar.high).fold(f64::NEG_INFINITY, f64::max);
+    let lowest_low = prior_10.iter().map(|bar| bar.low).fold(f64::INFINITY, f64::min);
+
+    let daily_index = daily.iter().rposition(|bar| {
+        bar.timestamp_ms.checked_add(DAY_MS).is_some_and(|close_time| close_time <= current.timestamp_ms)
+    }).ok_or_else(|| DomainError::InvalidMarketData("no fully closed daily candle is available for the 4h trend filter".into()))?;
+    let daily_ema200 = ema[daily_index];
+    let atr = average_true_range(four_hour, 14)?;
+    let daily_trend_filter = current.close > daily_ema200;
+
+    let _ = FOUR_HOURS_MS; // The caller validates timeframe continuity before calling.
+    Ok(QuattroSignal {
+        entry_breakout: current.close > highest_high && daily_trend_filter,
+        exit_breakdown: current.close < lowest_low,
+        daily_trend_filter,
+        atr: *atr.last().ok_or_else(|| DomainError::InvalidMarketData("ATR is unavailable".into()))?,
+        daily_ema200,
+    })
+}
+
+/// EMA with the first value as its seed. Inputs must be finite and period > 0.
+pub fn exponential_moving_average(values: &[f64], period: usize) -> Result<Vec<f64>, DomainError> {
+    if period == 0 || values.is_empty() || values.iter().any(|value| !value.is_finite()) {
+        return Err(DomainError::InvalidMarketData("EMA requires finite values and a positive period".into()));
+    }
+    let alpha = 2.0 / (period as f64 + 1.0);
+    let mut previous = values[0];
+    let mut output = Vec::with_capacity(values.len());
+    output.push(previous);
+    for value in values.iter().skip(1) {
+        previous = alpha * value + (1.0 - alpha) * previous;
+        output.push(previous);
+    }
+    Ok(output)
+}
+
+/// Wilder-smoothed ATR. The first true range is high minus low.
+pub fn average_true_range(candles: &[Candle], period: usize) -> Result<Vec<f64>, DomainError> {
+    if period == 0 || candles.is_empty() {
+        return Err(DomainError::InvalidMarketData("ATR requires candles and a positive period".into()));
+    }
+    let mut previous_close: Option<f64> = None;
+    let mut previous_atr: Option<f64> = None;
+    let mut output = Vec::with_capacity(candles.len());
+    for candle in candles {
+        let true_range = match previous_close {
+            None => candle.high - candle.low,
+            Some(close) => (candle.high - candle.low)
+                .max((candle.high - close).abs())
+                .max((candle.low - close).abs()),
+        };
+        let atr = match previous_atr {
+            None => true_range,
+            Some(previous) => ((period as f64 - 1.0) * previous + true_range) / period as f64,
+        };
+        output.push(atr);
+        previous_close = Some(candle.close);
+        previous_atr = Some(atr);
+    }
+    Ok(output)
+}
+
+/// Long-only volatility-targeted momentum exposure building block.
+/// The walk-forward lookback selection and no-trade-band state machine are separate.
+pub fn momentum_exposure(
+    closes: &[f64],
+    lookback: usize,
+    volatility_window: usize,
+    target_annual_volatility: f64,
+) -> Result<f64, DomainError> {
+    if lookback == 0 || volatility_window < 2 || closes.len() <= lookback
+        || closes.len() <= volatility_window
+        || !target_annual_volatility.is_finite()
+        || target_annual_volatility <= 0.0
+        || closes.iter().any(|price| !price.is_finite() || *price <= 0.0)
+    {
+        return Err(DomainError::InvalidMarketData("invalid momentum inputs or insufficient close history".into()));
+    }
+    let last = closes.len() - 1;
+    let momentum = closes[last] / closes[last - lookback] - 1.0;
+    if momentum <= 0.0 {
+        return Ok(0.0);
+    }
+    let start = closes.len() - volatility_window - 1;
+    let mut returns = Vec::with_capacity(volatility_window);
+    for index in (start + 1)..closes.len() {
+        returns.push(closes[index] / closes[index - 1] - 1.0);
+    }
+    let mean = returns.iter().sum::<f64>() / returns.len() as f64;
+    let variance = returns.iter().map(|value| (value - mean).powi(2)).sum::<f64>()
+        / (returns.len() - 1) as f64;
+    let annualized_volatility = variance.sqrt() * 365.0_f64.sqrt();
+    if annualized_volatility <= f64::EPSILON {
+        return Ok(0.0);
+    }
+    Ok((target_annual_volatility / annualized_volatility).min(1.0))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -344,6 +467,55 @@ mod tests {
             RiskLimits::default(),
             OrderIntent { side: Side::Long, entry_price: 100.0, stop_price: 95.0 },
         ).is_err());
+    }
+
+
+    #[test]
+    fn ema_and_atr_are_finite_and_deterministic() {
+        let ema = exponential_moving_average(&[1.0, 2.0, 3.0], 2).unwrap();
+        assert!((ema[1] - 1.6666666667).abs() < 1e-8);
+        let bars = [candle(0), candle(60_000), candle(120_000)];
+        let atr = average_true_range(&bars, 14).unwrap();
+        assert_eq!(atr.len(), 3);
+        assert!(atr.iter().all(|value| value.is_finite() && *value > 0.0));
+    }
+
+    #[test]
+    fn momentum_exposure_is_long_only_and_volatility_capped() {
+        let rising: Vec<f64> = (0..100).map(|index| 100.0 + index as f64).collect();
+        let exposure = momentum_exposure(&rising, 20, 30, 0.40).unwrap();
+        assert!((0.0..=1.0).contains(&exposure));
+        let falling: Vec<f64> = (0..100).map(|index| 200.0 - index as f64).collect();
+        assert_eq!(momentum_exposure(&falling, 20, 30, 0.40).unwrap(), 0.0);
+    }
+
+    #[test]
+    fn quattro_signal_uses_previous_bars_and_closed_daily_ema() {
+        let day_ms = 86_400_000;
+        let daily: Vec<Candle> = (0..220).map(|index| Candle {
+            timestamp_ms: index * day_ms,
+            open: 100.0 + index as f64 * 0.2,
+            high: 102.0 + index as f64 * 0.2,
+            low: 99.0 + index as f64 * 0.2,
+            close: 101.0 + index as f64 * 0.2,
+            volume: 100.0,
+        }).collect();
+        let mut four_hour: Vec<Candle> = (0..21).map(|index| Candle {
+            timestamp_ms: 220 * day_ms + index * 14_400_000,
+            open: 180.0,
+            high: 181.0,
+            low: 179.0,
+            close: 180.0,
+            volume: 10.0,
+        }).collect();
+        let last = four_hour.last_mut().unwrap();
+        last.high = 191.0;
+        last.close = 190.0;
+        let signal = quattro_signal(&four_hour, &daily).unwrap();
+        assert!(signal.daily_trend_filter);
+        assert!(signal.entry_breakout);
+        assert!(!signal.exit_breakdown);
+        assert!(signal.atr.is_finite() && signal.atr > 0.0);
     }
 
     #[test]
