@@ -349,6 +349,29 @@ replace("src/workspace/model.test.ts",
 # Folded Binance weeks are accepted only when all seven UTC daily candles exist.
 core_timeframe = web.parent / "crates/core/src/timeframe.rs"
 core_source = core_timeframe.read_text(encoding="utf-8")
+old_live = """    pub fn live_interval(self) -> Interval {
+        let source = self.source();
+        if source.group == 1 { source.interval } else { self.history_base() }
+    }"""
+new_live = """    pub fn live_interval(self) -> Interval {
+        if self == ChartTimeframe::W1 { return Interval::D1; }
+        let source = self.source();
+        if source.group == 1 { source.interval } else { self.history_base() }
+    }"""
+if old_live in core_source:
+    core_source = core_source.replace(old_live, new_live, 1)
+elif new_live not in core_source:
+    raise SystemExit("Could not locate Rust weekly live interval")
+core_source = core_source.replace(
+    "assert_eq!(ChartTimeframe::W1.live_interval(), Interval::W1);",
+    "assert_eq!(ChartTimeframe::W1.live_interval(), Interval::D1);",
+    1,
+)
+core_source = core_source.replace(
+    "/// A bucket missing bars inside it is kept — a gap in\n/// the tape is not a reason to hide the period.",
+    "/// Weekly buckets folded from daily history require all seven consecutive UTC\n/// daily candles; other intervals preserve partial buckets.",
+    1,
+)
 if "weekly_buckets_folded_from_daily_require_seven_complete_utc_bars" not in core_source:
     old_start = "    let mut out: Vec<Candle> = Vec::new();\n    for candle in source {"
     new_start = """    let daily_week = tf == ChartTimeframe::W1
@@ -452,10 +475,10 @@ if "weekly_buckets_folded_from_daily_require_seven_complete_utc_bars" not in cor
     core_source = core_source[:pos] + test + core_source[pos:]
     core_timeframe.write_text(core_source, encoding="utf-8")
 
-# For Binance, build chart weeks from seven complete UTC daily candles, never exchange-native weekly bars.
+# Build weekly chart bars from seven complete UTC daily candles wherever the venue supplies daily history.
 replace("src/engine/intervals.ts",
 "export function restInterval(venue: Venue, interval: string): string {\n  if (serves(venue, interval)) return interval;",
-"export function restInterval(venue: Venue, interval: string): string {\n  if (interval === '1w' && (venue === 'binance-spot' || venue === 'binance-perp')) return '1d';\n  if (serves(venue, interval)) return interval;")
+"export function restInterval(venue: Venue, interval: string): string {\n  if (interval === '1w' && serves(venue, '1d')) return '1d';\n  if (serves(venue, interval)) return interval;")
 interval_test = '''import { restInterval } from './intervals.ts';
 
 Deno.test('Binance weekly candles are folded from daily UTC history', () => {
