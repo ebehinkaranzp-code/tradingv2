@@ -18,7 +18,7 @@ Strict candle validation
         |
         v
 Feature / indicator calculations
-  - EMA / Wilder ATR
+  - EMA / Wilder ATR / RSI / MACD / Bollinger Bands / OBV
   - trend, breakout, momentum and volatility features
   - multi-timeframe context
         |
@@ -50,6 +50,7 @@ Research reports and analytical UI (planned)
 | JS candle validation | Present | Rejects stale, unfinished, gapped or malformed bars |
 | Rust candle validation | Present | Fail-closed data boundary for Rust callers |
 | Rust EMA / ATR | Present | Deterministic indicator primitives |
+| Rust technical indicators | Initial implementation | Wilder RSI, MACD, Bollinger Bands and OBV with explicit warm-up handling |
 | Rust Quattro signal | Partial | Breakout/exit conditions and completed-daily EMA200 filter; not the full pyramiding state machine |
 | Rust momentum exposure | Partial | Long-only volatility-targeted exposure; not walk-forward parameter selection |
 | Rust signal assessment | Initial implementation | Weighted trend/momentum/breakout/volume/timeframe evidence with volatility-quality gate; configurable weights, not calibrated |
