@@ -335,6 +335,17 @@ replace("src/app/App.tsx", "<span>{tl('Training')}</span>", "<span>{tl('Paper Tr
 replace("src/workspace/Layout.tsx", "{tl('Training')}", "{tl('Paper Trading')}")
 replace("src/training/Training.tsx", "{tl('Training')}", "{tl('Paper Trading')}")
 
+# Keep upstream workspace regression expectations in step with the Research Lab default tab.
+replace("src/workspace/model.test.ts",
+"['alerts', 'watchlist', 'flow', 'signals']",
+"['alerts', 'watchlist', 'flow', 'signals', 'research']")
+replace("src/workspace/model.test.ts",
+"['watchlist', 'flow', 'signals', 'alerts']",
+"['watchlist', 'flow', 'signals', 'research', 'alerts']")
+replace("src/workspace/model.test.ts",
+"['watchlist', 'values', 'flow', 'signals', 'alerts']",
+"['watchlist', 'values', 'flow', 'signals', 'research', 'alerts']")
+
 # Add a first-class Research Lab panel to the existing terminal workspace.
 replace("src/workspace/model.ts",
 "export type PanelType = 'chart' | 'watchlist' | 'tpo' | 'values' | 'liquidations' | 'flow' | 'signals' | 'alerts' | 'dom' | 'tape' | 'econ' | 'trade' | 'positions';",
