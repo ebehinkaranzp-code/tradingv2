@@ -26,7 +26,7 @@ if not panel_match:
 panel_items = [item.strip() for item in panel_match.group(1).split(",") if item.strip()]
 safe_items = [item for item in panel_items if item.strip("'\\\"") not in {"trade", "positions"}]
 if safe_items != panel_items:
-    model_source = model_source[:panel_match.start(1)] + " ".join(safe_items) + model_source[panel_match.end(1):]
+    model_source = model_source[:panel_match.start(1)] + ", ".join(safe_items) + model_source[panel_match.end(1):]
     model.write_text(model_source, encoding="utf-8")
 replace("src/workspace/Layout.tsx", "const Trading = lazy(() => import('../panels/trading'));\n", "")
 replace("src/workspace/Layout.tsx",
