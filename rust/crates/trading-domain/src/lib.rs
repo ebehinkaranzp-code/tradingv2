@@ -169,7 +169,7 @@ pub fn assess_order(
         return Err(DomainError::InvalidConfig("fee_rate must be in [0, 0.02]"));
     }
 
-    let state_values = [portfolio.equity, portfolio.session_start_equity, portfolio.peak_equity, portfolio.open_notional];
+    let state_values = [portfolio.equity, portfolio.session_start_equity, portfolio.peak_equity, portfolio.open_notional, portfolio.open_risk];
     if state_values.iter().any(|value| !value.is_finite())
         || portfolio.equity <= 0.0
         || portfolio.session_start_equity <= 0.0
@@ -277,7 +277,7 @@ mod tests {
     }
 
     fn portfolio() -> PortfolioState {
-        PortfolioState { equity: 10_000.0, session_start_equity: 10_000.0, peak_equity: 10_000.0, open_notional: 0.0 }
+        PortfolioState { equity: 10_000.0, session_start_equity: 10_000.0, peak_equity: 10_000.0, open_notional: 0.0, open_risk: 0.0 }
     }
 
     #[test]
