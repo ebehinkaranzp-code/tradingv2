@@ -1,0 +1,121 @@
+name: Trading V2 full terminal build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".gitmodules"
+      - "tradoor-source"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "Dockerfile"
+      - "scripts/**"
+      - ".github/workflows/full-terminal.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - ".gitmodules"
+      - "tradoor-source"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "Dockerfile"
+      - "scripts/**"
+      - ".github/workflows/full-terminal.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  CARGO_TERM_COLOR: always
+  WASM_BINDGEN: "0.2.128"
+  BINARYEN: version_132
+
+jobs:
+  verify:
+    name: Verify complete analysis terminal
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.95"
+          targets: wasm32-unknown-unknown
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: "2.9.6"
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: tradoor-source/signers/lighter/go.mod
+          cache-dependency-path: tradoor-source/signers/lighter/go.sum
+
+      - name: Install WASM tooling
+        run: |
+          curl -fsSL "https://github.com/wasm-bindgen/wasm-bindgen/releases/download/${WASM_BINDGEN}/wasm-bindgen-${WASM_BINDGEN}-x86_64-unknown-linux-musl.tar.gz" \
+            | sudo tar -xz -C /usr/local/bin --strip-components=1 "wasm-bindgen-${WASM_BINDGEN}-x86_64-unknown-linux-musl/wasm-bindgen"
+          curl -fsSL "https://github.com/WebAssembly/binaryen/releases/download/${BINARYEN}/binaryen-${BINARYEN}-x86_64-linux.tar.gz" \
+            | sudo tar -xz -C /usr/local/bin --strip-components=2 "binaryen-${BINARYEN}/bin/wasm-opt"
+
+      - name: Apply research-only safety profile
+        run: python3 scripts/disable-live-trading.py tradoor-source/web
+
+      - name: Rust tests
+        working-directory: tradoor-source
+        run: cargo test --workspace --exclude tradoor-wasm --locked
+
+      - name: Build browser engines
+        working-directory: tradoor-source
+        run: ./scripts/build-wasm.sh
+
+      - name: Web dependencies
+        working-directory: tradoor-source/web
+        run: deno install
+
+      - name: Web type check
+        working-directory: tradoor-source/web
+        run: deno task check
+
+      - name: Web tests
+        working-directory: tradoor-source/web
+        run: deno task test
+
+      - name: Build production web app
+        working-directory: tradoor-source/web
+        env:
+          SITE_URL: https://ebehinkaranzp-code.github.io
+        run: deno task build --base=/tradingv2/
+
+      - name: Build complete server image
+        run: docker build --tag tradingv2:ci .
+
+  publish:
+    name: Publish server image
+    needs: verify
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and publish
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
+            ghcr.io/${{ github.repository }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

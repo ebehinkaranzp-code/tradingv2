@@ -1,21 +1,13 @@
-# One image for tradoor-server, tradoor-recorder and tradoor-backfill, with the
-# web app built in and served by nginx or the server.
-#
-#   docker build -t tradoor:latest .
-#
-# Dependencies compile in their own layer (cargo-chef), so a change to tradoor's
-# code rebuilds in minutes when that layer is cached, as it is in CI. Written for
-# the classic builder too, so it needs no BuildKit features.
-
+# Full Trading V2 image: Tradoor's pinned Rust/WebAssembly/SolidJS source,
+# with live exchange trading disabled by scripts/disable-live-trading.py.
 FROM denoland/deno:bin-2.9.6 AS deno
 
 FROM rust:1.95-slim-trixie AS toolchain
 ARG WASM_BINDGEN=0.2.128
 ARG BINARYEN=version_132
 ARG CARGO_CHEF=0.1.78
-# cmake and a C++ compiler build aws-lc for rustls; curl fetches the WASM tools.
 RUN apt-get update \
- && apt-get install -y --no-install-recommends ca-certificates curl cmake g++ make pkg-config \
+ && apt-get install -y --no-install-recommends ca-certificates curl cmake g++ make pkg-config perl golang-go python3 \
  && rm -rf /var/lib/apt/lists/*
 RUN rustup target add wasm32-unknown-unknown \
  && curl -fsSL "https://github.com/wasm-bindgen/wasm-bindgen/releases/download/${WASM_BINDGEN}/wasm-bindgen-${WASM_BINDGEN}-x86_64-unknown-linux-musl.tar.gz" \
@@ -27,27 +19,28 @@ COPY --from=deno /deno /usr/local/bin/deno
 WORKDIR /src
 
 FROM toolchain AS planner
-COPY Cargo.toml Cargo.lock ./
-COPY crates crates
-COPY bins bins
+COPY tradoor-source/Cargo.toml tradoor-source/Cargo.lock ./
+COPY tradoor-source/crates crates
+COPY tradoor-source/bins bins
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM toolchain AS build
-# Dependencies only: reused until Cargo.lock or a manifest changes.
 COPY --from=planner /src/recipe.json recipe.json
 RUN cargo chef cook --release --locked --recipe-path recipe.json -p tradoor-server -p tradoor-recorder -p tradoor-backfill \
  && cargo chef cook --profile wasm --locked --target wasm32-unknown-unknown --recipe-path recipe.json -p tradoor-wasm
-COPY web/package.json web/deno.json web/deno.lock web/
+COPY tradoor-source/web/package.json tradoor-source/web/deno.json tradoor-source/web/deno.lock ./web/
 RUN cd web && deno install
-COPY Cargo.toml Cargo.lock ./
-COPY crates crates
-COPY bins bins
-COPY migrations migrations
-COPY scripts scripts
-COPY web web
+COPY tradoor-source/Cargo.toml tradoor-source/Cargo.lock ./
+COPY tradoor-source/crates crates
+COPY tradoor-source/bins bins
+COPY tradoor-source/migrations migrations
+COPY tradoor-source/scripts scripts
+COPY tradoor-source/signers signers
+COPY tradoor-source/web web
+COPY scripts/disable-live-trading.py /tmp/disable-live-trading.py
+RUN python3 /tmp/disable-live-trading.py /src/web
 RUN cargo build --release --locked -p tradoor-server -p tradoor-recorder -p tradoor-backfill
 RUN ./scripts/build-wasm.sh
-# The site's public address, for its canonical URL, preview image and sitemap (web/site.ts).
 ARG SITE_URL=""
 RUN cd web && SITE_URL="${SITE_URL}" deno task build
 
