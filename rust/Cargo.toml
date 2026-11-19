@@ -1,8 +1,0 @@
-[workspace]
-resolver = "2"
-members = ["crates/trading-domain"]
-
-[workspace.package]
-edition = "2021"
-license = "AGPL-3.0-only"
-rust-version = "1.75"
