@@ -63,6 +63,10 @@ const paperStart = source.indexOf('function newPaperAccount(');
 const paperEnd = source.indexOf('\nfunction renderPaper', paperStart);
 assert.ok(paperStart >= 0 && paperEnd > paperStart, 'paper accounting helpers missing');
 const paper = vm.runInNewContext(source.slice(paperStart, paperEnd) + '; ({newPaperAccount, normalizePaperAccount, applyPaperFill})');
+const localArrayStart = source.indexOf('function loadLocalArray(');
+const localArrayEnd = source.indexOf('\nfunction newPaperAccount', localArrayStart);
+assert.ok(localArrayStart >= 0 && localArrayEnd > localArrayStart, 'local array loader missing');
+const localArrayLoader = vm.runInNewContext(source.slice(localArrayStart, localArrayEnd) + '; loadLocalArray');
 
 test('CSV parser supports comma, semicolon, tab and quoted cells', () => {
   for (const delimiter of [',', ';', '\t']) {
@@ -178,4 +182,15 @@ test('paper fills reject invalid orders and insufficient virtual cash', () => {
   assert.equal(paper.applyPaperFill(account, 'BTCUSDT', 'BUY', 100, -1).ok, false);
   assert.equal(paper.applyPaperFill(account, 'BTCUSDT', 'BUY', 1000000, 1).reason, 'Insufficient virtual cash');
   assert.equal(paper.applyPaperFill(account, 'BTCUSDT', 'SELL', 100, 1).reason, 'No simulated position to reduce');
+});
+
+test('malformed or non-array local browser state safely falls back to an empty array', () => {
+  const malformed = vm.runInNewContext(source.slice(localArrayStart, localArrayEnd) + '; loadLocalArray', {
+    localStorage: {getItem: () => '{not-json'}
+  });
+  const wrongShape = vm.runInNewContext(source.slice(localArrayStart, localArrayEnd) + '; loadLocalArray', {
+    localStorage: {getItem: () => '{"unexpected":true}'}
+  });
+  assert.deepEqual(Array.from(malformed('drawings')), []);
+  assert.deepEqual(Array.from(wrongShape('alerts')), []);
 });
