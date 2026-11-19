@@ -27,7 +27,7 @@ A local Python coding agent controlled by a Microsoft Edge extension and connect
 - The backend connects only to the configured OpenAI-compatible endpoint; by default this is Jan on localhost.
 - The backend binds only to 127.0.0.1.
 - File operations are confined to the configured repository and block common secret files.
-- The agent can edit project text files and run only fixed validation profiles: git status, pytest, cargo test, Deno check/test/build.
+- The agent can edit project text files and run only fixed validation profiles that exist in this repository: Git status, the Node dashboard test suite, Python compilation, extension JavaScript syntax, and extension manifest JSON validation. Rust and Deno build profiles are intentionally not offered because their source/configuration trees are not present in this branch.
 - It cannot run arbitrary shell commands, commit, push, merge, deploy, change GitHub settings or place trades.
 - Each run is capped at seven hours. Stop is checked between model/tool calls; an in-flight model request or test may take time to finish.
 - Review all changes before committing or publishing.
