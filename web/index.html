@@ -137,13 +137,13 @@ function renderChart(candles){
  out+='<path class="ema" d="'+line(fast)+'"/><text class="axis" x="'+L+'" y="'+(H-5)+'">'+candles.length+' closed candles</text><text class="axis" x="'+(W-R-35)+'" y="'+(H-5)+'">LATEST</text>';svg.innerHTML=out;
 }
 const PAPER_KEY='trading-v2-paper-account-v1',PAPER_FEE=0.001,PAPER_SLIPPAGE=0.0005;
-function freshPaper(){return {version:1,cash:10000,realized:0,positions:{},history:[]};}
-function loadPaper(){try{const p=JSON.parse(localStorage.getItem(PAPER_KEY));if(p?.version===1&&Number.isFinite(p.cash)&&p.positions&&Array.isArray(p.history))return p;}catch{}return freshPaper();}
+function freshPaper(){return {version:1,cash:10000,realized:0,positions:{},marks:{},history:[]};}
+function loadPaper(){try{const p=JSON.parse(localStorage.getItem(PAPER_KEY));if(p?.version===1&&Number.isFinite(p.cash)&&p.positions&&Array.isArray(p.history)){p.marks=p.marks||{};return p;}}catch{}return freshPaper();}
 let paper=loadPaper(),paperMarkPrices={};
 function savePaper(){try{localStorage.setItem(PAPER_KEY,JSON.stringify(paper));}catch{$('paperStatus').textContent='Browser storage unavailable; demo changes may not persist after closing this page.';}}
 function paperFmt(v){return '
  currentCandles=data.candles;const cs=currentCandles.map(c=>c.close),last=currentCandles.at(-1),first=cs[0],pct=(last.close/first-1)*100,fast=ema(cs,20),slow=ema(cs,50),r=rsi(cs),macd=ema(cs,12).at(-1)-ema(cs,26).at(-1);
- paperMarkPrices[SYMBOLS[sym]]=last.close;renderPaper();renderChart(currentCandles);$('price').textContent='$'+last.close.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+ paperMarkPrices[SYMBOLS[sym]]=last.close;paper.marks[SYMBOLS[sym]]=last.close;savePaper();renderPaper();renderChart(currentCandles);$('price').textContent='$'+last.close.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
  $('change').textContent=(pct>=0?'+':'')+pct.toFixed(2)+'%';$('change').className='metric '+(pct>=0?'positive':'negative');
  const bias=last.close>slow.at(-1)&&r>52?'Bullish':last.close<slow.at(-1)&&r<48?'Bearish':'Neutral';$('bias').textContent=bias;$('bias').className='metric '+(bias==='Bullish'?'positive':bias==='Bearish'?'negative':'neutral');
  const ranges=currentCandles.slice(-14).map(c=>c.high-c.low),atr=ranges.reduce((a,b)=>a+b,0)/ranges.length/last.close*100;$('atr').textContent=atr.toFixed(2)+'%';
@@ -171,7 +171,7 @@ refreshData();setInterval(refreshData,60000);
 function paperPosition(){return paper.positions[SYMBOLS[sym]]||{qty:0,avg:0};}
 function renderPaper(){
  const pos=paperPosition(),mark=paperMarkPrices[SYMBOLS[sym]]||currentCandles.at(-1)?.close||0,openPnl=mark&&pos.qty?(mark-pos.avg)*pos.qty:0;
- const equity=paper.cash+Object.entries(paper.positions).reduce((sum,[s,p])=>sum+(p.qty||0)*(paperMarkPrices[s]||p.avg||0),0);
+ const equity=paper.cash+Object.entries(paper.positions).reduce((sum,[s,p])=>sum+(p.qty||0)*(paperMarkPrices[s]||paper.marks[s]||p.avg||0),0);
  $('paperCash').textContent=paperFmt(paper.cash);$('paperEquity').textContent=paperFmt(equity);$('paperOpenPnl').textContent=paperFmt(openPnl);$('paperOpenPnl').className=openPnl>=0?'positive':'negative';$('paperRealized').textContent=paperFmt(paper.realized);$('paperRealized').className=paper.realized>=0?'positive':'negative';
  $('paperPosition').textContent=pos.qty>0?('Position: '+pos.qty.toFixed(6)+' '+SYMBOLS[sym].replace('USDT','')+' · avg '+paperFmt(pos.avg)):'No open position in '+SYMBOLS[sym];
  const canTrade=!!(mark>0&&currentCandles.length);$('paperBuy').disabled=!canTrade;$('paperSell').disabled=!canTrade||!(pos.qty>0);
@@ -185,7 +185,7 @@ function paperTrade(side){
   const gross=size,fee=gross*PAPER_FEE,total=gross+fee;
   if(total>paper.cash){$('paperStatus').textContent='Insufficient virtual cash for this simulated buy.';return;}
   const fill=mark*(1+PAPER_SLIPPAGE),qty=gross/fill,oldCost=pos.qty*pos.avg,newQty=pos.qty+qty;
-  paper.cash-=total;paper.positions[symbol]={qty:newQty,avg:(oldCost+gross)/newQty};
+  paper.cash-=total;paper.positions[symbol]={qty:newQty,avg:(oldCost+total)/newQty};
   paper.history.unshift({time:new Date().toISOString(),symbol,side,price:fill,qty,fee,realized:0});
   $('paperStatus').textContent='Simulated BUY completed. No real order was sent.';
  }else{
