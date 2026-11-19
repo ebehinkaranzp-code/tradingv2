@@ -1,0 +1,40 @@
+name: Trading V2 dashboard checks
+
+on:
+  push:
+    branches:
+      - work/dashboard-research-upgrade
+    paths:
+      - "web/**"
+      - ".github/workflows/dashboard-check.yml"
+  pull_request:
+    paths:
+      - "web/**"
+      - ".github/workflows/dashboard-check.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  dashboard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate dashboard document and inline JavaScript
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          html = Path("web/index.html").read_text(encoding="utf-8")
+          assert html.count("<script>") == 1, "Expected exactly one inline script"
+          assert html.count("</script>") == 1, "Expected exactly one script close"
+          assert html.rstrip().endswith("</body></html>"), "Document must end cleanly"
+          start = html.index("<script>") + len("<script>")
+          end = html.index("</script>", start)
+          Path("/tmp/trading-v2-dashboard.js").write_text(html[start:end], encoding="utf-8")
+          for required in ("dataQuality", "weeklyFromDaily", "updateDataAudit", "paperTrading"):
+              assert required in html, f"Missing expected dashboard feature: {required}"
+          PY
+          node --check /tmp/trading-v2-dashboard.js
