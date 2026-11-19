@@ -9,6 +9,7 @@ on:
       - work/rust-risk-core
     paths:
       - "scripts/fetch_market_data.py"
+      - "web/**"
       - ".github/workflows/market-data.yml"
 
 permissions:
@@ -26,6 +27,19 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}
+      - name: Validate collector and dashboard JavaScript
+        run: |
+          python -m py_compile scripts/fetch_market_data.py
+          python - <<'PY'
+          from pathlib import Path
+          html = Path("web/index.html").read_text(encoding="utf-8")
+          start = html.find("<script>")
+          end = html.find("</script>", start)
+          if start < 0 or end < 0:
+              raise SystemExit("Dashboard inline script was not found")
+          Path("/tmp/trading-v2-dashboard.js").write_text(html[start + 8:end], encoding="utf-8")
+          PY
+          node --check /tmp/trading-v2-dashboard.js
       - name: Fetch and validate public candles
         run: python scripts/fetch_market_data.py
       - name: Publish snapshots to this repository
