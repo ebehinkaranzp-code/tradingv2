@@ -346,7 +346,7 @@ replace("src/workspace/model.test.ts",
 "['watchlist', 'values', 'flow', 'signals', 'alerts']",
 "['watchlist', 'values', 'flow', 'signals', 'research', 'alerts']")
 
-# Folded Binance weeks are accepted only when all seven UTC daily candles exist.
+# Folded weekly buckets sourced from daily history are accepted only when all seven UTC daily candles exist.
 core_timeframe = web.parent / "crates/core/src/timeframe.rs"
 core_source = core_timeframe.read_text(encoding="utf-8")
 old_live = """    pub fn live_interval(self) -> Interval {
