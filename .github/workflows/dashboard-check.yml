@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - release/trading-v2-site
+      - agent/edge-local-agent
     paths:
       - "web/**"
       - ".github/workflows/dashboard-check.yml"
