@@ -15,7 +15,7 @@ Trading V2 is being built as a research-first, risk-controlled trading terminal.
 Requires a stable Rust toolchain:
 
 ```sh
-cargo fmt --all -- --check
+cargo fmt --all
 cargo test --workspace --locked
 cargo clippy --workspace --all-targets --locked -- -D warnings
 ```
