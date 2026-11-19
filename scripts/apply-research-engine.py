@@ -56,14 +56,14 @@ import './research.css';
 type Candle = { time: number; open: number; high: number; low: number; close: number; volume: number; closeTime: number };
 type Audit = { bars: Candle[]; gaps: number; invalid: number; duplicates: number; stale: boolean; received: number };
 type Metric = { result: any | null; error: string | null; audit: Audit };
-type Snapshot = { quattro: Metric; btc: Metric; eth: Metric; updatedAt: number };
+type Snapshot = { quattro: Metric; quattroDaily: Audit; btc: Metric; eth: Metric; updatedAt: number };
 
 const DAY = 86_400_000;
 const FOUR_HOURS = 14_400_000;
 const SPOT = 'https://data-api.binance.vision/api/v3';
 const FUTURES = 'https://fapi.binance.com/fapi/v1';
-const fmt = (n: unknown, digits = 2): string => Number.isFinite(Number(n)) ? Number(n).toLocaleString('en-US', { maximumFractionDigits: digits }) : '—';
-const when = (t: unknown): string => Number.isFinite(Number(t)) ? new Date(Number(t)).toLocaleString() : '—';
+const fmt = (n: unknown, digits = 2): string => n === null || n === undefined || !Number.isFinite(Number(n)) ? '—' : Number(n).toLocaleString('en-US', { maximumFractionDigits: digits });
+const when = (t: unknown): string => t === null || t === undefined || !Number.isFinite(Number(t)) ? '—' : new Date(Number(t)).toLocaleString();
 
 async function fetchKlines(base: string, symbol: string, interval: string, limit: number, endTime?: number): Promise<unknown[]> {
   const url = new URL(base + '/klines');
@@ -164,7 +164,7 @@ export function ResearchPanel(_props: { panel: ResearchPanelState }) {
       );
       const btcMomentum = metric(btcAudit, 1500, () => TDStrategyEngine.computeMomentum(btc, 'BTC'));
       const ethMomentum = metric(ethAudit, 1500, () => TDStrategyEngine.computeMomentum(eth, 'ETH'));
-      setSnapshot({ quattro, btc: btcMomentum, eth: ethMomentum, updatedAt: Date.now() });
+      setSnapshot({ quattro, quattroDaily: qdAudit, btc: btcMomentum, eth: ethMomentum, updatedAt: Date.now() });
       setUpdated(Date.now());
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -200,7 +200,7 @@ export function ResearchPanel(_props: { panel: ResearchPanelState }) {
             <div class="research-event">{snap()!.quattro.error ?? actionText(snap()!.quattro.result?.action)}</div>
             <div class="research-metrics">
               <div><span>4H candles</span><b>{snap()!.quattro.audit.bars.length}</b></div>
-              <div><span>Daily candles</span><b>{snap()!.quattro.result ? '260 max' : '220 required'}</b></div>
+              <div><span>Daily candles</span><b>{snap()!.quattroDaily.bars.length}</b></div>
               <div><span>Units</span><b>{fmt(snap()!.quattro.result?.units, 0)}</b></div>
               <div><span>Average entry</span><b>{fmt(snap()!.quattro.result?.averageEntry)}</b></div>
               <div><span>Shared stop</span><b>{fmt(snap()!.quattro.result?.stop)}</b></div>
@@ -214,7 +214,7 @@ export function ResearchPanel(_props: { panel: ResearchPanelState }) {
             <div class="research-metrics">
               <div><span>Daily candles</span><b>{snap()!.btc.audit.bars.length}</b></div>
               <div><span>Lookback</span><b>{snap()!.btc.result?.lookback ?? '—'} days</b></div>
-              <div><span>Exposure</span><b>{fmt(Number(snap()!.btc.result?.exposure ?? 0) * 100, 1)}%</b></div>
+              <div><span>Exposure</span><b>{snap()!.btc.result ? fmt(Number(snap()!.btc.result.exposure) * 100, 1) + '%' : '—'}</b></div>
               <div><span>Training Sharpe</span><b>{fmt(snap()!.btc.result?.trainingSharpe, 2)}</b></div>
               <div><span>Latest close</span><b>{fmt(snap()!.btc.result?.price)}</b></div>
               <div><span>As of</span><b>{when(snap()!.btc.result?.candleTime)}</b></div>
@@ -227,7 +227,7 @@ export function ResearchPanel(_props: { panel: ResearchPanelState }) {
             <div class="research-metrics">
               <div><span>Daily candles</span><b>{snap()!.eth.audit.bars.length}</b></div>
               <div><span>Lookback</span><b>{snap()!.eth.result?.lookback ?? '—'} days</b></div>
-              <div><span>Exposure</span><b>{fmt(Number(snap()!.eth.result?.exposure ?? 0) * 100, 1)}%</b></div>
+              <div><span>Exposure</span><b>{snap()!.eth.result ? fmt(Number(snap()!.eth.result.exposure) * 100, 1) + '%' : '—'}</b></div>
               <div><span>Training Sharpe</span><b>{fmt(snap()!.eth.result?.trainingSharpe, 2)}</b></div>
               <div><span>Latest close</span><b>{fmt(snap()!.eth.result?.price)}</b></div>
               <div><span>As of</span><b>{when(snap()!.eth.result?.candleTime)}</b></div>
@@ -237,7 +237,7 @@ export function ResearchPanel(_props: { panel: ResearchPanelState }) {
         </div>
         <div class="research-quality">
           <strong>DATA INTEGRITY</strong>
-          <span>Quattro 4H: {snap()!.quattro.audit.bars.length} bars · {snap()!.quattro.audit.gaps} gaps</span>
+          <span>Quattro 4H: {snap()!.quattro.audit.bars.length} bars · {snap()!.quattro.audit.gaps} gaps</span>\n          <span>Quattro 1D: {snap()!.quattroDaily.bars.length} bars · {snap()!.quattroDaily.gaps} gaps</span>
           <span>BTC spot 1D: {snap()!.btc.audit.bars.length} bars · {snap()!.btc.audit.gaps} gaps</span>
           <span>ETH spot 1D: {snap()!.eth.audit.bars.length} bars · {snap()!.eth.audit.gaps} gaps</span>
           <span>Last refresh: {when(updated())}</span>
