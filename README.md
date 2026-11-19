@@ -48,7 +48,7 @@ Security defaults:
 - Use a fine-grained GitHub token limited to this repository, with Contents read/write and Pull requests read/write only. Do not grant Actions, Administration, or organization permissions.
 - Store the token in Jan's MCP environment configuration. Never paste it into chat, source code, or a committed config file.
 
-When calling write tools, explicitly pass a work branch such as `work/jan-agent`. Create that branch from `main` first, review changes, then open a pull request. Do not enable automatic merging.
+When calling write tools, explicitly pass a work branch `work/jan-agent-safe` (already created for this integration). Create that branch from `main` first, review changes, then open a pull request. Do not enable automatic merging.
 
 ## Repository status
 
