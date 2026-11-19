@@ -65,6 +65,9 @@ jobs:
       - name: Apply research-only safety profile
         run: python3 scripts/disable-live-trading.py tradoor-source/web
 
+      - name: Install Quattro and TSMOM research engine
+        run: python3 scripts/apply-research-engine.py tradoor-source/web web/analysis-legacy.html
+
       - name: Verify live-trading actions are unreachable
         run: |
           python3 - <<'PY'
@@ -78,6 +81,9 @@ jobs:
           assert "const Trading = lazy" not in layout
           assert "TradingSettings" not in settings
           assert "LIVE_TRADING_DISABLED" in client
+          assert "research" in model
+          assert (web / "research/strategies.ts").is_file()
+          assert (web / "panels/ResearchPanel.tsx").is_file()
           for action in ("t: 'order'", "t: 'cancel'", "t: 'move'", "t: 'leverage'", "t: 'flatten'", "t: 'algo'", "t: 'newAgent'", "t: 'importKey'"):
               assert action not in client, f"live action still wired: {action}"
           print("Research-only trading safety checks passed.")
