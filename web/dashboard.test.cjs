@@ -123,6 +123,17 @@ test('preserved strategy engine loads and evaluates a closed-candle Quattro seri
   const result = engine.computeQuattro(fourHour, daily);
   assert.ok(['LONG','FLAT','ENTRY_PENDING'].includes(result.status));
   assert.equal(result.timeframe, '4h');
+
+  const momentumStart = Date.UTC(2014, 0, 1), dayMs = 86400000;
+  const momentumBars = Array.from({length:1500}, (_, i) => {
+    const close = 100 * Math.exp(0.0004 * i + 0.01 * Math.sin(i / 17));
+    return {time:momentumStart+i*dayMs,open:close*0.999,high:close*1.005,low:close*0.995,close,volume:100};
+  });
+  const momentum = engine.computeMomentum(momentumBars, 'BTC');
+  assert.equal(momentum.bars, 1500);
+  assert.equal(momentum.timeframe, '1d');
+  assert.ok([7,14,21,30,45,60,90,120,180,270,365].includes(momentum.lookback));
+  assert.ok(Number.isFinite(momentum.trainingSharpe));
 });
 
 
