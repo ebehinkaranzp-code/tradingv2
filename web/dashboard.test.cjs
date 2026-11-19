@@ -5,9 +5,12 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const html = fs.readFileSync('web/index.html', 'utf8');
-const scripts = [...html.matchAll(/<script>([\\s\\S]*?)<\\/script>/g)];
-assert.equal(scripts.length, 1, 'dashboard must contain exactly one inline script');
-const source = scripts[0][1];
+const openTag = '<script>', closeTag = '</script>';
+const scriptStart = html.indexOf(openTag) + openTag.length;
+const scriptEnd = html.indexOf(closeTag, scriptStart);
+assert.ok(scriptStart >= openTag.length && scriptEnd > scriptStart, 'dashboard inline script missing');
+assert.equal(html.indexOf(openTag, scriptEnd), -1, 'dashboard must contain exactly one inline script');
+const source = html.slice(scriptStart, scriptEnd);
 new vm.Script(source);
 
 function extractBetween(startName, endName) {
