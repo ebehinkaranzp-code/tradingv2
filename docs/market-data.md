@@ -6,9 +6,9 @@ Trading V2 is analysis-only. It never sends orders and never needs exchange API 
 
 Both the browser dashboard and the planned Windows client use this order:
 
-1. GitHub snapshot: `data/market/{SYMBOL}_{INTERVAL}.json` from the repository (try the working branch and then `main`; prefer the newest valid `fetched_at`).
+1. Fresh GitHub snapshot: `data/market/{SYMBOL}_{INTERVAL}.json` from the repository (try the working branch and then `main`; prefer the newest valid `fetched_at`, but only while it is at most eight minutes old). If the snapshot is older, it is treated as stale and the client tries direct providers first.
 2. Direct public market-data fallback: Binance, then Bybit, then Kraken. These are public spot OHLC endpoints; no credentials are sent.
-3. Last validated local cache. The UI must label cached data as offline/stale and show its timestamp.
+3. If all direct providers fail, use the newest available stale GitHub snapshot or last validated local cache. The UI labels this fallback as stale/offline and shows its timestamp.
 
 A failed provider is not treated as a zero price or synthetic market data. If no validated source exists, show “data unavailable”.
 
