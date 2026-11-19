@@ -201,7 +201,7 @@ async function importCsvHistory(){
    try{localStorage.setItem(CACHE_PREFIX+symbol+':'+timeframe,JSON.stringify({candles:merged,source:'User CSV import: '+file.name,time:new Date().toISOString()}));}catch(e){}
    if(symbol===SYMBOLS[sym]&&timeframe===tf)applyData({candles:merged,source:'User CSV import: '+file.name,time:new Date().toISOString()});
   }
-  $('csvImportStatus').textContent='Imported '+closed.length+' closed candles; '+(bars.length-closed.length)+' unfinished candles excluded. Archive total: '+merged.length+'.';
+  $('csvImportStatus').textContent='Imported '+closed.length+' closed candles for '+symbol+' '+timeframe+' ('+marketType+'); '+(bars.length-closed.length)+' unfinished candles excluded. Archive total: '+merged.length+'.';
   await renderStrategySuite();
  }catch(e){$('csvImportStatus').textContent='Import rejected: '+e.message;}
 }
