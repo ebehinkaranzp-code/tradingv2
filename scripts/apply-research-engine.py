@@ -343,10 +343,10 @@ replace("src/workspace/model.test.ts",
 "['alerts', 'watchlist', 'flow', 'signals', 'research']")
 replace("src/workspace/model.test.ts",
 "['watchlist', 'flow', 'signals', 'alerts']",
-"['watchlist', 'flow', 'signals', 'research', 'alerts']")
+"['watchlist', 'flow', 'signals', 'alerts', 'research']")
 replace("src/workspace/model.test.ts",
 "['watchlist', 'values', 'flow', 'signals', 'alerts']",
-"['watchlist', 'values', 'flow', 'signals', 'research', 'alerts']")
+"['watchlist', 'values', 'flow', 'signals', 'alerts', 'research']")
 
 # Folded weekly buckets sourced from daily history are accepted only when all seven UTC daily candles exist.
 core_timeframe = web.parent / "crates/core/src/timeframe.rs"
@@ -485,7 +485,7 @@ if "weekly_buckets_folded_from_daily_require_seven_complete_utc_bars" not in cor
 # Build weekly chart bars from seven complete UTC daily candles wherever the venue supplies daily history.
 replace("src/engine/intervals.ts",
 "export function restInterval(venue: Venue, interval: string): string {\n  if (serves(venue, interval)) return interval;",
-"export function restInterval(venue: Venue, interval: string): string {\n  if (interval === '1w' && serves(venue, '1d')) return '1d';\n  if (serves(venue, interval)) return interval;")
+"export function restInterval(venue: Venue, interval: string): string {\n  if (interval === '1w' && (venue === 'binance-spot' || venue === 'binance-perp')) return '1d';\n  if (serves(venue, interval)) return interval;")
 interval_test = '''declare const Deno: { test: (name: string, fn: () => void) => void };\nimport { restInterval } from './intervals.ts';
 
 Deno.test('weekly candles use daily UTC history when the venue provides it', () => {
