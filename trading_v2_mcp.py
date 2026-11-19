@@ -62,8 +62,25 @@ def repo_path(suffix=""):
 
 def safe_branch(value):
     branch = value or DEFAULT_BRANCH
-    if not isinstance(branch, str) or not branch or branch.startswith("-") or ".." in branch:
+    if (
+        not isinstance(branch, str)
+        or not branch
+        or branch.startswith("-")
+        or ".." in branch
+        or branch.endswith("/")
+        or "//" in branch
+        or any(ch in branch for ch in (" ", "~", "^", ":", "?", "*", "[", "\\", "@{"))
+    ):
         raise MCPError("Invalid branch name.")
+    return branch
+
+
+def safe_write_branch(value):
+    if not isinstance(value, str) or not value:
+        raise MCPError("Write operations require an explicit branch under work/.")
+    branch = safe_branch(value)
+    if not branch.startswith("work/"):
+        raise MCPError("Write operations are restricted to work/* branches; main and other protected branches are read-only.")
     return branch
 
 
@@ -74,6 +91,15 @@ def safe_repo_path(value):
     parts = path.split("/")
     if any(p in ("", ".", "..") for p in parts) or path.startswith(".git/") or path == ".git":
         raise MCPError("Unsafe repository path.")
+    lowered = path.lower()
+    if (
+        lowered == ".env"
+        or lowered.startswith(".env.")
+        or lowered.startswith(".github/workflows/")
+        or lowered.endswith((".pem", ".key", ".p12", ".pfx"))
+        or any(part in ("secrets", "credentials", ".ssh") for part in (p.lower() for p in parts))
+    ):
+        raise MCPError("This MCP server blocks secret files and workflow/security configuration paths.")
     return path
 
 
@@ -226,7 +252,7 @@ def read_file(args):
 
 
 def write_file(args):
-    branch = safe_branch(args.get("branch"))
+    branch = safe_write_branch(args.get("branch"))
     path = safe_repo_path(args["path"])
     payload = {
         "message": args["message"],
@@ -252,7 +278,7 @@ def write_file(args):
 
 
 def batch_commit(args):
-    branch = safe_branch(args.get("branch"))
+    branch = safe_write_branch(args.get("branch"))
     files = args["files"]
     if not files or len(files) > 100:
         raise MCPError("Provide between 1 and 100 files.")
@@ -297,7 +323,7 @@ def batch_commit(args):
 
 
 def create_branch(args):
-    new_branch = safe_branch(args["branch"])
+    new_branch = safe_write_branch(args["branch"])
     source_branch = safe_branch(args.get("from_branch"))
     source = get_ref(source_branch)
     result = github(
@@ -309,7 +335,7 @@ def create_branch(args):
 
 
 def create_pull_request(args):
-    head = safe_branch(args["head"])
+    head = safe_write_branch(args["head"])
     base = safe_branch(args.get("base"))
     result = github(
         "POST",
