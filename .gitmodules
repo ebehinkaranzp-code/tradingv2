@@ -1,0 +1,4 @@
+[submodule "vendor/tradoor"]
+	path = vendor/tradoor
+	url = https://github.com/tradoor-terminal/tradoor.git
+	branch = main
