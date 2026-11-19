@@ -59,6 +59,10 @@ const footprintStart = source.indexOf('function footprintPoc(');
 const footprintEnd = source.indexOf('\nfunction renderFootprint', footprintStart);
 assert.ok(footprintStart >= 0 && footprintEnd > footprintStart, 'footprint ranking helpers missing');
 const footprint = vm.runInNewContext(source.slice(footprintStart, footprintEnd) + '; ({footprintPoc, footprintDisplayRows})');
+const paperStart = source.indexOf('function newPaperAccount(');
+const paperEnd = source.indexOf('\nfunction renderPaper', paperStart);
+assert.ok(paperStart >= 0 && paperEnd > paperStart, 'paper accounting helpers missing');
+const paper = vm.runInNewContext(source.slice(paperStart, paperEnd) + '; ({newPaperAccount, normalizePaperAccount, applyPaperFill})');
 
 test('CSV parser supports comma, semicolon, tab and quoted cells', () => {
   for (const delimiter of [',', ';', '\t']) {
@@ -146,4 +150,32 @@ test('footprint POC uses every price level while display rows prioritize traded 
   assert.equal(visible.length, 24);
   assert.ok(visible.some(row => row.p === 71), 'high-volume level should not be dropped');
   assert.equal(footprint.footprintPoc(rows).p, 71, 'POC must be calculated from all levels');
+});
+
+test('paper account tracks separate positions and correct partial-close P&L', () => {
+  const account = paper.newPaperAccount();
+  assert.equal(paper.applyPaperFill(account, 'BTCUSDT', 'BUY', 100, 2).ok, true);
+  assert.equal(paper.applyPaperFill(account, 'BTCUSDT', 'SELL', 110, 1).ok, true);
+  assert.equal(paper.applyPaperFill(account, 'ETHUSDT', 'BUY', 50, 2).ok, true);
+  assert.equal(account.positions.BTCUSDT.qty, 1);
+  assert.equal(account.positions.BTCUSDT.avg, 100);
+  assert.equal(account.positions.ETHUSDT.qty, 2);
+  assert.equal(account.positions.ETHUSDT.avg, 50);
+  assert.equal(account.cash, 99910);
+  assert.equal(account.realized, 10);
+  assert.equal(account.trades[2].symbol, 'ETHUSDT');
+});
+
+test('paper account migrates the previous single-position BTC format', () => {
+  const account = paper.normalizePaperAccount({cash: 99800, qty: 2, avg: 100, realized: 0, trades: []});
+  assert.equal(account.positions.BTCUSDT.qty, 2);
+  assert.equal(account.positions.BTCUSDT.avg, 100);
+  assert.equal(account.positions.ETHUSDT, undefined);
+});
+
+test('paper fills reject invalid orders and insufficient virtual cash', () => {
+  const account = paper.newPaperAccount();
+  assert.equal(paper.applyPaperFill(account, 'BTCUSDT', 'BUY', 100, -1).ok, false);
+  assert.equal(paper.applyPaperFill(account, 'BTCUSDT', 'BUY', 1000000, 1).reason, 'Insufficient virtual cash');
+  assert.equal(paper.applyPaperFill(account, 'BTCUSDT', 'SELL', 100, 1).reason, 'No simulated position to reduce');
 });
