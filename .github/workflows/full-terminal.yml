@@ -65,6 +65,24 @@ jobs:
       - name: Apply research-only safety profile
         run: python3 scripts/disable-live-trading.py tradoor-source/web
 
+      - name: Verify live-trading actions are unreachable
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          web = Path("tradoor-source/web/src")
+          model = (web / "workspace/model.ts").read_text()
+          layout = (web / "workspace/Layout.tsx").read_text()
+          settings = (web / "components/Settings.tsx").read_text()
+          client = (web / "trade/client.ts").read_text()
+          assert "'trade', 'positions'" not in model
+          assert "const Trading = lazy" not in layout
+          assert "TradingSettings" not in settings
+          assert "LIVE_TRADING_DISABLED" in client
+          for action in ("t: 'order'", "t: 'cancel'", "t: 'move'", "t: 'leverage'", "t: 'flatten'", "t: 'algo'", "t: 'newAgent'", "t: 'importKey'"):
+              assert action not in client, f"live action still wired: {action}"
+          print("Research-only trading safety checks passed.")
+          PY
+
       - name: Rust tests
         working-directory: tradoor-source
         run: cargo test --workspace --exclude tradoor-wasm --locked
