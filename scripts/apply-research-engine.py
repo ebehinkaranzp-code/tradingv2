@@ -48,6 +48,55 @@ research_dir = web / "src/research"
 research_dir.mkdir(parents=True, exist_ok=True)
 (research_dir / "strategies.ts").write_text(engine, encoding="utf-8")
 
+neo_wave = '''/** Independent NEoWave engine contract. No wave count is emitted until a separately tested engine is installed. */
+export type NeoWaveCandle = { time: number; open: number; high: number; low: number; close: number; volume: number };
+export interface NeoWaveInput {
+  market: string;
+  timeframe: string;
+  candles: readonly NeoWaveCandle[];
+}
+export interface NeoWaveSwing {
+  startTime: number;
+  endTime: number;
+  startPrice: number;
+  endPrice: number;
+  degree: string;
+  label: string;
+}
+export interface NeoWaveResult {
+  swings: readonly NeoWaveSwing[];
+  invalidationPrice: number | null;
+  explanation: string;
+}
+export interface NeoWaveEngine {
+  readonly id: 'neo-wave';
+  readonly version: string;
+  analyze(input: NeoWaveInput): NeoWaveResult;
+}
+export const neoWaveExtensionPoint = {
+  id: 'neo-wave',
+  status: 'reserved',
+  description: 'Independent engine contract only. No automatic wave count is published without validated rules and tests.',
+} as const;
+'''
+(research_dir / "neo-wave.ts").write_text(neo_wave, encoding="utf-8")
+
+tests = '''import { TDStrategyEngine } from './strategies.ts';
+
+Deno.test('Quattro refuses missing 4H and daily history', () => {
+  let threw = false;
+  try { TDStrategyEngine.computeQuattro([], []); } catch { threw = true; }
+  if (!threw) throw new Error('Quattro must reject insufficient candle history');
+});
+
+Deno.test('TSMOM refuses fewer than 1,500 daily candles', () => {
+  let threw = false;
+  try { TDStrategyEngine.computeMomentum([], 'BTC'); } catch { threw = true; }
+  if (!threw) throw new Error('TSMOM must reject insufficient daily history');
+});
+'''
+(research_dir / "strategies_test.ts").write_text(tests, encoding="utf-8")
+
 panel = r'''import { createSignal, onCleanup, onMount, Show } from 'solid-js';
 import type { ResearchPanelState } from '../workspace/model';
 import { TDStrategyEngine } from '../research/strategies';
