@@ -328,7 +328,15 @@ mod tests {
             RiskLimits::default(),
             OrderIntent { side: Side::Long, entry_price: 100.0, stop_price: 95.0 },
         ).unwrap();
-        assert!(proposal.risk_budget <= 20.0 + 1e-8);
+        assert!(proposal.risk_budget <= 100.0 + 1e-8);
+
+        near_daily_limit.open_risk = 45.0;
+        let near_limit = assess_order(
+            near_daily_limit,
+            RiskLimits::default(),
+            OrderIntent { side: Side::Long, entry_price: 100.0, stop_price: 95.0 },
+        ).unwrap();
+        assert!(near_limit.risk_budget <= 5.0 + 1e-8);
 
         with_open_risk.open_risk = 300.0;
         assert!(assess_order(
