@@ -16,3 +16,11 @@ The complete application includes its API server, PostgreSQL persistence and mar
 ## Research-only safety
 
 The build applies `scripts/disable-live-trading.py` to the pinned upstream source. It removes account-creation/settings entry points, removes Trade and Positions panels from the panel picker, and makes all order-capable client functions reject before any worker/network request. The CI workflow checks these safety conditions before building.
+## Included analysis modules
+
+- Tradoor's native multi-chart workspace, WebGL2 chart renderer, drawing tools, Footprint/Order Flow, DOM, Tape, TPO/Market Profile, Frost Script, backtesting and research journal.
+- A dedicated Research Lab running the preserved Quattro Donchian v2 engine on BTC perpetual 4H + 1D data (minimum 40 and 220 continuous closed candles).
+- TSMOM + volatility targeting for BTC and ETH spot, requiring 1,500 continuous closed daily candles and a valid walk-forward training window.
+- Paper Trading is the Training simulator, with virtual positions and fills at live market prices; it is separate from exchange accounts and cannot place real orders.
+
+The Research Lab reads public Binance market data directly. It does not use GitHub as a price feed, does not fill missing candles with synthetic data, and blocks a strategy result when gaps, duplicates, invalid OHLCV or stale data are detected.
