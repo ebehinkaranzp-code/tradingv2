@@ -363,6 +363,11 @@ if old_live in core_source:
 elif new_live not in core_source:
     raise SystemExit("Could not locate Rust weekly live interval")
 core_source = core_source.replace(
+    "/// A bucket missing bars inside it is kept — a gap in\\n/// the tape is not a reason to hide the period.",
+    "/// Weekly buckets folded from daily history require all seven consecutive UTC\\n/// daily candles; other intervals preserve partial buckets.",
+    1,
+)
+core_source = core_source.replace(
     "assert_eq!(ChartTimeframe::W1.live_interval(), Interval::W1);",
     "assert_eq!(ChartTimeframe::W1.live_interval(), Interval::D1);",
     1,
