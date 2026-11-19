@@ -1,13 +1,13 @@
 'use strict';
 const assert = require('node:assert/strict');
-const { validateCandles } = require('./market-data-validation.js');
+const { validateCandles, computeValidatedQuattro, computeValidatedMomentum } = require('./market-data-validation.js');
 
 const H4 = 4 * 60 * 60 * 1000;
 const DAY = 24 * 60 * 60 * 1000;
 
-function bars(step, count = 3) {
+function bars(step, count = 3, start = 0) {
   return Array.from({ length: count }, (_, i) => ({
-    time: i * step, open: 100 + i, high: 102 + i, low: 99 + i, close: 101 + i, volume: 10
+    time: start + i * step, open: 100 + i, high: 102 + i, low: 99 + i, close: 101 + i, volume: 10
   }));
 }
 
@@ -26,3 +26,30 @@ const daily = bars(DAY);
 assert.equal(validateCandles(daily, { timeframe: '1d', now: 3 * DAY + 1000, maxAgeMs: 2000 }).length, 3);
 
 console.log('PASS market-data-validation: closed bars, freshness, ordering, gaps, OHLC and minimum history');
+
+const fakeEngine = {
+  computeQuattro: (fourHour, dailyCandles) => ({ fourHour: fourHour.length, daily: dailyCandles.length }),
+  computeMomentum: (dailyCandles, asset) => ({ daily: dailyCandles.length, asset })
+};
+const commonNow = 220 * DAY + 1000;
+const daily220 = bars(DAY, 220);
+const fourHour40 = bars(H4, 40, 220 * DAY - 40 * H4);
+const qValidated = computeValidatedQuattro(fakeEngine, fourHour40, daily220, {
+  now: commonNow, maxAgeMs4h: 2000, maxAgeMs1d: 2000
+});
+assert.deepEqual(qValidated, { fourHour: 40, daily: 220 });
+assert.throws(() => computeValidatedQuattro(fakeEngine, fourHour40, daily220, {
+  now: commonNow, maxAgeMs4h: 500, maxAgeMs1d: 2000
+}), /Stale/);
+
+const daily1500 = bars(DAY, 1500);
+const momentumNow = 1500 * DAY + 1000;
+const mValidated = computeValidatedMomentum(fakeEngine, daily1500, 'BTC', {
+  now: momentumNow, maxAgeMs1d: 2000
+});
+assert.deepEqual(mValidated, { daily: 1500, asset: 'BTC' });
+assert.throws(() => computeValidatedMomentum(fakeEngine, daily1500, 'BTC', {
+  now: momentumNow, maxAgeMs1d: 500
+}), /Stale/);
+
+console.log('PASS validated wrappers: enforce minimum history and freshness before strategy calls');
