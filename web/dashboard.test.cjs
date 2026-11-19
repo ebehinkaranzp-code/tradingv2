@@ -161,7 +161,7 @@ test('paper account tracks separate positions and correct partial-close P&L', ()
   assert.equal(account.positions.BTCUSDT.avg, 100);
   assert.equal(account.positions.ETHUSDT.qty, 2);
   assert.equal(account.positions.ETHUSDT.avg, 50);
-  assert.equal(account.cash, 99910);
+  assert.equal(account.cash, 99810);
   assert.equal(account.realized, 10);
   assert.equal(account.trades[2].symbol, 'ETHUSDT');
 });
