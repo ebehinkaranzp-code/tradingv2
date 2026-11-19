@@ -6,20 +6,20 @@ This is a historical out-of-sample walk-forward test of the repository's publish
 
 | Metric | BTC | ETH |
 |---|---:|---:|
-| Data bars | 5,789 | 3,942 |
-| Data coverage | 2010-07-18 to 2026-05-23 | 2015-08-08 to 2026-05-23 |
-| OOS folds | 24 | 14 |
-| OOS days | 4,329 | 2,482 |
-| Total OOS return | 2,891.62% | 296.84% |
-| CAGR | 33.18% | 22.47% |
-| Maximum drawdown | -53.79% | -36.90% |
-| Sharpe | 1.036 | 0.784 |
-| Profitable exposure cycles | 75 / 209 | 47 / 121 |
-| Exposure-cycle win rate | 35.89% | 38.84% |
+| Data bars | 4,526 | 3,796 |
+| Data coverage | 2014-01-01 to 2026-05-23 | 2016-01-01 to 2026-05-23 |
+| OOS folds | 17 | 13 |
+| OOS days | 3,066 | 2,336 |
+| Total OOS return | 542.06% | 309.79% |
+| CAGR | 24.78% | 24.66% |
+| Maximum drawdown | -57.41% | -36.41% |
+| Sharpe | 0.837 | 0.825 |
+| Profitable exposure cycles | 44 / 124 | 36 / 96 |
+| Exposure-cycle win rate | 35.48% | 37.50% |
 
 ## Method
 
-- 365-day warm-up and 1,095-day rolling training window.
+- Match the production engine's history filters (BTC from 2014-01-01; ETH from 2016-01-01), then use its 365-day warm-up and 1,095-day rolling training window.
 - Choose the best of 11 lookbacks (7 to 365 days) by net training Sharpe.
 - Apply the selected lookback only to the next 182-day test fold.
 - Long-only, 40% annualized volatility target, 100% maximum exposure.
@@ -30,7 +30,7 @@ This is a historical out-of-sample walk-forward test of the repository's publish
 
 ## Findings and limits
 
-1. The tested implementation does **not** have a 100% win rate. Exposure-cycle win rate is 35.89% on BTC and 38.84% on ETH.
+1. The tested implementation does **not** have a 100% win rate. Exposure-cycle win rate is 35.48% on BTC and 37.50% on ETH.
 2. Drawdowns are large, especially BTC at 53.79%; high cumulative return must not hide this risk.
 3. The source CSV archive ends on 2026-05-23 and is stale for a current signal.
 4. These CSVs contain daily closes only. They cannot validate Quattro Donchian v2, which requires continuous BTC perpetual 4H OHLCV plus daily OHLCV.
