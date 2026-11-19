@@ -1,0 +1,41 @@
+name: Trading V2 site tests
+
+on:
+  push:
+    branches:
+      - release/trading-v2-site
+    paths:
+      - "web/**"
+      - ".github/workflows/dashboard-check.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "web/**"
+      - ".github/workflows/dashboard-check.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate dashboard
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          html = Path("web/index.html").read_text(encoding="utf-8")
+          assert html.count("<script>") == 1
+          assert html.count("</script>") == 1
+          assert html.rstrip().endswith("</body></html>")
+          start = html.index("<script>") + len("<script>")
+          end = html.index("</script>", start)
+          Path("/tmp/trading-v2-dashboard.js").write_text(html[start:end], encoding="utf-8")
+          PY
+          node --check /tmp/trading-v2-dashboard.js
+          node --test web/dashboard.test.cjs
