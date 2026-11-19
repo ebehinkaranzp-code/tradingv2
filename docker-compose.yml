@@ -1,22 +1,51 @@
-# Local Postgres for tradoor — its own container, separate from every other
-# project's database on this machine.
+name: trading-v2
+
+x-app: &app
+  image: ${TRADOOR_IMAGE:-ghcr.io/ebehinkaranzp-code/tradingv2:latest}
+  build: .
+  restart: unless-stopped
+  depends_on:
+    postgres:
+      condition: service_healthy
+  environment:
+    DATABASE_URL: postgres://${POSTGRES_USER:-tradoor}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-tradoor}
+    TRADOOR_BIND: ${TRADOOR_BIND:-0.0.0.0:8080}
+    TRADOOR_DATA_DIR: /data
+    TRADOOR_WEB_DIR: /app/web
+    TRADOOR_SITE_URL: ${TRADOOR_SITE_URL:-}
+    TRADOOR_LIQUIDATIONS: ${TRADOOR_LIQUIDATIONS:-BTCUSDT,ETHUSDT,SOLUSDT}
+    TRADOOR_OPEN_INTEREST: ${TRADOOR_OPEN_INTEREST:-BTC,ETH,SOL}
+    TRADOOR_TELEGRAM_TOKEN: ${TRADOOR_TELEGRAM_TOKEN:-}
+    TRADOOR_ADMIN_KEY: ${TRADOOR_ADMIN_KEY:-}
+  volumes:
+    - trading_v2_data:/data
+
 services:
   postgres:
     image: postgres:18-alpine
-    container_name: tradoor-postgres
     restart: unless-stopped
-    env_file: .env
-    ports:
-      - "127.0.0.1:5438:5432"
-    # Postgres 18 images keep data under /var/lib/postgresql/18/docker and expect
-    # the volume one level up.
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-tradoor}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-tradoor}
     volumes:
-      - tradoor_pgdata:/var/lib/postgresql
+      - trading_v2_pgdata:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
-      timeout: 5s
-      retries: 10
+      timeout: 3s
+      retries: 20
+
+  server:
+    <<: *app
+    command: ["tradoor-server"]
+    ports:
+      - "${TRADOOR_HTTP_PORT:-8080}:8080"
+
+  recorder:
+    <<: *app
+    command: ["tradoor-recorder"]
 
 volumes:
-  tradoor_pgdata:
+  trading_v2_pgdata:
+  trading_v2_data:

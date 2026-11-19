@@ -1,0 +1,84 @@
+{
+  "generated_at": "2026-11-19T22:31:10.170Z",
+  "source_repository": "ebehinkaranzp-code/trading-dashboard",
+  "source_branch": "main",
+  "source_files": [
+    "data/strategy/btc.csv",
+    "data/strategy/eth.csv",
+    "STRATEGY-SIGNALS-2.8.1.md"
+  ],
+  "data_provider": "Coin Metrics Community data archive",
+  "data_license": "CC BY-NC 4.0",
+  "latest_data_date": "2026-05-23",
+  "stale_days_at_generation": 180,
+  "strategy": "Momentum + Volatility Targeting (TSMOM)",
+  "method": {
+    "type": "walk-forward out-of-sample",
+    "training_days": 1095,
+    "warmup_days": 365,
+    "test_fold_days": 182,
+    "lookbacks_days": [
+      7,
+      14,
+      21,
+      30,
+      45,
+      60,
+      90,
+      120,
+      180,
+      270,
+      365
+    ],
+    "annualized_volatility_target": 0.4,
+    "max_long_exposure": 1,
+    "no_trade_band": 0.1,
+    "execution_delay_days": 1,
+    "fee_bps_per_turnover": 10,
+    "slippage_bps_per_turnover": 5,
+    "cost_model": "15 bps per unit of absolute exposure turnover, charged on each daily rebalance",
+    "selection": "Highest net training Sharpe in each 1095-day training window; applied only to following 182-day test fold",
+    "no_lookahead": "Signals use only historical closes; execution uses next-day return",
+    "win_rate_definition": "Profitable uninterrupted long-exposure cycles divided by all observed long-exposure cycles; not per-order win rate",
+    "training_start_filter": "Match the production signal engine: BTC history begins 2014-01-01 and ETH history begins 2016-01-01 before the 1460-day warmup plus training requirement."
+  },
+  "assets": {
+    "BTC": {
+      "bars": 4526,
+      "from": "2014-01-01",
+      "to": "2026-05-23",
+      "folds": 17,
+      "oos_days": 3066,
+      "total_return_pct": 542.06,
+      "cagr_pct": 24.78,
+      "max_drawdown_pct": -57.41,
+      "sharpe": 0.837,
+      "positive_day_pct": 48.14,
+      "cycles": 124,
+      "profitable_cycles": 44,
+      "cycle_win_rate_pct": 35.48
+    },
+    "ETH": {
+      "bars": 3796,
+      "from": "2016-01-01",
+      "to": "2026-05-23",
+      "folds": 13,
+      "oos_days": 2336,
+      "total_return_pct": 309.79,
+      "cagr_pct": 24.66,
+      "max_drawdown_pct": -36.41,
+      "sharpe": 0.825,
+      "positive_day_pct": 47.61,
+      "cycles": 96,
+      "profitable_cycles": 36,
+      "cycle_win_rate_pct": 37.5
+    }
+  },
+  "limitations": [
+    "CSV data is stale; latest row is 2026-05-23 and cannot support a current-market signal.",
+    "Close-only data; Quattro 4H perpetual backtest cannot be run from these files.",
+    "Funding, liquidation, market impact and venue-specific fills are not modeled.",
+    "Coin Metrics Community data is CC BY-NC 4.0; commercial use is not permitted by this dataset license.",
+    "Historical results do not guarantee future returns."
+  ]
+}
