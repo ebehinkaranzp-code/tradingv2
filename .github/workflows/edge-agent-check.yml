@@ -1,0 +1,32 @@
+name: Edge Agent Static Checks
+
+on:
+  push:
+    paths:
+      - "edge-agent/**"
+      - ".github/workflows/edge-agent-check.yml"
+  pull_request:
+    paths:
+      - "edge-agent/**"
+      - ".github/workflows/edge-agent-check.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Compile Python backend
+        run: python -m py_compile edge-agent/agent.py
+      - name: Validate extension manifest
+        run: python -m json.tool edge-agent/extension/manifest.json > /dev/null
+      - name: Check extension JavaScript syntax
+        run: node --check edge-agent/extension/popup.js
