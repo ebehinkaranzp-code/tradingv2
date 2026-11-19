@@ -38,3 +38,4 @@ jobs:
               assert required in html, f"Missing expected dashboard feature: {required}"
           PY
           node --check /tmp/trading-v2-dashboard.js
+          node --test web/dashboard.test.cjs
