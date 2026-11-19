@@ -115,6 +115,8 @@ test('preserved strategy engine loads and evaluates a closed-candle Quattro seri
   vm.runInNewContext(legacySource.slice(marker), context);
   const engine = context.window.TDStrategyEngine;
   assert.equal(typeof engine.computeQuattro, 'function');
+  assert.equal(typeof engine.computeMomentum, 'function');
+  assert.throws(() => engine.computeMomentum([], 'BTC'), /حداقل ۱۵۰۰/);
   const day = 86400000, start = Date.UTC(2026, 0, 5);
   const daily = Array.from({length:250}, (_, i) => ({time:start+i*day,open:100+i,high:103+i,low:98+i,close:101+i,volume:100}));
   const fourHour = Array.from({length:250}, (_, i) => ({time:start+i*4*3600000,open:100+i,high:103+i,low:98+i,close:101+i,volume:20}));
