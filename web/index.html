@@ -27,12 +27,12 @@ footer{padding:25px 0 10px;text-align:center;color:#718096;font-size:10px}
 @media(max-width:580px){header{padding:0 15px}main{padding:17px 13px}.topline{align-items:flex-start;flex-direction:column}.span-3,.span-4,.span-5,.span-7,.span-8,.span-12{grid-column:span 12}.chartwrap{height:230px}.status{font-size:0}.status:before{font-size:12px}}
 </style></head>
 <body>
-<header><div class="brand"><div class="logo">T2</div><div>TRADING V2<small>MARKET INTELLIGENCE</small></div></div><div class="status">ANALYSIS ENGINE · PREVIEW</div></header>
+<header><div class="brand"><div class="logo">T2</div><div>TRADING V2<small>MARKET INTELLIGENCE</small></div></div><div class="status" id="feedStatus">DATA SOURCE · CONNECTING</div></header>
 <main>
-<div class="topline"><div><div class="eyebrow">RESEARCH WORKSPACE / OVERVIEW</div><h1>Market analysis dashboard</h1></div><div class="demo">DEMO DATA · NOT LIVE MARKET FEED</div></div>
-<div class="toolbar"><label class="tiny" for="symbol">MARKET</label><select id="symbol"><option>BTC / USDT</option><option>ETH / USDT</option><option>SOL / USDT</option></select><span class="tiny">TIMEFRAME</span><div id="frames"><button data-tf="15m">15m</button><button data-tf="1h" class="active">1h</button><button data-tf="4h">4h</button><button data-tf="1d">1D</button></div><div class="spacer"></div><span class="tiny">Sample dataset · illustrative only</span></div>
+<div class="topline"><div><div class="eyebrow">RESEARCH WORKSPACE / OVERVIEW</div><h1>Market analysis dashboard</h1></div><div class="demo" id="feedBadge">CONNECTING TO MARKET DATA</div></div>
+<div class="toolbar"><label class="tiny" for="symbol">MARKET</label><select id="symbol"><option>BTC / USDT</option><option>ETH / USDT</option><option>SOL / USDT</option></select><span class="tiny">TIMEFRAME</span><div id="frames"><button data-tf="15m">15m</button><button data-tf="1h" class="active">1h</button><button data-tf="4h">4h</button><button data-tf="1d">1D</button></div><div class="spacer"></div><button id="refreshData" type="button">Refresh data</button><span class="tiny" id="updatedAt">Waiting for a validated feed…</span></div>
 <div class="grid">
-<section class="card span-3"><div class="metric-label">REFERENCE PRICE</div><div class="metric" id="price">$67,482.30</div><div class="tiny">Synthetic demo value</div></section>
+<section class="card span-3"><div class="metric-label">REFERENCE PRICE</div><div class="metric" id="price">$67,482.30</div><div class="tiny">Latest closed candle · source shown above</div></section>
 <section class="card span-3"><div class="metric-label">PERIOD CHANGE</div><div class="metric positive" id="change">+2.41%</div><div class="tiny">Illustrative return</div></section>
 <section class="card span-3"><div class="metric-label">ANALYTICAL BIAS</div><div class="metric positive" id="bias">Bullish</div><div class="tiny">Evidence summary · not a trade instruction</div></section>
 <section class="card span-3"><div class="metric-label">VOLATILITY (ATR)</div><div class="metric" id="atr">1.82%</div><div class="tiny">Normalized ATR · demo</div></section>
@@ -40,13 +40,87 @@ footer{padding:25px 0 10px;text-align:center;color:#718096;font-size:10px}
 <section class="card span-4"><div class="cardhead"><h2>Confluence assessment</h2><span class="tag">0–100 evidence score</span></div><div class="score"><div class="ring"><strong id="score">68</strong></div><div><b id="scoreLabel">Moderate alignment</b><p class="tiny">A weighted evidence score, not a probability of profit.</p></div></div><div class="signal"><i class="signalmark" style="background:var(--green)"></i><div><b>Trend structure</b><p>Price is above the illustrative EMA baseline.</p></div></div><div class="signal"><i class="signalmark" style="background:var(--green)"></i><div><b>Momentum</b><p>Positive momentum, with no certainty of continuation.</p></div></div><div class="signal"><i class="signalmark" style="background:var(--amber)"></i><div><b>Volatility quality</b><p>Current range is elevated; monitor expansion risk.</p></div></div></section>
 <section class="card span-12"><div class="cardhead"><h2>Indicator monitor</h2><span class="tag">Illustrative calculations</span></div><div class="indicators"><div class="ind"><b>RSI · 14</b><strong class="positive" id="rsi">58.4</strong><small>Relative momentum</small></div><div class="ind"><b>MACD · 12 / 26 / 9</b><strong class="positive" id="macd">+142.6</strong><small>Momentum change</small></div><div class="ind"><b>EMA · 20 / 50 / 200</b><strong id="ema">Above</strong><small>Trend reference</small></div><div class="ind"><b>OBV</b><strong id="obv">Rising</strong><small>Volume direction</small></div></div></section>
 <section class="card span-7"><div class="cardhead"><h2>Multi-factor evidence</h2><span class="tag">Current demo snapshot</span></div><table class="table"><thead><tr><th>Factor</th><th>Reading</th><th>Contribution</th><th>Comment</th></tr></thead><tbody id="factorRows"><tr><td>Trend</td><td class="positive">Positive</td><td>+22</td><td>EMA alignment</td></tr><tr><td>Momentum</td><td class="positive">Positive</td><td>+18</td><td>RSI / MACD</td></tr><tr><td>Breakout</td><td class="neutral">Mixed</td><td>+9</td><td>Range proximity</td></tr><tr><td>Volume</td><td class="positive">Confirming</td><td>+12</td><td>OBV direction</td></tr><tr><td>Volatility</td><td class="neutral">Caution</td><td>+7</td><td>ATR filter</td></tr></tbody></table></section>
-<section class="card span-5"><div class="cardhead"><h2>Research & validation</h2><span class="tag">Backtest workspace</span></div><div class="signal"><i class="signalmark" style="background:var(--amber)"></i><div><b>Historical test results</b><p>No verified historical dataset is connected in this preview.</p></div></div><div class="signal"><i class="signalmark" style="background:var(--amber)"></i><div><b>Walk-forward validation</b><p>Pending out-of-sample dataset and parameter review.</p></div></div><div class="signal"><i class="signalmark" style="background:var(--amber)"></i><div><b>Data provenance</b><p>Live exchange feed is not connected.</p></div></div><div class="note">This interface is an early visual prototype. All displayed market values and chart candles are generated demo data. It does not connect to an exchange, place orders, or provide financial advice.</div></section>
-</div><footer>TRADING V2 · ANALYTICS ONLY · NO BROKER CONNECTION · NO ORDER EXECUTION</footer>
+<section class="card span-5"><div class="cardhead"><h2>Research & validation</h2><span class="tag">Backtest workspace</span></div><div class="signal"><i class="signalmark" style="background:var(--amber)"></i><div><b>Historical test results</b><p>Connect a validated historical dataset before interpreting test results.</p></div></div><div class="signal"><i class="signalmark" style="background:var(--amber)"></i><div><b>Walk-forward validation</b><p>Pending out-of-sample dataset and parameter review.</p></div></div><div class="signal"><i class="signalmark" style="background:var(--amber)"></i><div><b>Data provenance</b><p>Feed status and source are shown in the header.</p></div></div><div class="note">Analysis-only interface. Market data is read from GitHub snapshots first, then public exchange endpoints directly from this browser, then the last valid local cache. No exchange keys or trading permissions are used. No orders are placed.</div></section>
+</div><footer>TRADING V2 · MARKET DATA FALLBACK ENABLED · ANALYTICS ONLY · NO ORDER EXECUTION</footer>
 </main>
 <script>
-const $=id=>document.getElementById(id);let tf='1h',sym='BTC / USDT';
-function hash(s){let n=0;for(let i=0;i<s.length;i++)n=(n*31+s.charCodeAt(i))>>>0;return n}
-function render(){const seed=hash(sym+tf),base=sym.startsWith('ETH')?3520:sym.startsWith('SOL')?168:67482;let vals=[],v=base*.965;for(let i=0;i<54;i++){let drift=Math.sin(i*.39+seed%7)*base*.0011+(i>29?base*.0005:-base*.00008);v+=drift+(Math.sin(i*1.7+seed%13))*base*.0008;vals.push(v)}const svg=$('priceChart'),W=760,H=280,L=48,R=12,T=12,B=26,lo=Math.min(...vals)*.995,hi=Math.max(...vals)*1.005,x=i=>L+i*(W-L-R)/(vals.length-1),y=p=>T+(hi-p)*(H-T-B)/(hi-lo);let out='';for(let j=0;j<5;j++){let yy=T+j*(H-T-B)/4;out+=`<line class="gridline" x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}"/><text class="axis" x="2" y="${yy+4}">${(hi-(hi-lo)*j/4).toFixed(0)}</text>`}let ema=vals.map((v,i)=>vals.slice(Math.max(0,i-7),i+1).reduce((a,b)=>a+b,0)/Math.min(i+1,8));let path=a=>a.map((v,i)=>(i?'L':'M')+x(i).toFixed(1)+','+y(v).toFixed(1)).join(' ');out+=`<path class="boll" d="${path(vals.map((v,i)=>v+base*.0025))}"/><path class="boll" d="${path(vals.map((v,i)=>v-base*.0025))}"/>`;for(let i=0;i<vals.length;i++){let open=i?vals[i-1]:vals[i]-base*.0005,close=vals[i],up=close>=open,xx=x(i),top=y(Math.max(open,close)),bot=y(Math.min(open,close));out+=`<line class="${up?'candle-up':'candle-down'}" x1="${xx}" x2="${xx}" y1="${y(close+base*.0007)}" y2="${y(close-base*.0007)}" stroke-width="1.2"/><rect class="${up?'candle-up':'candle-down'}" x="${xx-3.1}" y="${top}" width="6.2" height="${Math.max(2,bot-top)}" rx="1"/>`}out+=`<path class="ema" d="${path(ema)}"/><text class="axis" x="${L}" y="${H-5}">-53 ${tf}</text><text class="axis" x="${W-R-35}" y="${H-5}">NOW</text>`;svg.innerHTML=out;
-let last=vals.at(-1),pct=(vals.at(-1)/vals[0]-1)*100,score=56+(seed%29);$('price').textContent='$'+last.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});$('change').textContent=(pct>=0?'+':'')+pct.toFixed(2)+'%';$('change').className='metric '+(pct>=0?'positive':'negative');$('bias').textContent=pct>1?'Bullish':pct< -1?'Bearish':'Neutral';$('bias').className='metric '+(pct>1?'positive':pct< -1?'negative':'neutral');$('atr').textContent=(1.1+(seed%140)/100).toFixed(2)+'%';$('score').textContent=score;$('scoreLabel').textContent=score>72?'Strong alignment':score>60?'Moderate alignment':'Weak alignment';$('rsi').textContent=(43+(seed%310)/10).toFixed(1);$('macd').textContent=(pct>=0?'+':'')+(pct*58).toFixed(1);$('ema').textContent=pct>0?'Above':'Below';$('obv').textContent=seed%3?'Rising':'Mixed'}
-document.querySelectorAll('[data-tf]').forEach(b=>b.addEventListener('click',()=>{tf=b.dataset.tf;document.querySelectorAll('[data-tf]').forEach(x=>x.classList.toggle('active',x===b));render()}));$('symbol').addEventListener('change',e=>{sym=e.target.value;render()});render();
+const $=id=>document.getElementById(id);
+let tf='1h',sym='BTC / USDT',currentCandles=[];
+const SYMBOLS={'BTC / USDT':'BTCUSDT','ETH / USDT':'ETHUSDT','SOL / USDT':'SOLUSDT'};
+const BINANCE_INTERVAL={'15m':'15m','1h':'1h','4h':'4h','1d':'1d'};
+const BYBIT_INTERVAL={'15m':'15','1h':'60','4h':'240','1d':'D'};
+const CACHE_PREFIX='trading-v2-market-v1:';
+function validCandles(rows){
+ if(!Array.isArray(rows)||rows.length<30)return false;
+ let previous=-1;
+ return rows.every(c=>{const o=Number(c.open),h=Number(c.high),l=Number(c.low),cl=Number(c.close),v=Number(c.volume),t=Number(c.open_time);
+  const ok=[o,h,l,cl,v,t].every(Number.isFinite)&&o>0&&h>0&&l>0&&cl>0&&v>=0&&l<=Math.min(o,cl)&&h>=Math.max(o,cl)&&l<=h&&t>previous;
+  previous=t;return ok;});
+}
+function normalizeBinance(rows){
+ return rows.filter(r=>Number(r[6])<Date.now()).map(r=>({open_time:Number(r[0]),open:Number(r[1]),high:Number(r[2]),low:Number(r[3]),close:Number(r[4]),volume:Number(r[5]),close_time:Number(r[6])}));
+}
+function normalizeBybit(rows){
+ return rows.map(r=>({open_time:Number(r[0]),open:Number(r[1]),high:Number(r[2]),low:Number(r[3]),close:Number(r[4]),volume:Number(r[5]),close_time:Number(r[0])+1})).filter(c=>c.open_time+1<Date.now()).sort((a,b)=>a.open_time-b.open_time);
+}
+async function fetchJson(url,timeoutMs=9000){
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeoutMs);
+ try{const response=await fetch(url,{cache:'no-store',signal:controller.signal});if(!response.ok)throw new Error('HTTP '+response.status);return await response.json();}
+ finally{clearTimeout(timer);}
+}
+async function githubSource(){
+ const symbol=SYMBOLS[sym],url='https://raw.githubusercontent.com/ebehinkaranzp-code/tradingv2/work/rust-risk-core/data/market/'+symbol+'_'+tf+'.json';
+ const payload=await fetchJson(url);
+ if(payload.schema_version!==1||payload.symbol!==symbol||payload.interval!==tf||!validCandles(payload.candles))throw new Error('GitHub snapshot failed validation');
+ return {candles:payload.candles,source:'GitHub snapshot',time:payload.fetched_at};
+}
+async function binanceSource(){
+ const symbol=SYMBOLS[sym],url='https://api.binance.com/api/v3/klines?symbol='+symbol+'&interval='+BINANCE_INTERVAL[tf]+'&limit=250';
+ const rows=normalizeBinance(await fetchJson(url));
+ if(!validCandles(rows))throw new Error('Binance returned insufficient or invalid candles');
+ return {candles:rows,source:'Binance direct fallback',time:new Date().toISOString()};
+}
+async function bybitSource(){
+ const symbol=SYMBOLS[sym],url='https://api.bybit.com/v5/market/kline?category=spot&symbol='+symbol+'&interval='+BYBIT_INTERVAL[tf]+'&limit=250';
+ const payload=await fetchJson(url),rows=normalizeBybit(payload?.result?.list||[]);
+ if(payload?.retCode!==0||!validCandles(rows))throw new Error('Bybit returned insufficient or invalid candles');
+ return {candles:rows,source:'Bybit direct fallback',time:new Date().toISOString()};
+}
+function cachedSource(){
+ try{const raw=localStorage.getItem(CACHE_PREFIX+SYMBOLS[sym]+':'+tf);if(!raw)return null;const p=JSON.parse(raw);return validCandles(p.candles)?{...p,source:'Local cache (offline)'}:null;}catch{return null;}
+}
+function ema(values,period){let out=[],k=2/(period+1);values.forEach((v,i)=>out.push(i? v*k+out[i-1]*(1-k):v));return out;}
+function rsi(values,period=14){if(values.length<=period)return 50;let gain=0,loss=0;for(let i=1;i<=period;i++){let d=values[i]-values[i-1];gain+=Math.max(0,d);loss+=Math.max(0,-d);}let ag=gain/period,al=loss/period;for(let i=period+1;i<values.length;i++){let d=values[i]-values[i-1];ag=(ag*(period-1)+Math.max(0,d))/period;al=(al*(period-1)+Math.max(0,-d))/period;}return al===0?100:100-100/(1+ag/al);}
+function renderChart(candles){
+ const svg=$('priceChart'),W=760,H=280,L=48,R=12,T=12,B=26,lo=Math.min(...candles.map(c=>c.low)),hi=Math.max(...candles.map(c=>c.high)),pad=(hi-lo)*.06||1;const min=lo-pad,max=hi+pad;
+ const x=i=>L+i*(W-L-R)/(candles.length-1),y=p=>T+(max-p)*(H-T-B)/(max-min);let out='';
+ for(let j=0;j<5;j++){let yy=T+j*(H-T-B)/4;out+='<line class="gridline" x1="'+L+'" x2="'+(W-R)+'" y1="'+yy+'" y2="'+yy+'"/><text class="axis" x="2" y="'+(yy+4)+'">'+(max-(max-min)*j/4).toFixed(2)+'</text>';}
+ const closes=candles.map(c=>c.close),line=arr=>arr.map((v,i)=>(i?'L':'M')+x(i).toFixed(1)+','+y(v).toFixed(1)).join(' ');
+ const fast=ema(closes,20),slow=ema(closes,50);out+='<path class="boll" d="'+line(closes.map((v,i)=>v+(max-min)*.045))+'"/><path class="boll" d="'+line(closes.map((v,i)=>v-(max-min)*.045))+'"/>';
+ candles.forEach((c,i)=>{const xx=x(i),up=c.close>=c.open,top=y(Math.max(c.open,c.close)),bot=y(Math.min(c.open,c.close));out+='<line class="'+(up?'candle-up':'candle-down')+'" x1="'+xx+'" x2="'+xx+'" y1="'+y(c.high)+'" y2="'+y(c.low)+'" stroke-width="1.2"/><rect class="'+(up?'candle-up':'candle-down')+'" x="'+(xx-3.1)+'" y="'+top+'" width="6.2" height="'+Math.max(1.5,bot-top)+'" rx="1"/>';});
+ out+='<path class="ema" d="'+line(fast)+'"/><text class="axis" x="'+L+'" y="'+(H-5)+'">'+candles.length+' closed candles</text><text class="axis" x="'+(W-R-35)+'" y="'+(H-5)+'">LATEST</text>';svg.innerHTML=out;
+}
+function applyData(data){
+ currentCandles=data.candles;const cs=currentCandles.map(c=>c.close),last=currentCandles.at(-1),first=cs[0],pct=(last.close/first-1)*100,fast=ema(cs,20),slow=ema(cs,50),r=rsi(cs),macd=ema(cs,12).at(-1)-ema(cs,26).at(-1);
+ renderChart(currentCandles);$('price').textContent='$'+last.close.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+ $('change').textContent=(pct>=0?'+':'')+pct.toFixed(2)+'%';$('change').className='metric '+(pct>=0?'positive':'negative');
+ const bias=last.close>slow.at(-1)&&r>52?'Bullish':last.close<slow.at(-1)&&r<48?'Bearish':'Neutral';$('bias').textContent=bias;$('bias').className='metric '+(bias==='Bullish'?'positive':bias==='Bearish'?'negative':'neutral');
+ const ranges=currentCandles.slice(-14).map(c=>c.high-c.low),atr=ranges.reduce((a,b)=>a+b,0)/ranges.length/last.close*100;$('atr').textContent=atr.toFixed(2)+'%';
+ $('rsi').textContent=r.toFixed(1);$('rsi').className=r>=70?'negative':r<=30?'positive':'neutral';$('macd').textContent=(macd>=0?'+':'')+macd.toFixed(2);$('ema').textContent=last.close>fast.at(-1)?'Above 20':'Below 20';
+ let obv=0;for(let i=1;i<currentCandles.length;i++)obv+=Math.sign(cs[i]-cs[i-1])*currentCandles[i].volume;$('obv').textContent=obv>=0?'Rising':'Falling';
+ const score=Math.round((last.close>fast.at(-1)?25:0)+(fast.at(-1)>slow.at(-1)?25:0)+(r>50?20:0)+(macd>0?20:0)+(atr<4?10:0));$('score').textContent=score;$('scoreLabel').textContent=score>=75?'Strong technical alignment':score>=50?'Mixed technical alignment':'Weak technical alignment';
+ const factors=[['Trend',last.close>slow.at(-1)?'Positive':'Negative',last.close>slow.at(-1)?'+20':'−10','Close vs EMA 50'],['Momentum',r>55?'Positive':r<45?'Negative':'Mixed',r>55?'+15':r<45?'−10':'+5','RSI '+r.toFixed(1)],['MACD',macd>0?'Positive':'Negative',macd>0?'+15':'−10','MACD '+macd.toFixed(2)],['Volume',obv>=0?'Positive':'Negative',obv>=0?'+10':'−5','OBV direction'],['Volatility',atr<4?'Normal':'Elevated',atr<4?'+10':'0','ATR '+atr.toFixed(2)+'%']];
+ $('factorRows').innerHTML=factors.map(f=>'<tr><td>'+f[0]+'</td><td class="'+(f[1]==='Positive'||f[1]==='Normal'?'positive':f[1]==='Negative'?'negative':'neutral')+'">'+f[1]+'</td><td>'+f[2]+'</td><td>'+f[3]+'</td></tr>').join('');
+ const badge=$('feedBadge'),status=$('feedStatus');badge.textContent=data.source.toUpperCase();badge.style.borderColor=data.source.includes('cache')?'#725b2c':'#28634e';badge.style.background=data.source.includes('cache')?'#2a2316':'#10271f';badge.style.color=data.source.includes('cache')?'#f1cb7d':'#79dfb5';status.textContent='DATA · '+data.source.toUpperCase();$('updatedAt').textContent='Snapshot: '+new Date(data.time).toLocaleString()+' · '+currentCandles.length+' closed candles';
+}
+async function refreshData(){
+ $('feedStatus').textContent='DATA · CONNECTING';$('feedBadge').textContent='FETCHING MARKET DATA…';$('updatedAt').textContent='Trying GitHub → Binance → Bybit → local cache';
+ const providers=[githubSource,binanceSource,bybitSource];let errors=[];
+ for(const provider of providers){try{const data=await provider();if(!validCandles(data.candles))throw new Error('Candle validation failed');try{localStorage.setItem(CACHE_PREFIX+SYMBOLS[sym]+':'+tf,JSON.stringify(data));}catch{}applyData(data);return;}catch(e){errors.push(e.message);}}
+ const cached=cachedSource();if(cached){applyData(cached);$('updatedAt').textContent+=' · Live refresh failed; showing cached data';return;}
+ $('feedStatus').textContent='DATA · UNAVAILABLE';$('feedBadge').textContent='NO VALID MARKET DATA';$('updatedAt').textContent='All sources failed: '+errors.join(' | ');$('price').textContent='—';$('change').textContent='—';$('bias').textContent='Unavailable';$('atr').textContent='—';$('priceChart').innerHTML='<text class="axis" x="180" y="130">No validated market data available</text>';
+}
+document.querySelectorAll('[data-tf]').forEach(b=>b.addEventListener('click',()=>{tf=b.dataset.tf;document.querySelectorAll('[data-tf]').forEach(x=>x.classList.toggle('active',x===b));refreshData();}));
+$('symbol').addEventListener('change',e=>{sym=e.target.value;refreshData();});$('refreshData').addEventListener('click',refreshData);
+refreshData();setInterval(refreshData,60000);
 </script></body></html>
