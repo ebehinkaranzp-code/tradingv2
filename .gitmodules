@@ -1,0 +1,3 @@
+[submodule "tradoor-source"]
+	path = tradoor-source
+	url = https://github.com/tradoor-terminal/tradoor.git
