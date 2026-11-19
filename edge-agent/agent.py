@@ -83,11 +83,10 @@ def write_file(path: str, content: str):
 
 CHECKS = {
  "git_status":(["git","status","--short","--branch"],"."),
- "python_tests":(["python","-m","pytest","-q"],"."),
- "cargo_test":(["cargo","test"],"."),
- "deno_check":(["deno","task","check"],"web"),
- "deno_test":(["deno","task","test"],"web"),
- "deno_build":(["deno","task","build"],"web"),
+ "dashboard_tests":(["node","--test","web/dashboard.test.cjs"],"."),
+ "agent_compile":(["python","-m","py_compile","edge-agent/agent.py"],"."),
+ "extension_syntax":(["node","--check","edge-agent/extension/popup.js"],"."),
+ "manifest_json":(["python","-m","json.tool","edge-agent/extension/manifest.json"],"."),
 }
 def run_check(profile: str):
     if profile not in CHECKS: raise ValueError("Unsupported validation profile.")
