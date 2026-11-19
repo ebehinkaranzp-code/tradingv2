@@ -1,0 +1,41 @@
+name: Publish market data snapshots
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+  push:
+    branches:
+      - work/rust-risk-core
+    paths:
+      - "scripts/fetch_market_data.py"
+      - ".github/workflows/market-data.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: market-data-snapshots
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - name: Fetch and validate public candles
+        run: python scripts/fetch_market_data.py
+      - name: Publish snapshots to this repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/market
+          if git diff --cached --quiet; then
+            echo "No market snapshot changes."
+          else
+            git commit -m "chore(data): refresh market snapshots"
+            git push
+          fi
