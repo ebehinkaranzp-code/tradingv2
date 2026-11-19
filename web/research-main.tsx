@@ -104,7 +104,7 @@ function App() {
           <article class="result" classList={{failed: !r.ok}}>
             <div class="result-top"><h2>{r.name}</h2><span class="state">{r.status}</span></div>
             <p>{r.detail}</p>
-            <footer>{r.bars ? r.bars + ' candles · last close ' + stamp(r.lastTime + (r.name.includes('4H') ? 14_400_000 : DAY)) : 'Insufficient or invalid history'}</footer>
+            <footer>{r.bars ? r.bars + ' candles · last close ' + stamp(r.lastTime + (r.name.includes('Quattro') ? 14_400_000 : DAY)) : 'Insufficient or invalid history'}</footer>
           </article>
         }</For>
         <Show when={loading() && !results().length}><div class="loading">در حال بارگذاری تاریخچه واقعی بازار…</div></Show>
