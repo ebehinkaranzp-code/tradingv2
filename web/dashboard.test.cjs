@@ -195,4 +195,8 @@ test('malformed or non-array local browser state safely falls back to an empty a
   });
   assert.deepEqual(Array.from(malformed('drawings')), []);
   assert.deepEqual(Array.from(wrongShape('alerts')), []);
+  const mixed = vm.runInNewContext(source.slice(localArrayStart, localArrayEnd) + '; loadLocalArray', {
+    localStorage: {getItem: () => '[null,"invalid",{"id":1}]'}
+  });
+  assert.equal(Array.from(mixed('drawings')).length, 1);
 });
