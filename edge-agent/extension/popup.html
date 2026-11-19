@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Trading V2 Agent</title><link rel="stylesheet" href="popup.css"></head>
+<body><main>
+<header><div class="mark">T</div><div><strong>TRADING V2 AGENT</strong><small>LOCAL AUTONOMOUS WORKER</small></div><span id="dot" class="dot"></span></header>
+<section class="status"><div><small>AGENT STATUS</small><b id="status">Checking…</b></div><div><small>MODEL</small><b id="model">—</b></div><div><small>TIME LIMIT</small><b id="limit">7 hours</b></div></section>
+<label for="token">Local pairing token</label><input id="token" type="password" placeholder="Paste token from token.txt"><button id="save" class="secondary">Save connection token</button>
+<label for="task">Work instruction</label><textarea id="task" rows="4">Inspect Trading V2 and implement the highest-priority verified P0 improvements. Focus on real market data, chart rendering, runtime errors and deployment checks. Do not commit or deploy.</textarea>
+<div class="actions"><button id="start">Start agent</button><button id="stop" class="danger">Stop</button></div>
+<section class="logbox"><div class="loghead"><b>ACTIVITY</b><button id="refresh" class="secondary tiny">Refresh</button></div><pre id="logs">Connect to the local agent to view activity.</pre></section>
+<footer>Runs on this PC · API key stays in local backend · no automatic commit or deployment</footer><p id="message" role="status"></p>
+</main><script src="popup.js"></script></body></html>
