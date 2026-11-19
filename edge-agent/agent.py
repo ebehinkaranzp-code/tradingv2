@@ -184,7 +184,7 @@ def health(): return {"ok":True,"service":"Trading V2 Local Agent"}
 def status(x_agent_token: str|None=Header(default=None)):
     auth(x_agent_token)
     with lock: result=dict(state)
-    result.update({"repo_exists":REPO.is_dir(),"repo_path":str(REPO),"model":MODEL,"max_hours":MAX_HOURS})
+    result.update({"repo_exists":bool(REPO and REPO.is_dir()),"repo_path":str(REPO) if REPO else None,"model":MODEL,"max_hours":MAX_HOURS})
     return result
 
 @app.get("/logs")
