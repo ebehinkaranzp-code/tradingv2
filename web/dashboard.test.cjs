@@ -55,6 +55,10 @@ const escapeHtml = vm.runInNewContext(source.slice(escapeStart, escapeEnd) + '; 
 const closedCountStart = source.indexOf('function closedBarCount(');
 const closedCountEnd = source.indexOf('\nasync function loadBars', closedCountStart);
 assert.ok(closedCountStart >= 0 && closedCountEnd > closedCountStart, 'closed candle counter missing');
+const footprintStart = source.indexOf('function footprintPoc(');
+const footprintEnd = source.indexOf('\nfunction renderFootprint', footprintStart);
+assert.ok(footprintStart >= 0 && footprintEnd > footprintStart, 'footprint ranking helpers missing');
+const footprint = vm.runInNewContext(source.slice(footprintStart, footprintEnd) + '; ({footprintPoc, footprintDisplayRows})');
 
 test('CSV parser supports comma, semicolon, tab and quoted cells', () => {
   for (const delimiter of [',', ';', '\t']) {
@@ -133,4 +137,13 @@ test('closed candle count excludes the still-forming exchange candle', () => {
   const ctx = {bars:[{closeTime:now-1},{closeTime:now+60000}]};
   const count = vm.runInNewContext(source.slice(closedCountStart, closedCountEnd) + '; closedBarCount', ctx);
   assert.equal(count(), 1);
+});
+
+test('footprint POC uses every price level while display rows prioritize traded volume', () => {
+  const rows = Array.from({length:30}, (_, i) => ({p:100-i,buy:1,sell:0}));
+  rows[29] = {p:71,buy:80,sell:20};
+  const visible = footprint.footprintDisplayRows(rows, 24);
+  assert.equal(visible.length, 24);
+  assert.ok(visible.some(row => row.p === 71), 'high-volume level should not be dropped');
+  assert.equal(footprint.footprintPoc(rows).p, 71, 'POC must be calculated from all levels');
 });
