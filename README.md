@@ -24,3 +24,5 @@ The build applies `scripts/disable-live-trading.py` to the pinned upstream sourc
 - Paper Trading is the Training simulator, with virtual positions and fills at live market prices; it is separate from exchange accounts and cannot place real orders.
 
 The Research Lab reads public Binance market data directly. It does not use GitHub as a price feed, does not fill missing candles with synthetic data, and blocks a strategy result when gaps, duplicates, invalid OHLCV or stale data are detected.
+
+NEoWave is reserved as an independent engine extension point. No automatic wave count is shown until its rules and validation tests are implemented.
