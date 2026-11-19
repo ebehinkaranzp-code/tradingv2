@@ -42,6 +42,11 @@ edit("web/src/components/Brand.tsx", [
     ("      <span>TRADOOR</span>", "      <span>TRADOOR</span>\n      <a class=\"brand-research\" href={import.meta.env.BASE_URL + 'research.html'}>RESEARCH</a>"),
 ])
 
+edit("web/src/styles.css", [
+    (".brand { display: flex; align-items: center; gap: 6px; padding: 0 8px; background: var(--primary); color: var(--bg); font-weight: 700; font-size: .59375rem; letter-spacing: 0.14em; }",
+     ".brand { display: flex; align-items: center; gap: 6px; padding: 0 8px; background: var(--primary); color: var(--bg); font-weight: 700; font-size: .59375rem; letter-spacing: 0.14em; }\\n.brand-research { margin-inline-start: 8px; padding: 3px 5px; border: 1px solid currentColor; border-radius: 3px; color: inherit; text-decoration: none; font-size: 8px; letter-spacing: .08em; }"),
+])
+
 edit("web/src/workspace/model.ts", [
     ("export const PANEL_TYPES: readonly PanelType[] = ['chart', 'watchlist', 'tpo', 'values', 'dom', 'tape', 'trade', 'positions', 'liquidations', 'flow', 'signals', 'alerts', 'econ'];",
      "export const PANEL_TYPES: readonly PanelType[] = ['chart', 'watchlist', 'tpo', 'values', 'dom', 'tape', 'liquidations', 'flow', 'signals', 'alerts', 'econ'];"),
