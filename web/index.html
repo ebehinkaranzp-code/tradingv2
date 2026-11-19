@@ -170,8 +170,10 @@ async function writeHistory(symbol,timeframe,candles,source,marketType='spot'){l
 function mergeHistoryFirst(history,incoming){const byTime=new Map();for(const c of history||[])byTime.set(Number(c.open_time),c);for(const c of incoming||[])if(!byTime.has(Number(c.open_time)))byTime.set(Number(c.open_time),c);return [...byTime.values()].sort((a,b)=>a.open_time-b.open_time).slice(-HISTORY_LIMIT);}
 
 function parseCsvRows(input){
+ const first=input.split(/\r?\n/,1)[0],delimiters=[',',';','\t'];
+ const delimiter=delimiters.sort((a,b)=>first.split(b).length-first.split(a).length)[0];
  const rows=[];let row=[],cell='',quoted=false;
- for(let i=0;i<input.length;i++){const ch=input[i];if(quoted){if(ch==='"'&&input[i+1]==='"'){cell+='"';i++;}else if(ch==='"')quoted=false;else cell+=ch;}else if(ch==='"')quoted=true;else if(ch===','){row.push(cell);cell='';}else if(ch==='\n'){row.push(cell.replace(/\r$/,''));if(row.some(v=>v.trim()))rows.push(row);row=[];cell='';}else cell+=ch;}
+ for(let i=0;i<input.length;i++){const ch=input[i];if(quoted){if(ch==='"'&&input[i+1]==='"'){cell+='"';i++;}else if(ch==='"')quoted=false;else cell+=ch;}else if(ch==='"')quoted=true;else if(ch===delimiter){row.push(cell);cell='';}else if(ch==='\n'){row.push(cell.replace(/\r$/,''));if(row.some(v=>v.trim()))rows.push(row);row=[];cell='';}else cell+=ch;}
  if(quoted)throw new Error('Unclosed quoted CSV field');if(cell.length||row.length){row.push(cell.replace(/\r$/,''));if(row.some(v=>v.trim()))rows.push(row);}return rows;
 }
 function csvTime(v){const s=String(v||'').trim();if(!s)throw new Error('Missing timestamp');if(/^\d+(\.\d+)?$/.test(s)){const n=Number(s);return Math.round(n<1e11?n*1000:n);}const n=Date.parse(s);if(!Number.isFinite(n))throw new Error('Invalid timestamp: '+s);return n;}
@@ -181,7 +183,7 @@ async function importCsvHistory(){
  if(!duration){$('csvImportStatus').textContent='Select 15m, 1h, 4h or 1D. 1W is derived from daily data.';return;}
  $('csvImportStatus').textContent='Validating '+file.name+'…';
  try{
-  const rows=parseCsvRows(await file.text());if(rows.length<31)throw new Error('Need a header and at least 30 candle rows.');
+  const rows=parseCsvRows((await file.text()).replace(/^\uFEFF/,''));if(rows.length<31)throw new Error('Need a header and at least 30 candle rows.');
   const headers=rows[0].map(v=>v.trim().toLowerCase().replace(/[\s-]+/g,'_'));
   const ix=names=>headers.findIndex(v=>names.includes(v));
   const ti=ix(['open_time','timestamp','time','date','datetime','ts','start_time']),oi=ix(['open']),hi=ix(['high']),li=ix(['low']),ci=ix(['close']),vi=ix(['volume','vol']),cti=ix(['close_time','end_time']);
