@@ -22,7 +22,9 @@ else:
 
 REPO_VALUE = os.environ.get("TRADING_V2_REPO", "").strip()
 REPO = Path(REPO_VALUE).expanduser().resolve() if REPO_VALUE else None
-MODEL = os.environ.get("OPENAI_MODEL", "gpt-5.5")
+API_BASE = os.environ.get("OPENAI_BASE_URL", "http://127.0.0.1:1337/v1").strip().rstrip("/")
+API_KEY = os.environ.get("OPENAI_API_KEY", "jan-local").strip()
+MODEL = os.environ.get("OPENAI_MODEL", "Jan-v3.5-4B-Q5_K_M.gguf").strip()
 MAX_HOURS = min(max(float(os.environ.get("AGENT_MAX_HOURS", "7")), 0.1), 7.0)
 SKIP = {".git", "node_modules", "target", ".venv", "dist", "build", "__pycache__"}
 BLOCKED = {".env", ".env.local", ".env.production", "token.txt", "credentials.json"}
@@ -141,29 +143,27 @@ def execute(name: str, args: dict):
 
 def agent_loop(task: str):
     try:
-        if not os.environ.get("OPENAI_API_KEY"): raise RuntimeError("OPENAI_API_KEY missing in edge-agent/.env")
         if REPO is None or not REPO.is_dir(): raise RuntimeError(f"Local repo not found: {REPO}. Set TRADING_V2_REPO in .env")
-        client = OpenAI(timeout=60)
-        log(f"AGENT STARTED · model={MODEL} · repo={REPO}")
-        response = client.responses.create(model=MODEL,instructions=INSTRUCTIONS,tools=TOOLS,input=task,max_output_tokens=5000)
+        client = OpenAI(base_url=API_BASE, api_key=API_KEY or "jan-local", timeout=120)
+        chat_tools = [{"type":"function","function":{"name":t["name"],"description":t["description"],"parameters":t["parameters"]}} for t in TOOLS]
+        messages = [{"role":"system","content":INSTRUCTIONS},{"role":"user","content":task}]
+        log(f"AGENT STARTED · provider=Jan OpenAI-compatible · endpoint={API_BASE} · model={MODEL} · repo={REPO}")
         turns = 0
         while turns < 60 and not stop_event.is_set() and time.time() < float(state["deadline"]):
-            calls = [x for x in response.output if getattr(x,"type","")=="function_call"]
-            if not calls:
-                result = getattr(response,"output_text","") or "Finished without a text summary."
+            response = client.chat.completions.create(model=MODEL,messages=messages,tools=chat_tools,tool_choice="auto",temperature=0.1)
+            message = response.choices[0].message
+            if not message.tool_calls:
+                result = message.content or "Finished without a text summary."
                 log("AGENT RESPONSE: "+result)
                 with lock: state["last_result"] = result
                 break
-            outputs = []
-            for call in calls:
+            messages.append({"role":"assistant","content":message.content or "", "tool_calls":[tc.model_dump(exclude_none=True) for tc in message.tool_calls]})
+            for call in message.tool_calls:
                 if stop_event.is_set() or time.time() >= float(state["deadline"]): break
-                try: result = execute(call.name,json.loads(call.arguments or "{}"))
-                except Exception as e: result = {"error":str(e)}
-                log("TOOL: "+call.name)
-                outputs.append({"type":"function_call_output","call_id":call.call_id,"output":json.dumps(result,ensure_ascii=False)})
-            if not outputs: break
-            response = client.responses.create(model=MODEL,instructions=INSTRUCTIONS,tools=TOOLS,
-                previous_response_id=response.id,input=outputs,max_output_tokens=5000)
+                try: args=json.loads(call.function.arguments or "{}"); result=execute(call.function.name,args)
+                except Exception as e: result={"error":str(e)}
+                log("TOOL: "+call.function.name)
+                messages.append({"role":"tool","tool_call_id":call.id,"content":json.dumps(result,ensure_ascii=False)})
             turns += 1
         if stop_event.is_set(): log("STOP REQUESTED BY USER")
         elif time.time() >= float(state["deadline"]): log("SEVEN-HOUR DEADLINE REACHED")
