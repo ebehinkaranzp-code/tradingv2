@@ -141,7 +141,8 @@ function freshPaper(){return {version:1,cash:10000,realized:0,positions:{},marks
 function loadPaper(){try{const p=JSON.parse(localStorage.getItem(PAPER_KEY));if(p?.version===1&&Number.isFinite(p.cash)&&p.positions&&Array.isArray(p.history)){p.marks=p.marks||{};return p;}}catch{}return freshPaper();}
 let paper=loadPaper(),paperMarkPrices={};
 function savePaper(){try{localStorage.setItem(PAPER_KEY,JSON.stringify(paper));}catch{$('paperStatus').textContent='Browser storage unavailable; demo changes may not persist after closing this page.';}}
-function paperFmt(v){return '
+function paperFmt(v){return String.fromCharCode(36)+Number(v||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function applyData(data){
  currentCandles=data.candles;const cs=currentCandles.map(c=>c.close),last=currentCandles.at(-1),first=cs[0],pct=(last.close/first-1)*100,fast=ema(cs,20),slow=ema(cs,50),r=rsi(cs),macd=ema(cs,12).at(-1)-ema(cs,26).at(-1);
  paperMarkPrices[SYMBOLS[sym]]=last.close;paper.marks[SYMBOLS[sym]]=last.close;savePaper();renderPaper();renderChart(currentCandles);$('price').textContent='$'+last.close.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
  $('change').textContent=(pct>=0?'+':'')+pct.toFixed(2)+'%';$('change').className='metric '+(pct>=0?'positive':'negative');
