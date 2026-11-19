@@ -45,7 +45,7 @@ footer{padding:25px 0 10px;text-align:center;color:#718096;font-size:10px}
 </main>
 <script>
 const $=id=>document.getElementById(id);
-let tf='1h',sym='BTC / USDT',currentCandles=[];
+let tf='1h',sym='BTC / USDT',currentCandles=[],staleGithubSnapshot=null;
 const SYMBOLS={'BTC / USDT':'BTCUSDT','ETH / USDT':'ETHUSDT','SOL / USDT':'SOLUSDT'};
 const BINANCE_INTERVAL={'15m':'15m','1h':'1h','4h':'4h','1d':'1d'};
 const BYBIT_INTERVAL={'15m':'15','1h':'60','4h':'240','1d':'D'};
@@ -78,7 +78,9 @@ async function githubSource(){
  }));
  const valid=results.filter(r=>r.status==='fulfilled').map(r=>r.value).sort((a,b)=>Date.parse(b.time)-Date.parse(a.time));
  if(!valid.length)throw new Error('No valid GitHub snapshot on working or main branch');
- return valid[0];
+ const latest=valid[0];
+ if(Date.now()-Date.parse(latest.time)>8*60*1000){staleGithubSnapshot={...latest,source:'GitHub snapshot (stale)'};throw new Error('GitHub snapshot is older than 8 minutes');}
+ return latest;
 }
 async function binanceSource(){
  const symbol=SYMBOLS[sym],url='https://api.binance.com/api/v3/klines?symbol='+symbol+'&interval='+BINANCE_INTERVAL[tf]+'&limit=250';
@@ -130,10 +132,12 @@ function applyData(data){
  const badge=$('feedBadge'),status=$('feedStatus');badge.textContent=data.source.toUpperCase();badge.style.borderColor=data.source.includes('cache')?'#725b2c':'#28634e';badge.style.background=data.source.includes('cache')?'#2a2316':'#10271f';badge.style.color=data.source.includes('cache')?'#f1cb7d':'#79dfb5';status.textContent='DATA · '+data.source.toUpperCase();$('updatedAt').textContent='Snapshot: '+new Date(data.time).toLocaleString()+' · '+currentCandles.length+' closed candles';
 }
 async function refreshData(){
+ staleGithubSnapshot=null;
  $('feedStatus').textContent='DATA · CONNECTING';$('feedBadge').textContent='FETCHING MARKET DATA…';$('updatedAt').textContent='Trying GitHub → Binance → Bybit → local cache';
  const providers=[githubSource,binanceSource,bybitSource,krakenSource];let errors=[];
  for(const provider of providers){try{const data=await provider();if(!validCandles(data.candles))throw new Error('Candle validation failed');try{localStorage.setItem(CACHE_PREFIX+SYMBOLS[sym]+':'+tf,JSON.stringify(data));}catch{}applyData(data);return;}catch(e){errors.push(e.message);}}
- const cached=cachedSource();if(cached){applyData(cached);$('updatedAt').textContent+=' · Live refresh failed; showing cached data';return;}
+ const cached=cachedSource(),fallback=[staleGithubSnapshot,cached].filter(Boolean).sort((a,b)=>Date.parse(b.time)-Date.parse(a.time))[0];
+ if(fallback){applyData(fallback);$('updatedAt').textContent+=' · Live providers unavailable; showing stale fallback data';return;}
  $('feedStatus').textContent='DATA · UNAVAILABLE';$('feedBadge').textContent='NO VALID MARKET DATA';$('updatedAt').textContent='All sources failed: '+errors.join(' | ');$('price').textContent='—';$('change').textContent='—';$('bias').textContent='Unavailable';$('atr').textContent='—';$('priceChart').innerHTML='<text class="axis" x="180" y="130">No validated market data available</text>';
 }
 document.querySelectorAll('[data-tf]').forEach(b=>b.addEventListener('click',()=>{tf=b.dataset.tf;document.querySelectorAll('[data-tf]').forEach(x=>x.classList.toggle('active',x===b));refreshData();}));
