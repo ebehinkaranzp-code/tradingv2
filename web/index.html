@@ -87,6 +87,14 @@ async function bybitSource(){
  if(payload?.retCode!==0||!validCandles(rows))throw new Error('Bybit returned insufficient or invalid candles');
  return {candles:rows,source:'Bybit direct fallback',time:new Date().toISOString()};
 }
+async function krakenSource(){
+ const symbol=SYMBOLS[sym],pair=symbol.startsWith('BTC')?'XBT'+symbol.slice(3):symbol,interval={'15m':15,'1h':60,'4h':240,'1d':1440}[tf],duration={'15m':900000,'1h':3600000,'4h':14400000,'1d':86400000}[tf];
+ const payload=await fetchJson('https://api.kraken.com/0/public/OHLC?pair='+pair+'&interval='+interval),key=Object.keys(payload.result||{}).find(k=>k!=='last');
+ if((payload.error||[]).length||!key)throw new Error('Kraken returned no OHLC data');
+ const rows=(payload.result[key]||[]).map(r=>({open_time:Number(r[0])*1000,open:Number(r[1]),high:Number(r[2]),low:Number(r[3]),close:Number(r[4]),volume:Number(r[6]),close_time:Number(r[0])*1000+duration-1})).filter(c=>c.close_time<Date.now()).sort((a,b)=>a.open_time-b.open_time);
+ if(!validCandles(rows))throw new Error('Kraken returned insufficient or invalid candles');
+ return {candles:rows,source:'Kraken direct fallback',time:new Date().toISOString()};
+}
 function cachedSource(){
  try{const raw=localStorage.getItem(CACHE_PREFIX+SYMBOLS[sym]+':'+tf);if(!raw)return null;const p=JSON.parse(raw);return validCandles(p.candles)?{...p,source:'Local cache (offline)'}:null;}catch{return null;}
 }
@@ -118,7 +126,7 @@ function applyData(data){
 }
 async function refreshData(){
  $('feedStatus').textContent='DATA · CONNECTING';$('feedBadge').textContent='FETCHING MARKET DATA…';$('updatedAt').textContent='Trying GitHub → Binance → Bybit → local cache';
- const providers=[githubSource,binanceSource,bybitSource];let errors=[];
+ const providers=[githubSource,binanceSource,bybitSource,krakenSource];let errors=[];
  for(const provider of providers){try{const data=await provider();if(!validCandles(data.candles))throw new Error('Candle validation failed');try{localStorage.setItem(CACHE_PREFIX+SYMBOLS[sym]+':'+tf,JSON.stringify(data));}catch{}applyData(data);return;}catch(e){errors.push(e.message);}}
  const cached=cachedSource();if(cached){applyData(cached);$('updatedAt').textContent+=' · Live refresh failed; showing cached data';return;}
  $('feedStatus').textContent='DATA · UNAVAILABLE';$('feedBadge').textContent='NO VALID MARKET DATA';$('updatedAt').textContent='All sources failed: '+errors.join(' | ');$('price').textContent='—';$('change').textContent='—';$('bias').textContent='Unavailable';$('atr').textContent='—';$('priceChart').innerHTML='<text class="axis" x="180" y="130">No validated market data available</text>';
