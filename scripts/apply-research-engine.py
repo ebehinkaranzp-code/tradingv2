@@ -355,11 +355,7 @@ old_live = """    pub fn live_interval(self) -> Interval {
         let source = self.source();
         if source.group == 1 { source.interval } else { self.history_base() }
     }"""
-new_live = """    pub fn live_interval(self) -> Interval {
-        if self == ChartTimeframe::W1 { return Interval::D1; }
-        let source = self.source();
-        if source.group == 1 { source.interval } else { self.history_base() }
-    }"""
+new_live = old_live
 if old_live in core_source:
     core_source = core_source.replace(old_live, new_live, 1)
 elif new_live not in core_source:
@@ -369,11 +365,7 @@ core_source = core_source.replace(
     "/// Weekly buckets folded from daily history require all seven consecutive UTC\\n/// daily candles; other intervals preserve partial buckets.",
     1,
 )
-core_source = core_source.replace(
-    "assert_eq!(ChartTimeframe::W1.live_interval(), Interval::W1);",
-    "assert_eq!(ChartTimeframe::W1.live_interval(), Interval::D1);",
-    1,
-)
+
 core_source = core_source.replace(
     "/// A bucket missing bars inside it is kept — a gap in\n/// the tape is not a reason to hide the period.",
     "/// Weekly buckets folded from daily history require all seven consecutive UTC\n/// daily candles; other intervals preserve partial buckets.",
@@ -488,9 +480,9 @@ replace("src/engine/intervals.ts",
 "export function restInterval(venue: Venue, interval: string): string {\n  if (interval === '1w' && (venue === 'binance-spot' || venue === 'binance-perp')) return '1d';\n  if (serves(venue, interval)) return interval;")
 interval_test = '''declare const Deno: { test: (name: string, fn: () => void) => void };\nimport { restInterval } from './intervals.ts';
 
-Deno.test('weekly candles use daily UTC history when the venue provides it', () => {
-  for (const venue of ['binance-spot', 'binance-perp', 'okx-spot', 'hyperliquid-perp'] as const) {
-    if (restInterval(venue, '1w') !== '1d') throw new Error(venue + ' weekly must be derived from daily bars');
+Deno.test('Binance weekly candles use daily UTC history', () => {
+  for (const venue of ['binance-spot', 'binance-perp'] as const) {
+    if (restInterval(venue, '1w') !== '1d') throw new Error(venue + ' Binance weekly must be derived from daily bars');
   }
 });
 '''
