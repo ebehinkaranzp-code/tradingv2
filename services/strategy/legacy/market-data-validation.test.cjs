@@ -21,6 +21,8 @@ assert.throws(() => validateCandles([valid[0], { ...valid[1], time: 3 * H4 }], {
 assert.throws(() => validateCandles([{ ...valid[0], high: 90 }], { timeframe: '4h', now, maxAgeMs: 5000 }), /OHLC range/);
 assert.throws(() => validateCandles(valid, { timeframe: '4h', now, maxAgeMs: 5000, minBars: 4 }), /Insufficient/);
 assert.throws(() => validateCandles(valid, { timeframe: '1m', now, maxAgeMs: 5000 }), /Unsupported timeframe/);
+assert.throws(() => validateCandles([{ ...valid[0], time: 0.5 }], { timeframe: '4h', now, maxAgeMs: 5000 }), /Non-finite OHLC\/time/);
+assert.throws(() => validateCandles(valid, { timeframe: '4h', now: now + 0.5, maxAgeMs: 5000 }), /safe integer/);
 
 const daily = bars(DAY);
 assert.equal(validateCandles(daily, { timeframe: '1d', now: 3 * DAY + 1000, maxAgeMs: 2000 }).length, 3);
