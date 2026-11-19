@@ -1,40 +1,11 @@
-name: Deploy Trading V2 to GitHub Pages
+name: GitHub Pages deployment disabled
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "web/**"
-      - ".github/workflows/publish-site.yml"
-
-permissions:
-  actions: read
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: trading-v2-pages
-  cancel-in-progress: true
+  workflow_dispatch:
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  notice:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-      - name: Upload site
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: web
-      - name: Deploy
-        id: deployment
-        uses: actions/deploy-pages@v4
-        with:
-          artifact_name: github-pages
+      - name: Explain deployment target
+        run: echo "The complete Trading V2 application requires its API server and PostgreSQL; deploy the Docker application instead of the old static preview."
