@@ -6,6 +6,7 @@
 
 use std::fmt;
 
+pub mod analysis;
 pub mod backtest;
 
 #[derive(Debug, Clone, PartialEq)]
