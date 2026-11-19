@@ -38,6 +38,10 @@ node --test services/strategy/legacy/*.test.cjs
 
 The charting project [tradoor-terminal/tradoor](https://github.com/tradoor-terminal/tradoor) is an upstream reference only. Its source is licensed under AGPL-3.0-only. It has not been fully imported or integrated into this repository; do not assume the upstream web application, exchange feeds, database, or chart engine are present here.
 
+## Architecture
+
+See [docs/architecture.md](docs/architecture.md) for the implemented data flow, component boundaries, risk contracts and production-readiness requirements.
+
 ## Roadmap
 
 - Complete native Rust strategy implementations with parity tests against the legacy engine.
