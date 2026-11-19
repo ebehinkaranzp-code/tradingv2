@@ -58,6 +58,12 @@ pub struct BacktestReport {
 }
 
 #[derive(Debug, Clone, Copy)]
+struct ExecutionCosts {
+    slippage_rate: f64,
+    fee_rate: f64,
+}
+
+#[derive(Debug, Clone, Copy)]
 struct Position {
     side: Side,
     entry_time_ms: i64,
@@ -80,14 +86,13 @@ fn close_position(
     raw_exit: f64,
     timestamp_ms: i64,
     reason: &'static str,
-    slippage: f64,
-    fee_rate: f64,
+    costs: ExecutionCosts,
     trades: &mut Vec<BacktestTrade>,
 ) {
-    let exit_price = adverse_fill(raw_exit, position.side, false, slippage);
+    let exit_price = adverse_fill(raw_exit, position.side, false, costs.slippage_rate);
     let direction = if position.side == Side::Long { 1.0 } else { -1.0 };
     let gross_pnl = (exit_price - position.entry_price) * position.quantity * direction;
-    let exit_fee = exit_price * position.quantity * fee_rate;
+    let exit_fee = exit_price * position.quantity * costs.fee_rate;
     *cash += gross_pnl - exit_fee;
     trades.push(BacktestTrade {
         side: position.side,
@@ -168,8 +173,7 @@ pub fn run_backtest(
                         candle.open,
                         candle.timestamp_ms,
                         "signal_next_open",
-                        config.slippage_rate,
-                        fee_rate,
+                        ExecutionCosts { slippage_rate: config.slippage_rate, fee_rate },
                         &mut trades,
                     );
                 }
@@ -229,8 +233,7 @@ pub fn run_backtest(
                     raw_exit,
                     candle.timestamp_ms,
                     "stop_loss",
-                    config.slippage_rate,
-                    fee_rate,
+                    ExecutionCosts { slippage_rate: config.slippage_rate, fee_rate },
                     &mut trades,
                 );
             }
@@ -254,8 +257,7 @@ pub fn run_backtest(
             last.close,
             last.timestamp_ms + config.interval_ms,
             "end_of_data",
-            config.slippage_rate,
-            fee_rate,
+            ExecutionCosts { slippage_rate: config.slippage_rate, fee_rate },
             &mut trades,
         );
         peak_equity = peak_equity.max(cash);
