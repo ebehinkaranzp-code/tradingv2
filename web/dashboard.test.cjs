@@ -12,12 +12,20 @@ assert.ok(scriptStart >= openTag.length && scriptEnd > scriptStart, 'dashboard i
 assert.equal(html.indexOf(openTag, scriptEnd), -1, 'dashboard must contain exactly one inline script');
 const source = html.slice(scriptStart, scriptEnd);
 new vm.Script(source);
+assert.match(html, /data-api\\.binance\\.vision/);
+assert.match(html, /stream\\.binance\\.com/);
+assert.match(html, /TRADINGVIEW/);
+const legacyHtml = fs.readFileSync('web/analysis-legacy.html', 'utf8');
+const legacyStart = legacyHtml.indexOf(openTag) + openTag.length;
+const legacyEnd = legacyHtml.indexOf(closeTag, legacyStart);
+const legacySource = legacyHtml.slice(legacyStart, legacyEnd);
+new vm.Script(legacySource);
 
 function extractBetween(startName, endName) {
-  const start = source.indexOf('function ' + startName + '(');
-  const end = source.indexOf((endName.startsWith('async ') ? endName : 'function ' + endName + '('), start);
+  const start = legacySource.indexOf('function ' + startName + '(');
+  const end = legacySource.indexOf((endName.startsWith('async ') ? endName : 'function ' + endName + '('), start);
   assert.ok(start >= 0 && end > start, 'could not extract ' + startName);
-  return source.slice(start, end);
+  return legacySource.slice(start, end);
 }
 function helpers(code) {
   const context = {};
@@ -70,10 +78,10 @@ test('continuous closed-candle check rejects gaps', () => {
 });
 
 test('preserved strategy engine loads and evaluates a closed-candle Quattro series', () => {
-  const marker = source.indexOf('/*\n * Ported from');
+  const marker = legacySource.indexOf('/*\n * Ported from');
   assert.ok(marker >= 0, 'legacy strategy engine must be embedded');
   const context = {window:{}};
-  vm.runInNewContext(source.slice(marker), context);
+  vm.runInNewContext(legacySource.slice(marker), context);
   const engine = context.window.TDStrategyEngine;
   assert.equal(typeof engine.computeQuattro, 'function');
   const day = 86400000, start = Date.UTC(2026, 0, 5);
