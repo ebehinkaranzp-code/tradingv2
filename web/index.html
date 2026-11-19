@@ -160,6 +160,12 @@ async function krakenSource(){
  if(!validCandles(rows))throw new Error('Kraken returned insufficient or invalid candles');
  return {candles:rows,source:'Kraken direct fallback',time:new Date().toISOString()};
 }
+
+const HISTORY_DB='trading-v2-market-history-v1',HISTORY_STORE='candles',HISTORY_LIMIT=10000;
+function openHistoryDb(){return new Promise((resolve,reject)=>{if(!('indexedDB' in window))return reject(new Error('IndexedDB unavailable'));const req=indexedDB.open(HISTORY_DB,1);req.onupgradeneeded=()=>{const db=req.result;if(!db.objectStoreNames.contains(HISTORY_STORE))db.createObjectStore(HISTORY_STORE,{keyPath:'key'});};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error||new Error('IndexedDB open failed'));});}
+async function readHistory(symbol,timeframe){let db;try{db=await openHistoryDb();return await new Promise((resolve,reject)=>{const tx=db.transaction(HISTORY_STORE,'readonly'),req=tx.objectStore(HISTORY_STORE).get(symbol+':'+timeframe);req.onsuccess=()=>resolve(req.result||null);req.onerror=()=>reject(req.error);});}catch{return null;}finally{db?.close();}}
+async function writeHistory(symbol,timeframe,candles,source){let db;try{db=await openHistoryDb();await new Promise((resolve,reject)=>{const tx=db.transaction(HISTORY_STORE,'readwrite');tx.objectStore(HISTORY_STORE).put({key:symbol+':'+timeframe,symbol,timeframe,source,updated_at:new Date().toISOString(),candles:candles.slice(-HISTORY_LIMIT)});tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||new Error('History write aborted'));});}finally{db?.close();}}
+function mergeHistoryFirst(history,incoming){const byTime=new Map();for(const c of history||[])byTime.set(Number(c.open_time),c);for(const c of incoming||[])if(!byTime.has(Number(c.open_time)))byTime.set(Number(c.open_time),c);return [...byTime.values()].sort((a,b)=>a.open_time-b.open_time).slice(-HISTORY_LIMIT);}
 function cachedSource(){
  try{const raw=localStorage.getItem(CACHE_PREFIX+SYMBOLS[sym]+':'+tf);if(!raw)return null;const p=JSON.parse(raw);return validCandles(p.candles)?{...p,source:'Local cache (offline)'}:null;}catch{return null;}
 }
@@ -181,7 +187,7 @@ function freshPaper(){return {version:1,cash:10000,realized:0,positions:{},marks
 function loadPaper(){try{const p=JSON.parse(localStorage.getItem(PAPER_KEY));if(p?.version===1&&Number.isFinite(p.cash)&&p.positions&&Array.isArray(p.history)){p.marks=p.marks||{};return p;}}catch{}return freshPaper();}
 let paper=loadPaper(),paperMarkPrices={};
 function savePaper(){try{localStorage.setItem(PAPER_KEY,JSON.stringify(paper));}catch{$('paperStatus').textContent='Browser storage unavailable; demo changes may not persist after closing this page.';}}
-function paperFmt(v){return String.fromCharCode(36)+Number(v||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function paperFmt(v){return String.fromCharCode(36)+Number(v||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}+Number(v||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function applyData(data){
  currentCandles=data.candles;currentDataSymbol=SYMBOLS[sym];dataReady=true;const cs=currentCandles.map(c=>c.close),last=currentCandles.at(-1),first=cs[0],pct=(last.close/first-1)*100,fast=ema(cs,20),slow=ema(cs,50),r=rsi(cs),macd=ema(cs,12).at(-1)-ema(cs,26).at(-1);
  paperMarkPrices[SYMBOLS[sym]]=last.close;paper.marks[SYMBOLS[sym]]=last.close;savePaper();renderPaper();renderChart(currentCandles);$('price').textContent='$'+last.close.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -196,10 +202,6 @@ function applyData(data){
  updateDataAudit(currentCandles,data.source);const badge=$('feedBadge'),status=$('feedStatus'),isStale=/stale|cache/i.test(data.source);badge.textContent=data.source.toUpperCase();badge.style.borderColor=isStale?'#725b2c':'#28634e';badge.style.background=isStale?'#2a2316':'#10271f';badge.style.color=isStale?'#f1cb7d':'#79dfb5';status.textContent='DATA · '+data.source.toUpperCase();$('updatedAt').textContent='Snapshot: '+new Date(data.time).toLocaleString()+' · '+currentCandles.length+' closed candles'+(isStale?' · Historical data shown; waiting for a fresh update':'');
 }
 
-document.querySelectorAll('[data-tf]').forEach(b=>b.addEventListener('click',()=>{tf=b.dataset.tf;document.querySelectorAll('[data-tf]').forEach(x=>x.classList.toggle('active',x===b));refreshData();}));
-$('symbol').addEventListener('change',e=>{sym=e.target.value;refreshData();});$('refreshData').addEventListener('click',refreshData);
-refreshData();setInterval(refreshData,60000);
-</script></body></html>+Number(v||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function paperPosition(){return paper.positions[SYMBOLS[sym]]||{qty:0,avg:0};}
 function renderPaper(){
  const pos=paperPosition(),mark=paperMarkPrices[SYMBOLS[sym]]||currentCandles.at(-1)?.close||0,openPnl=mark&&pos.qty?(mark-pos.avg)*pos.qty:0;
@@ -234,44 +236,33 @@ $('paperBuy').addEventListener('click',()=>paperTrade('BUY'));
 $('paperSell').addEventListener('click',()=>paperTrade('SELL'));
 $('paperReset').addEventListener('click',()=>{if(!confirm('Reset the virtual account to 10,000 USDT and erase its simulated trade history?'))return;paper=freshPaper();savePaper();$('paperStatus').textContent='Demo account reset to 10,000 USDT. This did not affect any real account.';renderPaper();});
 renderPaper();
-function applyData(data){
- currentCandles=data.candles;currentDataSymbol=SYMBOLS[sym];dataReady=true;const cs=currentCandles.map(c=>c.close),last=currentCandles.at(-1),first=cs[0],pct=(last.close/first-1)*100,fast=ema(cs,20),slow=ema(cs,50),r=rsi(cs),macd=ema(cs,12).at(-1)-ema(cs,26).at(-1);
- paperMarkPrices[SYMBOLS[sym]]=last.close;paper.marks[SYMBOLS[sym]]=last.close;savePaper();renderPaper();renderChart(currentCandles);$('price').textContent='$'+last.close.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
- $('change').textContent=(pct>=0?'+':'')+pct.toFixed(2)+'%';$('change').className='metric '+(pct>=0?'positive':'negative');
- const bias=last.close>slow.at(-1)&&r>52?'Bullish':last.close<slow.at(-1)&&r<48?'Bearish':'Neutral';$('bias').textContent=bias;$('bias').className='metric '+(bias==='Bullish'?'positive':bias==='Bearish'?'negative':'neutral');
- const ranges=currentCandles.slice(-14).map(c=>c.high-c.low),atr=ranges.reduce((a,b)=>a+b,0)/ranges.length/last.close*100;$('atr').textContent=atr.toFixed(2)+'%';
- $('rsi').textContent=r.toFixed(1);$('rsi').className=r>=70?'negative':r<=30?'positive':'neutral';$('macd').textContent=(macd>=0?'+':'')+macd.toFixed(2);$('ema').textContent=last.close>fast.at(-1)?'Above 20':'Below 20';
- let obv=0;for(let i=1;i<currentCandles.length;i++)obv+=Math.sign(cs[i]-cs[i-1])*currentCandles[i].volume;$('obv').textContent=obv>=0?'Rising':'Falling';
- const score=Math.round((last.close>fast.at(-1)?25:0)+(fast.at(-1)>slow.at(-1)?25:0)+(r>50?20:0)+(macd>0?20:0)+(atr<4?10:0));$('score').textContent=score;$('scoreLabel').textContent=score>=75?'Strong technical alignment':score>=50?'Mixed technical alignment':'Weak technical alignment';
- const factors=[['Trend',last.close>slow.at(-1)?'Positive':'Negative',last.close>slow.at(-1)?'+20':'−10','Close vs EMA 50'],['Momentum',r>55?'Positive':r<45?'Negative':'Mixed',r>55?'+15':r<45?'−10':'+5','RSI '+r.toFixed(1)],['MACD',macd>0?'Positive':'Negative',macd>0?'+15':'−10','MACD '+macd.toFixed(2)],['Volume',obv>=0?'Positive':'Negative',obv>=0?'+10':'−5','OBV direction'],['Volatility',atr<4?'Normal':'Elevated',atr<4?'+10':'0','ATR '+atr.toFixed(2)+'%']];
- $('factorRows').innerHTML=factors.map(f=>'<tr><td>'+f[0]+'</td><td class="'+(f[1]==='Positive'||f[1]==='Normal'?'positive':f[1]==='Negative'?'negative':'neutral')+'">'+f[1]+'</td><td>'+f[2]+'</td><td>'+f[3]+'</td></tr>').join('');
- const badge=$('feedBadge'),status=$('feedStatus'),isStale=/stale|cache/i.test(data.source);badge.textContent=data.source.toUpperCase();badge.style.borderColor=isStale?'#725b2c':'#28634e';badge.style.background=isStale?'#2a2316':'#10271f';badge.style.color=isStale?'#f1cb7d':'#79dfb5';status.textContent='DATA · '+data.source.toUpperCase();$('updatedAt').textContent='Snapshot: '+new Date(data.time).toLocaleString()+' · '+currentCandles.length+' closed candles'+(isStale?' · Historical data retained; waiting for a fresh update':'');
-}
 async function refreshData(){
  const requestedSymbol=SYMBOLS[sym],requestedTf=tf;
  staleGithubSnapshot=null;
  $('feedStatus').textContent='DATA · CHECKING SOURCES';
  $('feedBadge').textContent='CHECKING MARKET DATA…';
- $('updatedAt').textContent='Keeping the last valid candles visible while checking GitHub and live exchanges…';
- const providers=[githubSource,binanceSource,bybitSource,krakenSource];let errors=[];
+ $('updatedAt').textContent='Loading local history, then reconciling validated market sources…';
+ const history=await readHistory(requestedSymbol,requestedTf);
+ if(requestedSymbol!==SYMBOLS[sym]||requestedTf!==tf)return;
+ const historyCandles=history&&validCandles(history.candles)?history.candles:[];
+ if(historyCandles.length){applyData({candles:historyCandles,source:'Historical archive (IndexedDB)',time:history.updated_at||new Date(historyCandles.at(-1).close_time).toISOString()});$('updatedAt').textContent+=' · Showing the archive while providers refresh';}
+ const providers=[githubSource,...(tf==='1w'?[]:[binanceSource,bybitSource,krakenSource])];let errors=[];
  for(const provider of providers){
   try{
    const data=await provider();
    if(!validCandles(data.candles))throw new Error('Candle validation failed');
    if(requestedSymbol!==SYMBOLS[sym]||requestedTf!==tf)return;
-   try{localStorage.setItem(CACHE_PREFIX+requestedSymbol+':'+requestedTf,JSON.stringify(data));}catch{}
-   applyData(data);return;
-  }catch(e){
-   errors.push(e.message);
-   if(provider===githubSource&&staleGithubSnapshot&&requestedSymbol===SYMBOLS[sym]&&requestedTf===tf){
-    applyData(staleGithubSnapshot);
-    $('updatedAt').textContent+=' · Showing the last repository snapshot while live sources are retried';
-   }
-  }
+   const merged=mergeHistoryFirst(historyCandles,data.candles);
+   const combined={...data,candles:merged,source:(historyCandles.length?'History + ':'')+data.source};
+   try{await writeHistory(requestedSymbol,requestedTf,merged,combined.source);}catch(e){errors.push('Archive write: '+e.message);}
+   try{localStorage.setItem(CACHE_PREFIX+requestedSymbol+':'+requestedTf,JSON.stringify(combined));}catch{}
+   applyData(combined);return;
+  }catch(e){errors.push(e.message);}
  }
  if(requestedSymbol!==SYMBOLS[sym]||requestedTf!==tf)return;
- const cached=cachedSource(),fallback=[staleGithubSnapshot,cached].filter(Boolean).sort((a,b)=>Date.parse(b.time)-Date.parse(a.time))[0];
- if(fallback){applyData(fallback);$('updatedAt').textContent+=' · Live providers unavailable; historical candles remain available';return;}
+ const cached=cachedSource();
+ if(historyCandles.length){$('feedStatus').textContent='DATA · ARCHIVE MODE';$('feedBadge').textContent='HISTORICAL ARCHIVE';$('updatedAt').textContent='Live providers unavailable; retaining '+historyCandles.length+' archived candles. '+errors.join(' | ');return;}
+ if(cached){applyData(cached);$('updatedAt').textContent+=' · Live providers unavailable; validated local cache remains available';return;}
  if(currentCandles.length&&validCandles(currentCandles)){
   $('feedStatus').textContent='DATA · UPDATE FAILED';$('feedBadge').textContent='SHOWING LAST VALID DATA';
   $('updatedAt').textContent='Refresh failed; keeping the previously displayed candles. '+errors.join(' | ');return;
