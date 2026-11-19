@@ -204,8 +204,8 @@ $('paperSell').addEventListener('click',()=>paperTrade('SELL'));
 $('paperReset').addEventListener('click',()=>{if(!confirm('Reset the virtual account to 10,000 USDT and erase its simulated trade history?'))return;paper=freshPaper();savePaper();$('paperStatus').textContent='Demo account reset to 10,000 USDT. This did not affect any real account.';renderPaper();});
 renderPaper();
 function applyData(data){
- currentCandles=data.candles;const cs=currentCandles.map(c=>c.close),last=currentCandles.at(-1),first=cs[0],pct=(last.close/first-1)*100,fast=ema(cs,20),slow=ema(cs,50),r=rsi(cs),macd=ema(cs,12).at(-1)-ema(cs,26).at(-1);
- renderChart(currentCandles);$('price').textContent='$'+last.close.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+ currentCandles=data.candles;currentDataSymbol=SYMBOLS[sym];dataReady=true;const cs=currentCandles.map(c=>c.close),last=currentCandles.at(-1),first=cs[0],pct=(last.close/first-1)*100,fast=ema(cs,20),slow=ema(cs,50),r=rsi(cs),macd=ema(cs,12).at(-1)-ema(cs,26).at(-1);
+ paperMarkPrices[SYMBOLS[sym]]=last.close;paper.marks[SYMBOLS[sym]]=last.close;savePaper();renderPaper();renderChart(currentCandles);$('price').textContent='$'+last.close.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
  $('change').textContent=(pct>=0?'+':'')+pct.toFixed(2)+'%';$('change').className='metric '+(pct>=0?'positive':'negative');
  const bias=last.close>slow.at(-1)&&r>52?'Bullish':last.close<slow.at(-1)&&r<48?'Bearish':'Neutral';$('bias').textContent=bias;$('bias').className='metric '+(bias==='Bullish'?'positive':bias==='Bearish'?'negative':'neutral');
  const ranges=currentCandles.slice(-14).map(c=>c.high-c.low),atr=ranges.reduce((a,b)=>a+b,0)/ranges.length/last.close*100;$('atr').textContent=atr.toFixed(2)+'%';
@@ -214,16 +214,39 @@ function applyData(data){
  const score=Math.round((last.close>fast.at(-1)?25:0)+(fast.at(-1)>slow.at(-1)?25:0)+(r>50?20:0)+(macd>0?20:0)+(atr<4?10:0));$('score').textContent=score;$('scoreLabel').textContent=score>=75?'Strong technical alignment':score>=50?'Mixed technical alignment':'Weak technical alignment';
  const factors=[['Trend',last.close>slow.at(-1)?'Positive':'Negative',last.close>slow.at(-1)?'+20':'−10','Close vs EMA 50'],['Momentum',r>55?'Positive':r<45?'Negative':'Mixed',r>55?'+15':r<45?'−10':'+5','RSI '+r.toFixed(1)],['MACD',macd>0?'Positive':'Negative',macd>0?'+15':'−10','MACD '+macd.toFixed(2)],['Volume',obv>=0?'Positive':'Negative',obv>=0?'+10':'−5','OBV direction'],['Volatility',atr<4?'Normal':'Elevated',atr<4?'+10':'0','ATR '+atr.toFixed(2)+'%']];
  $('factorRows').innerHTML=factors.map(f=>'<tr><td>'+f[0]+'</td><td class="'+(f[1]==='Positive'||f[1]==='Normal'?'positive':f[1]==='Negative'?'negative':'neutral')+'">'+f[1]+'</td><td>'+f[2]+'</td><td>'+f[3]+'</td></tr>').join('');
- const badge=$('feedBadge'),status=$('feedStatus');badge.textContent=data.source.toUpperCase();badge.style.borderColor=data.source.includes('cache')?'#725b2c':'#28634e';badge.style.background=data.source.includes('cache')?'#2a2316':'#10271f';badge.style.color=data.source.includes('cache')?'#f1cb7d':'#79dfb5';status.textContent='DATA · '+data.source.toUpperCase();$('updatedAt').textContent='Snapshot: '+new Date(data.time).toLocaleString()+' · '+currentCandles.length+' closed candles';
+ const badge=$('feedBadge'),status=$('feedStatus'),isStale=/stale|cache/i.test(data.source);badge.textContent=data.source.toUpperCase();badge.style.borderColor=isStale?'#725b2c':'#28634e';badge.style.background=isStale?'#2a2316':'#10271f';badge.style.color=isStale?'#f1cb7d':'#79dfb5';status.textContent='DATA · '+data.source.toUpperCase();$('updatedAt').textContent='Snapshot: '+new Date(data.time).toLocaleString()+' · '+currentCandles.length+' closed candles'+(isStale?' · Historical data retained; waiting for a fresh update':'');
 }
 async function refreshData(){
+ const requestedSymbol=SYMBOLS[sym],requestedTf=tf;
  staleGithubSnapshot=null;
- $('feedStatus').textContent='DATA · CONNECTING';$('feedBadge').textContent='FETCHING MARKET DATA…';$('updatedAt').textContent='Trying GitHub → Binance → Bybit → local cache';
+ $('feedStatus').textContent='DATA · CHECKING SOURCES';
+ $('feedBadge').textContent='CHECKING MARKET DATA…';
+ $('updatedAt').textContent='Keeping the last valid candles visible while checking GitHub and live exchanges…';
  const providers=[githubSource,binanceSource,bybitSource,krakenSource];let errors=[];
- for(const provider of providers){try{const data=await provider();if(!validCandles(data.candles))throw new Error('Candle validation failed');try{localStorage.setItem(CACHE_PREFIX+SYMBOLS[sym]+':'+tf,JSON.stringify(data));}catch{}applyData(data);return;}catch(e){errors.push(e.message);}}
+ for(const provider of providers){
+  try{
+   const data=await provider();
+   if(!validCandles(data.candles))throw new Error('Candle validation failed');
+   if(requestedSymbol!==SYMBOLS[sym]||requestedTf!==tf)return;
+   try{localStorage.setItem(CACHE_PREFIX+requestedSymbol+':'+requestedTf,JSON.stringify(data));}catch{}
+   applyData(data);return;
+  }catch(e){
+   errors.push(e.message);
+   if(provider===githubSource&&staleGithubSnapshot&&requestedSymbol===SYMBOLS[sym]&&requestedTf===tf){
+    applyData(staleGithubSnapshot);
+    $('updatedAt').textContent+=' · Showing the last repository snapshot while live sources are retried';
+   }
+  }
+ }
+ if(requestedSymbol!==SYMBOLS[sym]||requestedTf!==tf)return;
  const cached=cachedSource(),fallback=[staleGithubSnapshot,cached].filter(Boolean).sort((a,b)=>Date.parse(b.time)-Date.parse(a.time))[0];
- if(fallback){applyData(fallback);$('updatedAt').textContent+=' · Live providers unavailable; showing stale fallback data';return;}
- $('feedStatus').textContent='DATA · UNAVAILABLE';$('feedBadge').textContent='NO VALID MARKET DATA';$('updatedAt').textContent='All sources failed: '+errors.join(' | ');$('price').textContent='—';$('change').textContent='—';$('bias').textContent='Unavailable';$('atr').textContent='—';$('priceChart').innerHTML='<text class="axis" x="180" y="130">No validated market data available</text>';
+ if(fallback){applyData(fallback);$('updatedAt').textContent+=' · Live providers unavailable; historical candles remain available';return;}
+ if(currentCandles.length&&validCandles(currentCandles)){
+  $('feedStatus').textContent='DATA · UPDATE FAILED';$('feedBadge').textContent='SHOWING LAST VALID DATA';
+  $('updatedAt').textContent='Refresh failed; keeping the previously displayed candles. '+errors.join(' | ');return;
+ }
+ $('feedStatus').textContent='DATA · UNAVAILABLE';$('feedBadge').textContent='NO SAVED MARKET DATA';
+ $('updatedAt').textContent='No repository snapshot or local history is available yet. '+errors.join(' | ');
 }
 document.querySelectorAll('[data-tf]').forEach(b=>b.addEventListener('click',()=>{tf=b.dataset.tf;document.querySelectorAll('[data-tf]').forEach(x=>x.classList.toggle('active',x===b));refreshData();}));
 $('symbol').addEventListener('change',e=>{sym=e.target.value;refreshData();});$('refreshData').addEventListener('click',refreshData);
