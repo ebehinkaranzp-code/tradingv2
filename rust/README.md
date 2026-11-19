@@ -13,8 +13,8 @@ This is an isolated, dependency-free Rust workspace. It does not depend on the i
 With Rust 1.75 or newer:
 
 ```sh
-cargo test --manifest-path rust/Cargo.toml --locked
-cargo clippy --manifest-path rust/Cargo.toml --all-targets -- -D warnings
+cargo test --workspace --locked
+cargo clippy --workspace --all-targets -- -D warnings
 ```
 
 Risk defaults are intentionally conservative (1% risk per proposal, 3% daily loss stop, 10% peak drawdown stop, 1x gross leverage). These are software defaults, not personalized investment advice. The caller must maintain trustworthy equity/session/peak state and must not treat a returned proposal as authorization to execute.
