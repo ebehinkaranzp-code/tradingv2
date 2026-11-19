@@ -250,9 +250,27 @@ pub struct QuattroSignal {
 
 /// Evaluate the last 4h candle against the previous 20-bar high and 10-bar low,
 /// using only daily EMA200 values whose daily candle closed before the 4h bar.
-pub fn quattro_signal(four_hour: &[Candle], daily: &[Candle]) -> Result<QuattroSignal, DomainError> {
+pub fn quattro_signal(
+    four_hour: &[Candle],
+    daily: &[Candle],
+    now_ms: i64,
+    max_age_4h_ms: i64,
+    max_age_1d_ms: i64,
+) -> Result<QuattroSignal, DomainError> {
     const FOUR_HOURS_MS: i64 = 4 * 60 * 60 * 1000;
     const DAY_MS: i64 = 24 * 60 * 60 * 1000;
+    validate_candles(four_hour, CandlePolicy {
+        interval_ms: FOUR_HOURS_MS,
+        now_ms,
+        max_age_ms: max_age_4h_ms,
+        min_bars: 21,
+    })?;
+    validate_candles(daily, CandlePolicy {
+        interval_ms: DAY_MS,
+        now_ms,
+        max_age_ms: max_age_1d_ms,
+        min_bars: 220,
+    })?;
     if four_hour.len() < 21 || daily.len() < 220 {
         return Err(DomainError::InvalidMarketData("Quattro requires at least 21 4h and 220 daily candles".into()));
     }
@@ -271,7 +289,6 @@ pub fn quattro_signal(four_hour: &[Candle], daily: &[Candle]) -> Result<QuattroS
     let atr = average_true_range(four_hour, 14)?;
     let daily_trend_filter = current.close > daily_ema200;
 
-    let _ = FOUR_HOURS_MS; // The caller validates timeframe continuity before calling.
     Ok(QuattroSignal {
         entry_breakout: current.close > highest_high && daily_trend_filter,
         exit_breakdown: current.close < lowest_low,
@@ -492,7 +509,7 @@ mod tests {
     #[test]
     fn quattro_signal_uses_previous_bars_and_closed_daily_ema() {
         let day_ms = 86_400_000;
-        let daily: Vec<Candle> = (0..220).map(|index| Candle {
+        let daily: Vec<Candle> = (0..224).map(|index| Candle {
             timestamp_ms: index * day_ms,
             open: 100.0 + index as f64 * 0.2,
             high: 102.0 + index as f64 * 0.2,
@@ -501,7 +518,7 @@ mod tests {
             volume: 100.0,
         }).collect();
         let mut four_hour: Vec<Candle> = (0..21).map(|index| Candle {
-            timestamp_ms: 220 * day_ms + index * 14_400_000,
+            timestamp_ms: 220 * day_ms + 43_200_000 + index * 14_400_000,
             open: 180.0,
             high: 181.0,
             low: 179.0,
@@ -511,7 +528,8 @@ mod tests {
         let last = four_hour.last_mut().unwrap();
         last.high = 191.0;
         last.close = 190.0;
-        let signal = quattro_signal(&four_hour, &daily).unwrap();
+        let now_ms = 224 * day_ms + 1;
+        let signal = quattro_signal(&four_hour, &daily, now_ms, 1, 1).unwrap();
         assert!(signal.daily_trend_filter);
         assert!(signal.entry_breakout);
         assert!(!signal.exit_breakdown);
