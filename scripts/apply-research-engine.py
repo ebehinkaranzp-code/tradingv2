@@ -81,7 +81,7 @@ export const neoWaveExtensionPoint = {
 '''
 (research_dir / "neo-wave.ts").write_text(neo_wave, encoding="utf-8")
 
-tests = '''// @ts-nocheck\nimport { TDStrategyEngine } from './strategies.ts';
+tests = '''declare const Deno: { test: (name: string, fn: () => void) => void };\nimport { TDStrategyEngine } from './strategies.ts';
 
 Deno.test('Quattro refuses missing 4H and daily history', () => {
   let threw = false;
@@ -486,7 +486,7 @@ if "weekly_buckets_folded_from_daily_require_seven_complete_utc_bars" not in cor
 replace("src/engine/intervals.ts",
 "export function restInterval(venue: Venue, interval: string): string {\n  if (serves(venue, interval)) return interval;",
 "export function restInterval(venue: Venue, interval: string): string {\n  if (interval === '1w' && serves(venue, '1d')) return '1d';\n  if (serves(venue, interval)) return interval;")
-interval_test = '''// @ts-nocheck\nimport { restInterval } from './intervals.ts';
+interval_test = '''declare const Deno: { test: (name: string, fn: () => void) => void };\nimport { restInterval } from './intervals.ts';
 
 Deno.test('weekly candles use daily UTC history when the venue provides it', () => {
   for (const venue of ['binance-spot', 'binance-perp', 'okx-spot', 'hyperliquid-perp'] as const) {
