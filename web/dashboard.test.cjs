@@ -16,6 +16,7 @@ assert.match(html, /data-api\.binance\.vision/);
 assert.match(html, /stream\.binance\.com/);
 assert.match(html, /TRADINGVIEW/);
 assert.match(source, /function validBar\(b\)/);
+assert.match(source, /function escapeHtml\(value\)/);
 assert.match(source, /function scheduleReconnect\(generation\)/);
 assert.match(source, /Exchange request timed out after 12 seconds/);
 const legacyHtml = fs.readFileSync('web/analysis-legacy.html', 'utf8');
@@ -43,6 +44,10 @@ const validBarStart = source.indexOf('function validBar(');
 const validBarEnd = source.indexOf('\nasync function loadBars', validBarStart);
 assert.ok(validBarStart >= 0 && validBarEnd > validBarStart, 'dashboard candle validator missing');
 const validBar = vm.runInNewContext(source.slice(validBarStart, validBarEnd) + '; validBar');
+const escapeStart = source.indexOf('function escapeHtml(');
+const escapeEnd = source.indexOf('\nconst tfMs', escapeStart);
+assert.ok(escapeStart >= 0 && escapeEnd > escapeStart, 'HTML escaping helper missing');
+const escapeHtml = vm.runInNewContext(source.slice(escapeStart, escapeEnd) + '; escapeHtml');
 
 test('CSV parser supports comma, semicolon, tab and quoted cells', () => {
   for (const delimiter of [',', ';', '\t']) {
@@ -107,4 +112,10 @@ test('dashboard candle validator accepts valid OHLCV and rejects malformed excha
   assert.equal(validBar({...good, low:104}), false);
   assert.equal(validBar({...good, volume:NaN}), false);
   assert.equal(validBar({...good, closeTime:999}), false);
+});
+
+
+test('journal text is escaped before insertion into dashboard HTML', () => {
+  assert.equal(escapeHtml('<img src=x onerror="alert(1)"> &'), '&lt;img src=x onerror=&quot;alert(1)&quot;&gt; &amp;');
+  assert.equal(escapeHtml("it's safe"), 'it&#39;s safe');
 });
