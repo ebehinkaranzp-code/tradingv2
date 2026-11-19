@@ -98,8 +98,10 @@ async function githubSource(){
  const valid=results.filter(r=>r.status==='fulfilled').map(r=>r.value).sort((a,b)=>Date.parse(b.time)-Date.parse(a.time));
  if(!valid.length)throw new Error('No valid GitHub snapshot on working or main branch');
  const latest=valid[0];
- if(Date.now()-Date.parse(latest.time)>8*60*1000){staleGithubSnapshot={...latest,source:'GitHub snapshot (stale)'};throw new Error('GitHub snapshot is older than 8 minutes');}
- return latest;
+ // A stale snapshot is still valid historical market data. Never hide the chart
+ // merely because the automatic market-data publisher is temporarily delayed.
+ const stale=Date.now()-Date.parse(latest.time)>8*60*1000;
+ return stale?{...latest,source:'GitHub snapshot (stale)'}:latest;
 }
 async function binanceSource(){
  const symbol=SYMBOLS[sym],url='https://api.binance.com/api/v3/klines?symbol='+symbol+'&interval='+BINANCE_INTERVAL[tf]+'&limit=250';
@@ -154,18 +156,9 @@ function applyData(data){
  const score=Math.round((last.close>fast.at(-1)?25:0)+(fast.at(-1)>slow.at(-1)?25:0)+(r>50?20:0)+(macd>0?20:0)+(atr<4?10:0));$('score').textContent=score;$('scoreLabel').textContent=score>=75?'Strong technical alignment':score>=50?'Mixed technical alignment':'Weak technical alignment';
  const factors=[['Trend',last.close>slow.at(-1)?'Positive':'Negative',last.close>slow.at(-1)?'+20':'−10','Close vs EMA 50'],['Momentum',r>55?'Positive':r<45?'Negative':'Mixed',r>55?'+15':r<45?'−10':'+5','RSI '+r.toFixed(1)],['MACD',macd>0?'Positive':'Negative',macd>0?'+15':'−10','MACD '+macd.toFixed(2)],['Volume',obv>=0?'Positive':'Negative',obv>=0?'+10':'−5','OBV direction'],['Volatility',atr<4?'Normal':'Elevated',atr<4?'+10':'0','ATR '+atr.toFixed(2)+'%']];
  $('factorRows').innerHTML=factors.map(f=>'<tr><td>'+f[0]+'</td><td class="'+(f[1]==='Positive'||f[1]==='Normal'?'positive':f[1]==='Negative'?'negative':'neutral')+'">'+f[1]+'</td><td>'+f[2]+'</td><td>'+f[3]+'</td></tr>').join('');
- const badge=$('feedBadge'),status=$('feedStatus');badge.textContent=data.source.toUpperCase();badge.style.borderColor=data.source.includes('cache')?'#725b2c':'#28634e';badge.style.background=data.source.includes('cache')?'#2a2316':'#10271f';badge.style.color=data.source.includes('cache')?'#f1cb7d':'#79dfb5';status.textContent='DATA · '+data.source.toUpperCase();$('updatedAt').textContent='Snapshot: '+new Date(data.time).toLocaleString()+' · '+currentCandles.length+' closed candles';
+ const badge=$('feedBadge'),status=$('feedStatus'),isStale=/stale|cache/i.test(data.source);badge.textContent=data.source.toUpperCase();badge.style.borderColor=isStale?'#725b2c':'#28634e';badge.style.background=isStale?'#2a2316':'#10271f';badge.style.color=isStale?'#f1cb7d':'#79dfb5';status.textContent='DATA · '+data.source.toUpperCase();$('updatedAt').textContent='Snapshot: '+new Date(data.time).toLocaleString()+' · '+currentCandles.length+' closed candles'+(isStale?' · Historical data shown; waiting for a fresh update':'');
 }
-async function refreshData(){
- dataReady=false;renderPaper();staleGithubSnapshot=null;
- $('feedStatus').textContent='DATA · CONNECTING';$('feedBadge').textContent='FETCHING MARKET DATA…';$('updatedAt').textContent='Trying GitHub → Binance → Bybit → local cache';
- const providers=[githubSource,binanceSource,bybitSource,krakenSource];let errors=[];
- for(const provider of providers){try{const data=await provider();if(!validCandles(data.candles))throw new Error('Candle validation failed');try{localStorage.setItem(CACHE_PREFIX+SYMBOLS[sym]+':'+tf,JSON.stringify(data));}catch{}applyData(data);return;}catch(e){errors.push(e.message);}}
- const cached=cachedSource(),fallback=[staleGithubSnapshot,cached].filter(Boolean).sort((a,b)=>Date.parse(b.time)-Date.parse(a.time))[0];
- if(fallback){applyData(fallback);$('updatedAt').textContent+=' · Live providers unavailable; showing stale fallback data';return;}
- $('paperBuy').disabled=true;$('paperSell').disabled=true;$('paperStatus').textContent='Demo trading disabled until valid market data is available.';
- dataReady=false;renderPaper();$('feedStatus').textContent='DATA · UNAVAILABLE';$('feedBadge').textContent='NO VALID MARKET DATA';$('updatedAt').textContent='All sources failed: '+errors.join(' | ');$('price').textContent='—';$('change').textContent='—';$('bias').textContent='Unavailable';$('atr').textContent='—';$('priceChart').innerHTML='<text class="axis" x="180" y="130">No validated market data available</text>';
-}
+
 document.querySelectorAll('[data-tf]').forEach(b=>b.addEventListener('click',()=>{tf=b.dataset.tf;document.querySelectorAll('[data-tf]').forEach(x=>x.classList.toggle('active',x===b));refreshData();}));
 $('symbol').addEventListener('change',e=>{sym=e.target.value;refreshData();});$('refreshData').addEventListener('click',refreshData);
 refreshData();setInterval(refreshData,60000);
