@@ -30,6 +30,12 @@ replace("src/components/Settings.tsx",
 replace("src/components/Settings.tsx",
 "            <Show when={section() === 'trading'}>\n              <Show when={tradingOpen()} fallback={<p class=\"dim\">{tl('Sign in with Telegram (Account, above) to add trading accounts.')}</p>}>\n                <TradingSettings />\n              </Show>\n            </Show>\n", "")
 
+replace(
+    "src/components/Settings.tsx",
+    "SECTIONS.filter((s) => s.id !== 'trading' || tradingOpen())",
+    "SECTIONS.filter((s) => s.id !== 'trading')",
+)
+
 client = root / "src/trade/client.ts"
 source = client.read_text(encoding="utf-8")
 start = source.index("// ---- connecting")
@@ -39,8 +45,6 @@ replacement = """// ---- research-only safety boundary -------------------------
 // signing key, order, cancel, leverage, exit, or algo action may be initiated.
 const LIVE_TRADING_DISABLED = 'Live exchange trading is disabled in Trading V2. Use the local paper simulator.';
 const disabled = (): Promise<never> => Promise.reject(new Error(LIVE_TRADING_DISABLED));
-export const NETWORKS: readonly Network[] = ['testnet'];
-export const KEY_DAYS = [7, 30, 90, 180] as const;
 export async function connectHyperliquid(_network: Network, _days: number, _label: string, _walletId?: string): Promise<string | null> { return LIVE_TRADING_DISABLED; }
 export async function connectLighter(_network: Network, _label: string, _apiKeyIndex: number, _accountIndex = 0, _walletId?: string): Promise<string | null> { return LIVE_TRADING_DISABLED; }
 export const importKey = (_o: { venue: Venue; network: Network; owner: string; label: string; key: string; accountIndex?: number; apiKeyIndex?: number }) => disabled();
