@@ -13,7 +13,7 @@ legacy = Path("web/analysis-legacy.html").read_text(encoding="utf-8")
 engine_marker = legacy.index("root.TDStrategyEngine =")
 engine_start = legacy.rfind("(function (root) {", 0, engine_marker)
 engine_body = legacy.index("const DAY =", engine_start)
-engine = "// @ts-nocheck\\n" + legacy[engine_body:engine_marker].rstrip()
+engine = "// @ts-nocheck\n" + legacy[engine_body:engine_marker].rstrip()
 research_dir = ROOT / "web/src/research"
 research_dir.mkdir(parents=True, exist_ok=True)
 (research_dir / "strategy-engine.ts").write_text(
