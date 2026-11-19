@@ -61,7 +61,8 @@ function normalizeBinance(rows){
  return rows.filter(r=>Number(r[6])<Date.now()).map(r=>({open_time:Number(r[0]),open:Number(r[1]),high:Number(r[2]),low:Number(r[3]),close:Number(r[4]),volume:Number(r[5]),close_time:Number(r[6])}));
 }
 function normalizeBybit(rows){
- return rows.map(r=>({open_time:Number(r[0]),open:Number(r[1]),high:Number(r[2]),low:Number(r[3]),close:Number(r[4]),volume:Number(r[5]),close_time:Number(r[0])+1})).filter(c=>c.open_time+1<Date.now()).sort((a,b)=>a.open_time-b.open_time);
+ const duration={'15m':900000,'1h':3600000,'4h':14400000,'1d':86400000}[tf];
+ return rows.map(r=>({open_time:Number(r[0]),open:Number(r[1]),high:Number(r[2]),low:Number(r[3]),close:Number(r[4]),volume:Number(r[5]),close_time:Number(r[0])+duration-1})).filter(c=>c.close_time<Date.now()).sort((a,b)=>a.open_time-b.open_time);
 }
 async function fetchJson(url,timeoutMs=9000){
  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeoutMs);
@@ -96,7 +97,9 @@ function renderChart(candles){
  const x=i=>L+i*(W-L-R)/(candles.length-1),y=p=>T+(max-p)*(H-T-B)/(max-min);let out='';
  for(let j=0;j<5;j++){let yy=T+j*(H-T-B)/4;out+='<line class="gridline" x1="'+L+'" x2="'+(W-R)+'" y1="'+yy+'" y2="'+yy+'"/><text class="axis" x="2" y="'+(yy+4)+'">'+(max-(max-min)*j/4).toFixed(2)+'</text>';}
  const closes=candles.map(c=>c.close),line=arr=>arr.map((v,i)=>(i?'L':'M')+x(i).toFixed(1)+','+y(v).toFixed(1)).join(' ');
- const fast=ema(closes,20),slow=ema(closes,50);out+='<path class="boll" d="'+line(closes.map((v,i)=>v+(max-min)*.045))+'"/><path class="boll" d="'+line(closes.map((v,i)=>v-(max-min)*.045))+'"/>';
+ const fast=ema(closes,20),slow=ema(closes,50);
+ const upper=[],lower=[];closes.forEach((v,i)=>{const w=closes.slice(Math.max(0,i-19),i+1),mean=w.reduce((a,b)=>a+b,0)/w.length,sd=Math.sqrt(w.reduce((a,b)=>a+(b-mean)*(b-mean),0)/w.length);upper.push(mean+2*sd);lower.push(mean-2*sd);});
+ out+='<path class="boll" d="'+line(upper)+'"/><path class="boll" d="'+line(lower)+'"/>';
  candles.forEach((c,i)=>{const xx=x(i),up=c.close>=c.open,top=y(Math.max(c.open,c.close)),bot=y(Math.min(c.open,c.close));out+='<line class="'+(up?'candle-up':'candle-down')+'" x1="'+xx+'" x2="'+xx+'" y1="'+y(c.high)+'" y2="'+y(c.low)+'" stroke-width="1.2"/><rect class="'+(up?'candle-up':'candle-down')+'" x="'+(xx-3.1)+'" y="'+top+'" width="6.2" height="'+Math.max(1.5,bot-top)+'" rx="1"/>';});
  out+='<path class="ema" d="'+line(fast)+'"/><text class="axis" x="'+L+'" y="'+(H-5)+'">'+candles.length+' closed candles</text><text class="axis" x="'+(W-R-35)+'" y="'+(H-5)+'">LATEST</text>';svg.innerHTML=out;
 }
