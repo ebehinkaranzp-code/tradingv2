@@ -15,6 +15,9 @@ new vm.Script(source);
 assert.match(html, /data-api\.binance\.vision/);
 assert.match(html, /stream\.binance\.com/);
 assert.match(html, /TRADINGVIEW/);
+assert.match(source, /function validBar\(b\)/);
+assert.match(source, /function scheduleReconnect\(generation\)/);
+assert.match(source, /Exchange request timed out after 12 seconds/);
 const legacyHtml = fs.readFileSync('web/analysis-legacy.html', 'utf8');
 const legacyStart = legacyHtml.indexOf(openTag) + openTag.length;
 const legacyEnd = legacyHtml.indexOf(closeTag, legacyStart);
@@ -36,6 +39,10 @@ const csv = helpers(extractBetween('parseCsvRows', 'csvTime'));
 const valid = helpers(extractBetween('validCandles', 'weeklyFromDaily'));
 const weekly = helpers(extractBetween('weeklyFromDaily', 'auditCandles'));
 const continuity = helpers(extractBetween('isContinuousClosed', 'async function renderStrategySuite'));
+const validBarStart = source.indexOf('function validBar(');
+const validBarEnd = source.indexOf('\nasync function loadBars', validBarStart);
+assert.ok(validBarStart >= 0 && validBarEnd > validBarStart, 'dashboard candle validator missing');
+const validBar = vm.runInNewContext(source.slice(validBarStart, validBarEnd) + '; validBar');
 
 test('CSV parser supports comma, semicolon, tab and quoted cells', () => {
   for (const delimiter of [',', ';', '\t']) {
@@ -90,4 +97,14 @@ test('preserved strategy engine loads and evaluates a closed-candle Quattro seri
   const result = engine.computeQuattro(fourHour, daily);
   assert.ok(['LONG','FLAT','ENTRY_PENDING'].includes(result.status));
   assert.equal(result.timeframe, '4h');
+});
+
+
+test('dashboard candle validator accepts valid OHLCV and rejects malformed exchange rows', () => {
+  const good = {time:1000,closeTime:1999,open:100,high:105,low:98,close:103,volume:12};
+  assert.equal(validBar(good), true);
+  assert.equal(validBar({...good, high:99}), false);
+  assert.equal(validBar({...good, low:104}), false);
+  assert.equal(validBar({...good, volume:NaN}), false);
+  assert.equal(validBar({...good, closeTime:999}), false);
 });
