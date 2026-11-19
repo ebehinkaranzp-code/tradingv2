@@ -1,12 +1,12 @@
 # Trading V2
 
-Trading V2 is being built as a research-first, risk-controlled trading terminal. The current repository is a work in progress, not a live trading product.
+Trading V2 is being built as a specialist market-analysis and signal-research application. It validates market data, calculates technical indicators, evaluates strategy evidence and reports historical performance. **Live trading and order execution are explicitly out of scope.** The current repository is a work in progress, not a finished product.
 
 ## Current implementation
 
 - `services/strategy/legacy/`: preserved JavaScript implementation of the existing Quattro Donchian v2 and Momentum + Volatility Targeting signals, with synthetic-data regression tests.
 - `services/strategy/legacy/market-data-validation.js`: fail-closed validation for closed, fresh, ordered, gap-free candles.
-- `rust/crates/trading-domain/`: dependency-free Rust domain core for candle validation and risk-bounded position proposals.
+- `rust/crates/trading-domain/`: dependency-free Rust analysis core for candle validation, EMA/ATR/RSI/MACD/Bollinger/OBV indicators, explainable confluence scoring, analytical risk calculations and an initial single-position historical simulator.
 - `.github/workflows/strategy-engine-tests.yml`: JavaScript regression CI.
 - `.github/workflows/rust-domain.yml`: Rust formatting, tests and Clippy CI.
 
@@ -30,7 +30,7 @@ node --test services/strategy/legacy/*.test.cjs
 
 1. Market data is validated before it reaches a strategy.
 2. Strategies calculate signals; they do not submit orders.
-3. The Rust risk core produces bounded proposals only. A separate, auditable paper-execution service must consume proposals; this repository currently has no live broker or exchange execution path.
+3. Risk calculations are analytical estimates for evaluating hypothetical setups. They do not authorize or initiate execution. There is no broker/exchange order path, account management or trading credential storage.
 4. Historical data must have documented provenance and a license suitable for its intended use. The legacy Coin Metrics CSV files are deliberately not copied into this repository because their source identifies CC BY-NC 4.0 terms.
 5. Strategy performance must be evaluated with out-of-sample walk-forward tests, realistic fees, slippage, funding and survivorship-aware data before any claim of profitability.
 
@@ -45,10 +45,10 @@ See [docs/architecture.md](docs/architecture.md) for the implemented data flow, 
 ## Roadmap
 
 - Complete native Rust strategy implementations with parity tests against the legacy engine.
-- Add audited market-data adapters and persistent data-quality monitoring.
-- Implement a deterministic backtest engine with costs, funding and walk-forward reports.
-- Add paper execution, portfolio accounting, idempotency and risk kill-switches.
-- Build the terminal UI and deployment pipeline only after the backend contracts and tests are stable.
+- Add audited market-data ingestion for analysis, provenance tracking and persistent data-quality monitoring.
+- Extend the initial simulator into a robust backtest and walk-forward/out-of-sample research suite.
+- Add signal explanations, quality diagnostics and regime-aware analysis; calibrate scores only against held-out data.
+- Build the analytical dashboard and deployment pipeline only after the backend contracts and tests are stable.
 
 ## License
 
