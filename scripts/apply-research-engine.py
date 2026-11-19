@@ -346,6 +346,112 @@ replace("src/workspace/model.test.ts",
 "['watchlist', 'values', 'flow', 'signals', 'alerts']",
 "['watchlist', 'values', 'flow', 'signals', 'research', 'alerts']")
 
+# Folded Binance weeks are accepted only when all seven UTC daily candles exist.
+core_timeframe = web.parent / "crates/core/src/timeframe.rs"
+core_source = core_timeframe.read_text(encoding="utf-8")
+if "weekly_buckets_folded_from_daily_require_seven_complete_utc_bars" not in core_source:
+    old_start = "    let mut out: Vec<Candle> = Vec::new();\n    for candle in source {"
+    new_start = """    let daily_week = tf == ChartTimeframe::W1
+        && source.windows(2).any(|pair| {
+            let delta = pair[1].open_time - pair[0].open_time;
+            delta >= DAY && delta < WEEK
+        });
+    let mut out: Vec<Candle> = Vec::new();
+    let mut week_counts: Vec<usize> = Vec::new();
+    let mut week_valid: Vec<bool> = Vec::new();
+    for candle in source {"""
+    if old_start not in core_source:
+        raise SystemExit("Could not locate Rust weekly fold start")
+    core_source = core_source.replace(old_start, new_start, 1)
+
+    old_same = """            Some(bucket) if bucket.open_time == start => {
+                bucket.high = bucket.high.max(candle.high);"""
+    new_same = """            Some(bucket) if bucket.open_time == start => {
+                if daily_week {
+                    let i = week_counts.len() - 1;
+                    let expected = start + week_counts[i] as i64 * DAY;
+                    if candle.open_time != expected { week_valid[i] = false; }
+                    week_counts[i] += 1;
+                }
+                bucket.high = bucket.high.max(candle.high);"""
+    if old_same not in core_source:
+        raise SystemExit("Could not locate Rust weekly fold bucket update")
+    core_source = core_source.replace(old_same, new_same, 1)
+
+    old_new = """            _ => out.push(Candle {
+                open_time: start,"""
+    new_new = """            _ => {
+                if daily_week {
+                    week_counts.push(1);
+                    week_valid.push(candle.open_time == start);
+                }
+                out.push(Candle {
+                open_time: start,"""
+    if old_new not in core_source:
+        raise SystemExit("Could not locate Rust weekly fold bucket creation")
+    core_source = core_source.replace(old_new, new_new, 1)
+
+    old_end = """                taker_buy: candle.taker_buy,
+            }),
+        }
+    }
+    while out.last().is_some_and(|c| tf.end(c.open_time) > now) {
+        out.pop();
+    }
+    out
+}"""
+    new_end = """                taker_buy: candle.taker_buy,
+                });
+            }
+        }
+    }
+    while out.last().is_some_and(|c| tf.end(c.open_time) > now) {
+        out.pop();
+        if daily_week { week_counts.pop(); week_valid.pop(); }
+    }
+    if daily_week {
+        out.into_iter().zip(week_counts).zip(week_valid)
+            .filter_map(|((candle, count), valid)| (count == 7 && valid).then_some(candle))
+            .collect()
+    } else {
+        out
+    }
+}"""
+    if old_end not in core_source:
+        raise SystemExit("Could not locate Rust weekly fold end")
+    core_source = core_source.replace(old_end, new_end, 1)
+
+    test = """
+    #[test]
+    fn weekly_buckets_folded_from_daily_require_seven_complete_utc_bars() {
+        let monday = t("2026-11-16T00:00:00Z");
+        let bar = |day: i64| Candle {
+            open_time: monday + day * DAY,
+            open: 1.0, high: 2.0, low: 0.5, close: 1.5,
+            volume: 10.0, quote_volume: None, taker_buy: None,
+        };
+        let partial = (0..6).map(bar).collect::<Vec<_>>();
+        assert!(fold(&partial, ChartTimeframe::W1, monday + WEEK + 1).is_empty());
+
+        let full = (0..7).map(bar).collect::<Vec<_>>();
+        assert_eq!(fold(&full, ChartTimeframe::W1, monday + WEEK + 1).len(), 1);
+
+        let gap = [0, 1, 2, 3, 5, 6, 7].into_iter().map(bar).collect::<Vec<_>>();
+        assert!(fold(&gap, ChartTimeframe::W1, monday + 2 * WEEK + 1).is_empty());
+
+        let native_week = [Candle {
+            open_time: monday, open: 1.0, high: 2.0, low: 0.5, close: 1.5,
+            volume: 70.0, quote_volume: None, taker_buy: None,
+        }];
+        assert_eq!(fold(&native_week, ChartTimeframe::W1, monday + WEEK + 1).len(), 1);
+    }
+"""
+    if "\n}" not in core_source:
+        raise SystemExit("Could not locate Rust test module end")
+    pos = core_source.rfind("\n}")
+    core_source = core_source[:pos] + test + core_source[pos:]
+    core_timeframe.write_text(core_source, encoding="utf-8")
+
 # For Binance, build chart weeks from seven complete UTC daily candles, never exchange-native weekly bars.
 replace("src/engine/intervals.ts",
 "export function restInterval(venue: Venue, interval: string): string {\n  if (serves(venue, interval)) return interval;",
