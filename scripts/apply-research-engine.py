@@ -346,6 +346,19 @@ replace("src/workspace/model.test.ts",
 "['watchlist', 'values', 'flow', 'signals', 'alerts']",
 "['watchlist', 'values', 'flow', 'signals', 'research', 'alerts']")
 
+# For Binance, build chart weeks from seven complete UTC daily candles, never exchange-native weekly bars.
+replace("src/engine/intervals.ts",
+"export function restInterval(venue: Venue, interval: string): string {\n  if (serves(venue, interval)) return interval;",
+"export function restInterval(venue: Venue, interval: string): string {\n  if (interval === '1w' && (venue === 'binance-spot' || venue === 'binance-perp')) return '1d';\n  if (serves(venue, interval)) return interval;")
+interval_test = '''import { restInterval } from './intervals.ts';
+
+Deno.test('Binance weekly candles are folded from daily UTC history', () => {
+  if (restInterval('binance-spot', '1w') !== '1d') throw new Error('Binance Spot weekly must be derived from daily bars');
+  if (restInterval('binance-perp', '1w') !== '1d') throw new Error('Binance Perpetual weekly must be derived from daily bars');
+});
+'''
+(web / "src/engine/intervals.test.ts").write_text(interval_test, encoding="utf-8")
+
 # Add a first-class Research Lab panel to the existing terminal workspace.
 replace("src/workspace/model.ts",
 "export type PanelType = 'chart' | 'watchlist' | 'tpo' | 'values' | 'liquidations' | 'flow' | 'signals' | 'alerts' | 'dom' | 'tape' | 'econ' | 'trade' | 'positions';",
