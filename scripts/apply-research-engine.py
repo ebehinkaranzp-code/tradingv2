@@ -287,7 +287,8 @@ export function ResearchPanel(_props: { panel: ResearchPanelState }) {
         </div>
         <div class="research-quality">
           <strong>DATA INTEGRITY</strong>
-          <span>Quattro 4H: {snap()!.quattro.audit.bars.length} bars · {snap()!.quattro.audit.gaps} gaps</span>\n          <span>Quattro 1D: {snap()!.quattroDaily.bars.length} bars · {snap()!.quattroDaily.gaps} gaps</span>
+          <span>Quattro 4H: {snap()!.quattro.audit.bars.length} bars · {snap()!.quattro.audit.gaps} gaps</span>
+          <span>Quattro 1D: {snap()!.quattroDaily.bars.length} bars · {snap()!.quattroDaily.gaps} gaps</span>
           <span>BTC spot 1D: {snap()!.btc.audit.bars.length} bars · {snap()!.btc.audit.gaps} gaps</span>
           <span>ETH spot 1D: {snap()!.eth.audit.bars.length} bars · {snap()!.eth.audit.gaps} gaps</span>
           <span>Last refresh: {when(updated())}</span>
