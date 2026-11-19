@@ -28,9 +28,9 @@ Strategy signal generation
   - Rust primitives: Quattro conditions / momentum exposure
         |
         v
-Signal explanation and quality assessment (planned)
+Signal confluence scoring (initial implementation)
   - direction, trigger, invalidation and rationale
-  - confidence/quality score with component breakdown
+  - signed evidence score with weighted component breakdown
   - explicit no-signal state
         |
         v
@@ -52,9 +52,10 @@ Research reports and analytical UI (planned)
 | Rust EMA / ATR | Present | Deterministic indicator primitives |
 | Rust Quattro signal | Partial | Breakout/exit conditions and completed-daily EMA200 filter; not the full pyramiding state machine |
 | Rust momentum exposure | Partial | Long-only volatility-targeted exposure; not walk-forward parameter selection |
+| Rust signal assessment | Initial implementation | Weighted trend/momentum/breakout/volume/timeframe evidence with volatility-quality gate; configurable weights, not calibrated |
 | Rust risk assessment | Present | Research sizing/risk calculation only; no execution authority |
 | Rust historical simulator | Initial implementation | One position at a time; next-bar-open signals, gap-aware stops, fee/slippage assumptions and end-of-data liquidation |
-| Signal scoring / explanation | Planned | No calibrated probability or confidence score is claimed |
+| Signal confluence scoring | Initial implementation | Configurable weighted evidence score; not a probability or calibrated confidence |
 | Market-data source integration | Not implemented | No exchange market-data connection yet |
 | Walk-forward / out-of-sample suite | Not implemented | No profitability or predictive edge claim |
 | Research dashboard / web terminal | Not implemented | No deployable app or Docker image |
