@@ -84,7 +84,9 @@ pub fn validate_candles(candles: &[Candle], policy: CandlePolicy) -> Result<(), 
         previous = Some(candle.timestamp_ms);
     }
 
-    let latest_close = candles.last().expect("min_bars checked").timestamp_ms + policy.interval_ms;
+    let latest = candles.last().ok_or_else(|| DomainError::InvalidMarketData("empty candle history".into()))?;
+    let latest_close = latest.timestamp_ms.checked_add(policy.interval_ms)
+        .ok_or_else(|| DomainError::InvalidMarketData("latest candle timestamp overflow".into()))?;
     if policy.now_ms - latest_close > policy.max_age_ms {
         return Err(DomainError::InvalidMarketData("latest candle is stale".into()));
     }
@@ -126,6 +128,8 @@ pub struct PortfolioState {
     pub session_start_equity: f64,
     pub peak_equity: f64,
     pub open_notional: f64,
+    /// Aggregate worst-case loss at stops for all currently open positions.
+    pub open_risk: f64,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -171,6 +175,7 @@ pub fn assess_order(
         || portfolio.session_start_equity <= 0.0
         || portfolio.peak_equity <= 0.0
         || portfolio.open_notional < 0.0
+        || portfolio.open_risk < 0.0
     {
         return Err(DomainError::InvalidConfig("portfolio state must contain finite positive equity values"));
     }
@@ -196,7 +201,20 @@ pub fn assess_order(
         return Err(DomainError::RiskRejected("maximum drawdown limit reached"));
     }
 
-    let risk_budget = portfolio.equity * limits.risk_per_trade;
+    // Reserve room for current open-position risk and never let a new proposal
+    // consume more than the remaining daily-loss or peak-drawdown allowance.
+    let realized_daily_loss = (portfolio.session_start_equity - portfolio.equity).max(0.0);
+    let realized_drawdown = (portfolio.peak_equity - portfolio.equity).max(0.0);
+    let daily_risk_remaining = (portfolio.session_start_equity * limits.max_daily_loss
+        - realized_daily_loss - portfolio.open_risk).max(0.0);
+    let drawdown_risk_remaining = (portfolio.peak_equity * limits.max_drawdown
+        - realized_drawdown - portfolio.open_risk).max(0.0);
+    let risk_budget = (portfolio.equity * limits.risk_per_trade)
+        .min(daily_risk_remaining)
+        .min(drawdown_risk_remaining);
+    if risk_budget <= 0.0 {
+        return Err(DomainError::RiskRejected("no remaining portfolio risk budget"));
+    }
     let per_unit_risk = stop_distance + intent.entry_price * limits.fee_rate * 2.0;
     let risk_limited_quantity = risk_budget / per_unit_risk;
     let max_total_notional = portfolio.equity * limits.max_leverage;
@@ -290,6 +308,34 @@ mod tests {
         assert!(assess_order(drawdown, RiskLimits::default(), OrderIntent {
             side: Side::Short, entry_price: 100.0, stop_price: 105.0,
         }).is_err());
+    }
+
+    #[test]
+    fn caps_new_risk_by_remaining_daily_and_open_position_budget() {
+        let mut near_daily_limit = portfolio();
+        near_daily_limit.equity = 9_750.0;
+        let proposal = assess_order(
+            near_daily_limit,
+            RiskLimits::default(),
+            OrderIntent { side: Side::Long, entry_price: 100.0, stop_price: 95.0 },
+        ).unwrap();
+        assert!(proposal.risk_budget <= 50.0 + 1e-8);
+
+        let mut with_open_risk = portfolio();
+        with_open_risk.open_risk = 80.0;
+        let proposal = assess_order(
+            with_open_risk,
+            RiskLimits::default(),
+            OrderIntent { side: Side::Long, entry_price: 100.0, stop_price: 95.0 },
+        ).unwrap();
+        assert!(proposal.risk_budget <= 20.0 + 1e-8);
+
+        with_open_risk.open_risk = 300.0;
+        assert!(assess_order(
+            with_open_risk,
+            RiskLimits::default(),
+            OrderIntent { side: Side::Long, entry_price: 100.0, stop_price: 95.0 },
+        ).is_err());
     }
 
     #[test]
