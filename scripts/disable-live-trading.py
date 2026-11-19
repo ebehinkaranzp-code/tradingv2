@@ -47,7 +47,7 @@ replace(
 
 client = root / "src/trade/client.ts"
 source = client.read_text(encoding="utf-8")
-start = source.index("// ---- connecting")
+start = source.index("export async function connectHyperliquid")
 end = source.index("// ---- following", start)
 replacement = """// ---- research-only safety boundary ------------------------------------------
 // Trading V2 is an analysis and simulation product. No exchange account,
