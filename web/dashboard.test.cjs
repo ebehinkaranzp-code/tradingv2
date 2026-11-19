@@ -12,8 +12,8 @@ assert.ok(scriptStart >= openTag.length && scriptEnd > scriptStart, 'dashboard i
 assert.equal(html.indexOf(openTag, scriptEnd), -1, 'dashboard must contain exactly one inline script');
 const source = html.slice(scriptStart, scriptEnd);
 new vm.Script(source);
-assert.match(html, /data-api\\.binance\\.vision/);
-assert.match(html, /stream\\.binance\\.com/);
+assert.match(html, /data-api\.binance\.vision/);
+assert.match(html, /stream\.binance\.com/);
 assert.match(html, /TRADINGVIEW/);
 const legacyHtml = fs.readFileSync('web/analysis-legacy.html', 'utf8');
 const legacyStart = legacyHtml.indexOf(openTag) + openTag.length;
