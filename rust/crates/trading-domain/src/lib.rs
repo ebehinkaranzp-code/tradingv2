@@ -6,6 +6,8 @@
 
 use std::fmt;
 
+pub mod backtest;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum DomainError {
     InvalidConfig(&'static str),
