@@ -16,9 +16,18 @@ def replace(path: str, old: str, new: str) -> None:
         raise SystemExit(f"Expected source section not found in {p}: {old[:90]!r}")
     p.write_text(source.replace(old, new, 1), encoding="utf-8")
 
-replace("src/workspace/model.ts",
-"export const PANEL_TYPES: readonly PanelType[] = ['chart', 'watchlist', 'tpo', 'values', 'dom', 'tape', 'trade', 'positions', 'liquidations', 'flow', 'signals', 'alerts', 'econ'];",
-"export const PANEL_TYPES: readonly PanelType[] = ['chart', 'watchlist', 'tpo', 'values', 'dom', 'tape', 'liquidations', 'flow', 'signals', 'alerts', 'econ'];")
+# Remove live-trading panels independent of the upstream panel ordering.
+model = root / "src/workspace/model.ts"
+model_source = model.read_text(encoding="utf-8")
+import re
+panel_match = re.search(r"export const PANEL_TYPES: readonly PanelType\[\] = \[(.*?)\];", model_source, re.S)
+if not panel_match:
+    raise SystemExit(f"Could not locate PANEL_TYPES in {model}")
+panel_items = [item.strip() for item in panel_match.group(1).split(",") if item.strip()]
+safe_items = [item for item in panel_items if item.strip("'\\\"") not in {"trade", "positions"}]
+if safe_items != panel_items:
+    model_source = model_source[:panel_match.start(1)] + " ".join(safe_items) + model_source[panel_match.end(1):]
+    model.write_text(model_source, encoding="utf-8")
 replace("src/workspace/Layout.tsx", "const Trading = lazy(() => import('../panels/trading'));\n", "")
 replace("src/workspace/Layout.tsx",
 "    case 'trade':\n    case 'positions':\n      return <Trading panel={p} />;",
