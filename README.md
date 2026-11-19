@@ -37,6 +37,19 @@ The strategy and risk engine belong to Trading V2. Tradoor may be evaluated as a
 - No arbitrary shell execution, privilege escalation, or access to unrelated devices.
 - Risk limits must be enforced independently of strategy signals.
 
+## Jan / local MCP integration
+
+`trading_v2_mcp.py` is a small MCP server for **GitHub repository operations only**. It does not expose the Windows filesystem, CMD, PowerShell, or other devices.
+
+Security defaults:
+- Reads use the configured `GITHUB_BRANCH` (defaults to `main`).
+- Every write must name a branch under `work/*`; protected branches such as `main` are rejected.
+- Secret files (`.env*`, private-key files) and GitHub workflow configuration paths are blocked.
+- Use a fine-grained GitHub token limited to this repository, with Contents read/write and Pull requests read/write only. Do not grant Actions, Administration, or organization permissions.
+- Store the token in Jan's MCP environment configuration. Never paste it into chat, source code, or a committed config file.
+
+When calling write tools, explicitly pass a work branch such as `work/jan-agent`. Create that branch from `main` first, review changes, then open a pull request. Do not enable automatic merging.
+
 ## Repository status
 
 This repository is under active construction. The preview must not be mistaken for a production application. Build instructions and architecture are added as the implementation becomes reproducible.
