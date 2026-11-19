@@ -7,6 +7,10 @@ on:
       - "vendor/tradoor"
       - ".gitmodules"
       - "scripts/prepare-tradoor.py"
+      - "web/analysis-legacy.html"
+      - "web/research.html"
+      - "web/research-main.tsx"
+      - "web/research.css"
       - ".github/workflows/build-tradoor.yml"
   workflow_dispatch:
 
