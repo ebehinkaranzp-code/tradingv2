@@ -92,14 +92,30 @@ def run_check(profile: str):
     cwd = path_in_repo(subdir)
     if not cwd.is_dir(): raise ValueError("Required directory missing: "+subdir)
     log("CHECK STARTED: "+profile)
+    proc = None
     try:
-        r = subprocess.run(command,cwd=cwd,capture_output=True,text=True,timeout=900,shell=False,
-                           env={**os.environ,"CI":"1","NO_COLOR":"1"})
-        output = (r.stdout+"\n"+r.stderr)[-12000:]
-        log(f"CHECK FINISHED: {profile}, exit={r.returncode}")
-        return {"profile":profile,"exit_code":r.returncode,"output":output}
+        proc = subprocess.Popen(command,cwd=cwd,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,
+                                shell=False,env={**os.environ,"CI":"1","NO_COLOR":"1"})
+        while proc.poll() is None:
+            if stop_event.is_set() or time.time() >= float(state["deadline"]):
+                proc.terminate()
+                try: proc.wait(timeout=3)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+                    proc.wait(timeout=3)
+                return {"profile":profile,"exit_code":130,"output":"Stopped by user or seven-hour deadline."}
+            try:
+                stdout, stderr = proc.communicate(timeout=1)
+                output = (stdout+"\n"+stderr)[-12000:]
+                log(f"CHECK FINISHED: {profile}, exit={proc.returncode}")
+                return {"profile":profile,"exit_code":proc.returncode,"output":output}
+            except subprocess.TimeoutExpired:
+                continue
+        stdout, stderr = proc.communicate()
+        output = (stdout+"\n"+stderr)[-12000:]
+        log(f"CHECK FINISHED: {profile}, exit={proc.returncode}")
+        return {"profile":profile,"exit_code":proc.returncode,"output":output}
     except FileNotFoundError as e: return {"profile":profile,"exit_code":127,"output":str(e)}
-    except subprocess.TimeoutExpired: return {"profile":profile,"exit_code":124,"output":"Timed out after 15 minutes."}
 
 TOOLS = [
  {"type":"function","name":"list_files","description":"List project files, skipping dependencies and secrets.",
@@ -126,7 +142,7 @@ def agent_loop(task: str):
     try:
         if not os.environ.get("OPENAI_API_KEY"): raise RuntimeError("OPENAI_API_KEY missing in edge-agent/.env")
         if not REPO.is_dir(): raise RuntimeError(f"Local repo not found: {REPO}. Set TRADING_V2_REPO in .env")
-        client = OpenAI()
+        client = OpenAI(timeout=60)
         log(f"AGENT STARTED · model={MODEL} · repo={REPO}")
         response = client.responses.create(model=MODEL,instructions=INSTRUCTIONS,tools=TOOLS,input=task,max_output_tokens=5000)
         turns = 0
