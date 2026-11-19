@@ -8,6 +8,22 @@ from pathlib import Path
 
 ROOT = Path("vendor/tradoor")
 
+# Preserve the user's original, audited Quattro and TSMOM engine as a pure module.
+legacy = Path("web/analysis-legacy.html").read_text(encoding="utf-8")
+engine_marker = legacy.index("root.TDStrategyEngine =")
+engine_start = legacy.rfind("(function (root) {", 0, engine_marker)
+engine_body = legacy.index("const DAY =", engine_start)
+engine = legacy[engine_body:engine_marker].rstrip()
+research_dir = ROOT / "web/src/research"
+research_dir.mkdir(parents=True, exist_ok=True)
+(research_dir / "strategy-engine.ts").write_text(
+    engine + "\n\nexport { computeQuattro, computeMomentum, ema, atrWilder };\n",
+    encoding="utf-8",
+)
+(ROOT / "web/research.html").write_text(Path("web/research.html").read_text(encoding="utf-8"), encoding="utf-8")
+(research_dir / "main.tsx").write_text(Path("web/research-main.tsx").read_text(encoding="utf-8"), encoding="utf-8")
+(research_dir / "research.css").write_text(Path("web/research.css").read_text(encoding="utf-8"), encoding="utf-8")
+
 def edit(path, replacements):
     p = ROOT / path
     s = p.read_text(encoding="utf-8")
@@ -19,6 +35,11 @@ def edit(path, replacements):
 
 edit("web/vite.config.ts", [
     ("export default defineConfig({\n", "export default defineConfig({\n  base: process.env.VITE_BASE ?? '/',\n"),
+    ("input: { index: 'index.html', community: 'community.html' }", "input: { index: 'index.html', community: 'community.html', research: 'research.html' }"),
+])
+
+edit("web/src/components/Brand.tsx", [
+    ("      <span>TRADOOR</span>", "      <span>TRADOOR</span>\n      <a class=\"brand-research\" href={import.meta.env.BASE_URL + 'research.html'}>RESEARCH</a>"),
 ])
 
 edit("web/src/workspace/model.ts", [
