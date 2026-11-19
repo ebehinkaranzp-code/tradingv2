@@ -32,7 +32,7 @@ edit("web/src/trade/present.ts", [
 ])
 
 edit("web/src/components/StrategyTester.tsx", [
-    ("import { createMemo, createSignal, For, lazy, onCleanup, Show, Switch } from 'solid-js';",
+    ("import { createMemo, createSignal, For, lazy, Match, onCleanup, Show, Switch } from 'solid-js';",
      "import { createMemo, createSignal, For, onCleanup, Show, Switch } from 'solid-js';"),
     ("/** Live trading of the strategy: in the order system, loaded only when opened. */\nconst StrategyLive = lazy(() => import('../trade/StrategyLive').then((m) => ({ default: m.StrategyLive })));\n\n", ""),
     ("  const [liveOpen, setLiveOpen] = createSignal(false);\n", ""),
