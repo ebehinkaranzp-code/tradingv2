@@ -30,8 +30,8 @@ const weekly = helpers(extractBetween('weeklyFromDaily', 'auditCandles'));
 const continuity = helpers(extractBetween('isContinuousClosed', 'async function renderStrategySuite'));
 
 test('CSV parser supports comma, semicolon, tab and quoted cells', () => {
-  for (const delimiter of [',', ';', '\\t']) {
-    const parsed = csv.parseCsvRows('time' + delimiter + 'open' + delimiter + 'note\\n1' + delimiter + '2' + delimiter + '"a' + delimiter + 'b"');
+  for (const delimiter of [',', ';', '\t']) {
+    const parsed = csv.parseCsvRows('time' + delimiter + 'open' + delimiter + 'note\n1' + delimiter + '2' + delimiter + '"a' + delimiter + 'b"');
     assert.equal(parsed.length, 2);
     assert.equal(parsed[1][0], '1');
     assert.equal(parsed[1][1], '2');
@@ -70,7 +70,7 @@ test('continuous closed-candle check rejects gaps', () => {
 });
 
 test('preserved strategy engine loads and evaluates a closed-candle Quattro series', () => {
-  const marker = source.indexOf('/*\\n * Ported from');
+  const marker = source.indexOf('/*\n * Ported from');
   assert.ok(marker >= 0, 'legacy strategy engine must be embedded');
   const context = {window:{}};
   vm.runInNewContext(source.slice(marker), context);
