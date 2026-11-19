@@ -19,6 +19,7 @@ assert.match(source, /function validBar\(b\)/);
 assert.match(source, /function escapeHtml\(value\)/);
 assert.match(source, /function scheduleReconnect\(generation\)/);
 assert.match(source, /async function refreshBars\(\)/);
+assert.match(source, /function closedBarCount\(\)/);
 assert.match(source, /REST FALLBACK/);
 assert.match(source, /Date\.now\(\)-lastWsMessage>45000/);
 assert.match(source, /Exchange request timed out after 12 seconds/);
@@ -51,6 +52,9 @@ const escapeStart = source.indexOf('function escapeHtml(');
 const escapeEnd = source.indexOf('\nconst tfMs', escapeStart);
 assert.ok(escapeStart >= 0 && escapeEnd > escapeStart, 'HTML escaping helper missing');
 const escapeHtml = vm.runInNewContext(source.slice(escapeStart, escapeEnd) + '; escapeHtml');
+const closedCountStart = source.indexOf('function closedBarCount(');
+const closedCountEnd = source.indexOf('\nasync function loadBars', closedCountStart);
+assert.ok(closedCountStart >= 0 && closedCountEnd > closedCountStart, 'closed candle counter missing');
 
 test('CSV parser supports comma, semicolon, tab and quoted cells', () => {
   for (const delimiter of [',', ';', '\t']) {
@@ -121,4 +125,12 @@ test('dashboard candle validator accepts valid OHLCV and rejects malformed excha
 test('journal text is escaped before insertion into dashboard HTML', () => {
   assert.equal(escapeHtml('<img src=x onerror="alert(1)"> &'), '&lt;img src=x onerror=&quot;alert(1)&quot;&gt; &amp;');
   assert.equal(escapeHtml("it's safe"), 'it&#39;s safe');
+});
+
+
+test('closed candle count excludes the still-forming exchange candle', () => {
+  const now = Date.now();
+  const ctx = {bars:[{closeTime:now-1},{closeTime:now+60000}]};
+  const count = vm.runInNewContext(source.slice(closedCountStart, closedCountEnd) + '; closedBarCount', ctx);
+  assert.equal(count(), 1);
 });
