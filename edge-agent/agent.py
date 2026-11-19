@@ -20,7 +20,8 @@ else:
     try: TOKEN_FILE.chmod(0o600)
     except OSError: pass
 
-REPO = Path(os.environ.get("TRADING_V2_REPO", "")).expanduser().resolve()
+REPO_VALUE = os.environ.get("TRADING_V2_REPO", "").strip()
+REPO = Path(REPO_VALUE).expanduser().resolve() if REPO_VALUE else None
 MODEL = os.environ.get("OPENAI_MODEL", "gpt-5.5")
 MAX_HOURS = min(max(float(os.environ.get("AGENT_MAX_HOURS", "7")), 0.1), 7.0)
 SKIP = {".git", "node_modules", "target", ".venv", "dist", "build", "__pycache__"}
@@ -44,7 +45,7 @@ def auth(token: str | None):
         raise HTTPException(401, "Invalid local pairing token")
 
 def path_in_repo(rel: str) -> Path:
-    if not REPO.is_dir(): raise ValueError("TRADING_V2_REPO is not a valid local repository folder.")
+    if REPO is None or not REPO.is_dir(): raise ValueError("TRADING_V2_REPO is not set to an existing local repository folder.")
     p = Path(rel)
     if p.is_absolute() or ".." in p.parts: raise ValueError("Only relative paths inside the repository are allowed.")
     if any(x.lower() in BLOCKED for x in p.parts): raise ValueError("Secret/config file access is blocked.")
@@ -141,7 +142,7 @@ def execute(name: str, args: dict):
 def agent_loop(task: str):
     try:
         if not os.environ.get("OPENAI_API_KEY"): raise RuntimeError("OPENAI_API_KEY missing in edge-agent/.env")
-        if not REPO.is_dir(): raise RuntimeError(f"Local repo not found: {REPO}. Set TRADING_V2_REPO in .env")
+        if REPO is None or not REPO.is_dir(): raise RuntimeError(f"Local repo not found: {REPO}. Set TRADING_V2_REPO in .env")
         client = OpenAI(timeout=60)
         log(f"AGENT STARTED · model={MODEL} · repo={REPO}")
         response = client.responses.create(model=MODEL,instructions=INSTRUCTIONS,tools=TOOLS,input=task,max_output_tokens=5000)
