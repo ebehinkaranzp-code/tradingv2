@@ -1,5 +1,9 @@
 name: Trading V2 full terminal build
 
+concurrency:
+  group: full-terminal-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches: [main]
