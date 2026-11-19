@@ -281,6 +281,11 @@ css = r'''.research-panel{min-height:0;overflow:auto;padding:10px;gap:10px;backg
 (web / "src/panels/ResearchPanel.tsx").write_text(panel, encoding="utf-8")
 (web / "src/panels/research.css").write_text(css, encoding="utf-8")
 
+# Make the built-in exchange-independent simulator unmistakably a paper account.
+replace("src/app/App.tsx", "<span>{tl('Training')}</span>", "<span>{tl('Paper Trading')}</span>")
+replace("src/workspace/Layout.tsx", "{tl('Training')}", "{tl('Paper Trading')}")
+replace("src/training/Training.tsx", "{tl('Training')}", "{tl('Paper Trading')}")
+
 # Add a first-class Research Lab panel to the existing terminal workspace.
 replace("src/workspace/model.ts",
 "export type PanelType = 'chart' | 'watchlist' | 'tpo' | 'values' | 'liquidations' | 'flow' | 'signals' | 'alerts' | 'dom' | 'tape' | 'econ' | 'trade' | 'positions';",
