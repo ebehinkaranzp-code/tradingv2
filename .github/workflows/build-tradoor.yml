@@ -77,11 +77,14 @@ jobs:
         working-directory: vendor/tradoor/web
         run: deno task size
       - name: Configure Pages
+        if: github.ref == 'refs/heads/main'
         uses: actions/configure-pages@v5
       - name: Upload Pages artifact
+        if: github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v3
         with:
           path: vendor/tradoor/web/dist
       - name: Deploy
+        if: github.ref == 'refs/heads/main'
         id: deployment
         uses: actions/deploy-pages@v4
