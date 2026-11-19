@@ -63,7 +63,7 @@ footer{padding:25px 0 10px;text-align:center;color:#718096;font-size:10px}
 </main>
 <script>
 const $=id=>document.getElementById(id);
-let tf='1h',sym='BTC / USDT',currentCandles=[],staleGithubSnapshot=null;
+let tf='1h',sym='BTC / USDT',currentCandles=[],staleGithubSnapshot=null,currentDataSymbol=null,dataReady=false;
 const SYMBOLS={'BTC / USDT':'BTCUSDT','ETH / USDT':'ETHUSDT','SOL / USDT':'SOLUSDT'};
 const BINANCE_INTERVAL={'15m':'15m','1h':'1h','4h':'4h','1d':'1d'};
 const BYBIT_INTERVAL={'15m':'15','1h':'60','4h':'240','1d':'D'};
@@ -143,7 +143,7 @@ let paper=loadPaper(),paperMarkPrices={};
 function savePaper(){try{localStorage.setItem(PAPER_KEY,JSON.stringify(paper));}catch{$('paperStatus').textContent='Browser storage unavailable; demo changes may not persist after closing this page.';}}
 function paperFmt(v){return String.fromCharCode(36)+Number(v||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
 function applyData(data){
- currentCandles=data.candles;const cs=currentCandles.map(c=>c.close),last=currentCandles.at(-1),first=cs[0],pct=(last.close/first-1)*100,fast=ema(cs,20),slow=ema(cs,50),r=rsi(cs),macd=ema(cs,12).at(-1)-ema(cs,26).at(-1);
+ currentCandles=data.candles;currentDataSymbol=SYMBOLS[sym];dataReady=true;const cs=currentCandles.map(c=>c.close),last=currentCandles.at(-1),first=cs[0],pct=(last.close/first-1)*100,fast=ema(cs,20),slow=ema(cs,50),r=rsi(cs),macd=ema(cs,12).at(-1)-ema(cs,26).at(-1);
  paperMarkPrices[SYMBOLS[sym]]=last.close;paper.marks[SYMBOLS[sym]]=last.close;savePaper();renderPaper();renderChart(currentCandles);$('price').textContent='$'+last.close.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
  $('change').textContent=(pct>=0?'+':'')+pct.toFixed(2)+'%';$('change').className='metric '+(pct>=0?'positive':'negative');
  const bias=last.close>slow.at(-1)&&r>52?'Bullish':last.close<slow.at(-1)&&r<48?'Bearish':'Neutral';$('bias').textContent=bias;$('bias').className='metric '+(bias==='Bullish'?'positive':bias==='Bearish'?'negative':'neutral');
@@ -156,14 +156,14 @@ function applyData(data){
  const badge=$('feedBadge'),status=$('feedStatus');badge.textContent=data.source.toUpperCase();badge.style.borderColor=data.source.includes('cache')?'#725b2c':'#28634e';badge.style.background=data.source.includes('cache')?'#2a2316':'#10271f';badge.style.color=data.source.includes('cache')?'#f1cb7d':'#79dfb5';status.textContent='DATA · '+data.source.toUpperCase();$('updatedAt').textContent='Snapshot: '+new Date(data.time).toLocaleString()+' · '+currentCandles.length+' closed candles';
 }
 async function refreshData(){
- staleGithubSnapshot=null;
+ dataReady=false;renderPaper();staleGithubSnapshot=null;
  $('feedStatus').textContent='DATA · CONNECTING';$('feedBadge').textContent='FETCHING MARKET DATA…';$('updatedAt').textContent='Trying GitHub → Binance → Bybit → local cache';
  const providers=[githubSource,binanceSource,bybitSource,krakenSource];let errors=[];
  for(const provider of providers){try{const data=await provider();if(!validCandles(data.candles))throw new Error('Candle validation failed');try{localStorage.setItem(CACHE_PREFIX+SYMBOLS[sym]+':'+tf,JSON.stringify(data));}catch{}applyData(data);return;}catch(e){errors.push(e.message);}}
  const cached=cachedSource(),fallback=[staleGithubSnapshot,cached].filter(Boolean).sort((a,b)=>Date.parse(b.time)-Date.parse(a.time))[0];
  if(fallback){applyData(fallback);$('updatedAt').textContent+=' · Live providers unavailable; showing stale fallback data';return;}
  $('paperBuy').disabled=true;$('paperSell').disabled=true;$('paperStatus').textContent='Demo trading disabled until valid market data is available.';
- $('feedStatus').textContent='DATA · UNAVAILABLE';$('feedBadge').textContent='NO VALID MARKET DATA';$('updatedAt').textContent='All sources failed: '+errors.join(' | ');$('price').textContent='—';$('change').textContent='—';$('bias').textContent='Unavailable';$('atr').textContent='—';$('priceChart').innerHTML='<text class="axis" x="180" y="130">No validated market data available</text>';
+ dataReady=false;renderPaper();$('feedStatus').textContent='DATA · UNAVAILABLE';$('feedBadge').textContent='NO VALID MARKET DATA';$('updatedAt').textContent='All sources failed: '+errors.join(' | ');$('price').textContent='—';$('change').textContent='—';$('bias').textContent='Unavailable';$('atr').textContent='—';$('priceChart').innerHTML='<text class="axis" x="180" y="130">No validated market data available</text>';
 }
 document.querySelectorAll('[data-tf]').forEach(b=>b.addEventListener('click',()=>{tf=b.dataset.tf;document.querySelectorAll('[data-tf]').forEach(x=>x.classList.toggle('active',x===b));refreshData();}));
 $('symbol').addEventListener('change',e=>{sym=e.target.value;refreshData();});$('refreshData').addEventListener('click',refreshData);
@@ -175,12 +175,12 @@ function renderPaper(){
  const equity=paper.cash+Object.entries(paper.positions).reduce((sum,[s,p])=>sum+(p.qty||0)*(paperMarkPrices[s]||paper.marks[s]||p.avg||0),0);
  $('paperCash').textContent=paperFmt(paper.cash);$('paperEquity').textContent=paperFmt(equity);$('paperOpenPnl').textContent=paperFmt(openPnl);$('paperOpenPnl').className=openPnl>=0?'positive':'negative';$('paperRealized').textContent=paperFmt(paper.realized);$('paperRealized').className=paper.realized>=0?'positive':'negative';
  $('paperPosition').textContent=pos.qty>0?('Position: '+pos.qty.toFixed(6)+' '+SYMBOLS[sym].replace('USDT','')+' · avg '+paperFmt(pos.avg)):'No open position in '+SYMBOLS[sym];
- const canTrade=!!(mark>0&&currentCandles.length);$('paperBuy').disabled=!canTrade;$('paperSell').disabled=!canTrade||!(pos.qty>0);
+ const canTrade=!!(dataReady&&currentDataSymbol===SYMBOLS[sym]&&mark>0&&currentCandles.length);$('paperBuy').disabled=!canTrade;$('paperSell').disabled=!canTrade||!(pos.qty>0);
  $('paperHistory').innerHTML=paper.history.length?paper.history.slice(0,30).map(t=>'<tr><td>'+new Date(t.time).toLocaleString()+'</td><td>'+t.symbol+'</td><td class="'+(t.side==='BUY'?'positive':'negative')+'">'+t.side+'</td><td>'+paperFmt(t.price)+'</td><td>'+Number(t.qty).toFixed(6)+'</td><td>'+paperFmt(t.fee)+'</td><td class="'+(t.realized>=0?'positive':'negative')+'">'+(t.side==='SELL'?paperFmt(t.realized):'—')+'</td></tr>').join(''):'<tr><td colspan="7" class="tiny">No simulated trades yet.</td></tr>';
 }
 function paperTrade(side){
  const symbol=SYMBOLS[sym],mark=paperMarkPrices[symbol]||currentCandles.at(-1)?.close,size=Number($('paperSize').value);
- if(!Number.isFinite(mark)||mark<=0||!Number.isFinite(size)||size<10){$('paperStatus').textContent='Enter a valid trade size of at least 10 USDT.';return;}
+ if(!dataReady||currentDataSymbol!==symbol||!Number.isFinite(mark)||mark<=0||!Number.isFinite(size)||size<10){$('paperStatus').textContent='Enter a valid trade size of at least 10 USDT.';return;}
  const pos=paperPosition();
  if(side==='BUY'){
   const gross=size,fee=gross*PAPER_FEE,total=gross+fee;
