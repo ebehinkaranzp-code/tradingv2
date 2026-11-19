@@ -47,37 +47,38 @@ replace(
 
 client = root / "src/trade/client.ts"
 source = client.read_text(encoding="utf-8")
-start = source.index("export async function connectHyperliquid")
-end = source.index("// ---- following", start)
-replacement = """// ---- research-only safety boundary ------------------------------------------
-// Trading V2 is an analysis and simulation product. No exchange account,
-// signing key, order, cancel, leverage, exit, or algo action may be initiated.
-const LIVE_TRADING_DISABLED = 'Live exchange trading is disabled in Trading V2. Use the local paper simulator.';
-const disabled = (): Promise<never> => Promise.reject(new Error(LIVE_TRADING_DISABLED));
-export async function connectHyperliquid(_network: Network, _days: number, _label: string, _walletId?: string): Promise<string | null> { return LIVE_TRADING_DISABLED; }
-export async function connectLighter(_network: Network, _label: string, _apiKeyIndex: number, _accountIndex = 0, _walletId?: string): Promise<string | null> { return LIVE_TRADING_DISABLED; }
-export const importKey = (_o: { venue: Venue; network: Network; owner: string; label: string; key: string; accountIndex?: number; apiKeyIndex?: number }) => disabled();
-export const addWatch = (_o: { venue: Venue; network: Network; owner: string; label: string; accountIndex?: number }) => disabled();
-export const rename = (_account: string, _label: string) => disabled();
-export const remove = (_account: string) => disabled();
-export const removeAll = () => disabled();
-export const unlock = (_passphrase: string) => disabled();
-export const lock = () => Promise.resolve(null);
-export const setPassphrase = (_passphrase: string, _autoLock: number) => disabled();
-export const clearPassphrase = () => disabled();
-export function setGuards(g: Guards): void {
-  setGuardsSignal(g);
-  writePref(GUARDS_KEY, JSON.stringify(g));
-}
-// Every order-capable action rejects before a worker or network call.
-export const order = (_account: string, _req: Omit<OrderRequest, 'guards'>) => disabled();
-export const cancel = (_account: string, _orders: { coin: string; oid: number }[]) => disabled();
-export const move = (_account: string, _o: OpenOrder, _price: number) => disabled();
-export const leverage = (_account: string, _coin: string, _lev: number, _cross: boolean) => disabled();
-export const exits = (_account: string, _coin: string, _tp: number | null, _sl: number | null) => disabled();
-export const flatten = (_account: string | null, _coin: string | null) => disabled();
-export const runAlgo = (_spec: AlgoSpec) => disabled();
-export const stopAlgo = (_algo: string) => disabled();
-export const history = async (_account: string): Promise<PastOrder[]> => [];
-"""
-client.write_text(source[:start] + replacement + source[end:], encoding="utf-8")
+if "LIVE_TRADING_DISABLED" not in source:
+    start = source.index("export async function connectHyperliquid")
+    end = source.index("// ---- following", start)
+    replacement = """// ---- research-only safety boundary ------------------------------------------
+    // Trading V2 is an analysis and simulation product. No exchange account,
+    // signing key, order, cancel, leverage, exit, or algo action may be initiated.
+    const LIVE_TRADING_DISABLED = 'Live exchange trading is disabled in Trading V2. Use the local paper simulator.';
+    const disabled = (): Promise<never> => Promise.reject(new Error(LIVE_TRADING_DISABLED));
+    export async function connectHyperliquid(_network: Network, _days: number, _label: string, _walletId?: string): Promise<string | null> { return LIVE_TRADING_DISABLED; }
+    export async function connectLighter(_network: Network, _label: string, _apiKeyIndex: number, _accountIndex = 0, _walletId?: string): Promise<string | null> { return LIVE_TRADING_DISABLED; }
+    export const importKey = (_o: { venue: Venue; network: Network; owner: string; label: string; key: string; accountIndex?: number; apiKeyIndex?: number }) => disabled();
+    export const addWatch = (_o: { venue: Venue; network: Network; owner: string; label: string; accountIndex?: number }) => disabled();
+    export const rename = (_account: string, _label: string) => disabled();
+    export const remove = (_account: string) => disabled();
+    export const removeAll = () => disabled();
+    export const unlock = (_passphrase: string) => disabled();
+    export const lock = () => Promise.resolve(null);
+    export const setPassphrase = (_passphrase: string, _autoLock: number) => disabled();
+    export const clearPassphrase = () => disabled();
+    export function setGuards(g: Guards): void {
+      setGuardsSignal(g);
+      writePref(GUARDS_KEY, JSON.stringify(g));
+    }
+    // Every order-capable action rejects before a worker or network call.
+    export const order = (_account: string, _req: Omit<OrderRequest, 'guards'>) => disabled();
+    export const cancel = (_account: string, _orders: { coin: string; oid: number }[]) => disabled();
+    export const move = (_account: string, _o: OpenOrder, _price: number) => disabled();
+    export const leverage = (_account: string, _coin: string, _lev: number, _cross: boolean) => disabled();
+    export const exits = (_account: string, _coin: string, _tp: number | null, _sl: number | null) => disabled();
+    export const flatten = (_account: string | null, _coin: string | null) => disabled();
+    export const runAlgo = (_spec: AlgoSpec) => disabled();
+    export const stopAlgo = (_algo: string) => disabled();
+    export const history = async (_account: string): Promise<PastOrder[]> => [];
+    """
+    client.write_text(source[:start] + replacement + source[end:], encoding="utf-8")
