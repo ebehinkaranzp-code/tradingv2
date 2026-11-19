@@ -28,4 +28,4 @@ jobs:
           node-version: "22"
       - name: Run strategy regression tests
         working-directory: services/strategy/legacy
-        run: node --test strategy-engine.test.cjs
+        run: node --test *.test.cjs
