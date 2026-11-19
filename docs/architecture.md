@@ -1,40 +1,45 @@
 # Trading V2 architecture and delivery boundaries
 
-## Current execution path
+## Product scope
+
+Trading V2 is a specialist market-analysis and signal-research application. It analyzes market data, explains candidate setups, scores signal quality and evaluates strategies. It does **not** place orders, manage exchange accounts or execute live trades. No exchange trading adapter, order-submission path, API-key storage or live execution workflow is in scope.
+
+## Analysis pipeline
 
 ```text
-Market-data source (not connected yet)
+Market-data ingestion (planned; no live source connected yet)
         |
         v
-Candle validation
-  - OHLC integrity
-  - closed bars only
-  - monotonic timestamps
-  - no gaps
-  - freshness window
+Strict candle validation
+  - OHLC integrity and finite values
+  - completed bars only
+  - ordered timestamps and interval continuity
+  - freshness and provenance checks
         |
         v
-Strategy calculations
-  - legacy JS engine: Quattro Donchian v2 / Momentum + volatility targeting
-  - Rust primitives: EMA / Wilder ATR / Quattro conditions / momentum exposure
+Feature / indicator calculations
+  - EMA / Wilder ATR
+  - trend, breakout, momentum and volatility features
+  - multi-timeframe context
         |
         v
-Portfolio risk assessment
-  - stop direction and stop distance
-  - fees included in risk estimate
-  - per-proposal risk ceiling
-  - aggregate open risk and notional
-  - daily loss / peak drawdown guards
-  - leverage ceiling
+Strategy signal generation
+  - legacy JS reference: Quattro Donchian v2 / Momentum + volatility targeting
+  - Rust primitives: Quattro conditions / momentum exposure
         |
         v
-Risk-bounded proposal (no order is sent)
+Signal explanation and quality assessment (planned)
+  - direction, trigger, invalidation and rationale
+  - confidence/quality score with component breakdown
+  - explicit no-signal state
         |
         v
-Paper execution + portfolio ledger (planned)
+Historical evaluation
+  - deterministic backtest simulator (implemented, limited)
+  - walk-forward / out-of-sample validation (planned)
         |
         v
-Backtest reports / terminal UI (planned)
+Research reports and analytical UI (planned)
 ```
 
 ## Implemented now
@@ -43,45 +48,46 @@ Backtest reports / terminal UI (planned)
 |---|---|---|
 | Legacy JS signal engine | Present | Calculates signals only |
 | JS candle validation | Present | Rejects stale, unfinished, gapped or malformed bars |
-| Rust candle validation | Present | Same fail-closed data boundary for Rust callers |
+| Rust candle validation | Present | Fail-closed data boundary for Rust callers |
 | Rust EMA / ATR | Present | Deterministic indicator primitives |
 | Rust Quattro signal | Partial | Breakout/exit conditions and completed-daily EMA200 filter; not the full pyramiding state machine |
 | Rust momentum exposure | Partial | Long-only volatility-targeted exposure; not walk-forward parameter selection |
-| Rust risk assessment | Present | Produces bounded quantity proposal only |
-| Exchange adapters | Not implemented | No exchange network calls or credentials |
-| Paper execution / ledger | Not implemented | No simulated fills or persistent portfolio state yet |
-| Full backtester | Not implemented | No profitability claims |
-| Web terminal | Not implemented | No deployable app or Docker image |
+| Rust risk assessment | Present | Research sizing/risk calculation only; no execution authority |
+| Rust historical simulator | Initial implementation | One position at a time; next-bar-open signals, gap-aware stops, fee/slippage assumptions and end-of-data liquidation |
+| Signal scoring / explanation | Planned | No calibrated probability or confidence score is claimed |
+| Market-data source integration | Not implemented | No exchange market-data connection yet |
+| Walk-forward / out-of-sample suite | Not implemented | No profitability or predictive edge claim |
+| Research dashboard / web terminal | Not implemented | No deployable app or Docker image |
+| Live trading / order execution | Explicitly out of scope | No order submission, account management or exchange trading credentials |
 
 ## Required contracts
 
 ### Market data
 
-All timestamps are UTC Unix milliseconds. A candle's timestamp is its opening time. A candle is eligible only after `timestamp + interval <= now`. Inputs must be ordered, contiguous and fresh. Do not interpolate missing bars or silently drop malformed bars.
+All timestamps are UTC Unix milliseconds. A candle's timestamp is its opening time. A candle is eligible only after `timestamp + interval <= now`. Inputs must be ordered, contiguous and fresh. Do not interpolate missing bars or silently drop malformed bars. Record source, instrument, timeframe, retrieval time and dataset/license provenance.
 
 The caller supplies `now_ms` and freshness limits explicitly. Do not read an implicit local clock inside deterministic strategy or risk functions.
 
-### Strategies
+### Strategies and signals
 
-Strategy functions are pure calculations over closed candles. They must not import exchange clients, environment variables, secrets, filesystem APIs, or network clients. Strategy output is a signal, never an order.
+Strategy functions are pure calculations over closed candles. They must not import exchange clients, environment variables, secrets, filesystem APIs or network clients. Strategy output is an analytical signal, never an order. A signal should eventually expose direction, trigger conditions, invalidation level, timeframe, timestamp, rationale and the contributing indicator values. When evidence is insufficient or conflicting, return an explicit no-signal state rather than forcing a trade idea.
 
 The JavaScript implementation is the legacy reference. Rust parity work must compare outputs across the same deterministic candle fixtures before replacing it.
 
-### Risk
+### Risk analytics
 
-`PortfolioState` must be populated from an authoritative ledger. In particular, `open_notional` and `open_risk` must include every open position and be updated atomically as positions change. If those values are missing, stale or inconsistent, the caller must reject new proposals.
-
-A `RiskProposal` is not execution authorization. A future paper-execution adapter must re-check the proposal against the latest portfolio version, apply idempotency keys, record simulated fills and fees, and reject stale proposals.
+Risk calculations are analytical estimates for evaluating a hypothetical setup. They do not authorize execution. Historical and analytical reports must clearly disclose assumptions about fees, slippage, leverage and position sizing. Never imply that a risk limit guarantees a maximum realized loss during gaps or illiquid conditions.
 
 ### Backtesting
 
-A production-grade backtest must use:
+The current simulator is deliberately limited to one open position at a time and is not yet a production-grade research engine. A robust evaluation suite must use:
 - next-bar execution (not same-bar lookahead);
-- exchange-specific fees, spread, slippage and funding;
-- stop/target collision rules using lower-timeframe data where available;
+- instrument-specific fees, spread, slippage and funding assumptions;
+- documented stop/target collision rules, using lower-timeframe data where available;
 - out-of-sample walk-forward evaluation and parameter freeze;
-- drawdown, exposure, turnover, trade count and benchmark reporting;
-- dataset provenance and license records.
+- drawdown, exposure, turnover, trade count, benchmark and regime reporting;
+- dataset provenance, licensing and reproducible configuration snapshots;
+- checks for survivorship bias, lookahead bias and overfitting.
 
 ## Build and tests
 
@@ -92,7 +98,7 @@ cargo clippy --workspace --all-targets --locked -- -D warnings
 node --test services/strategy/legacy/*.test.cjs
 ```
 
-Rust CI formats the source, runs all Rust unit tests, and runs Clippy with warnings denied. The JavaScript strategy workflow runs its deterministic regression tests.
+Rust CI formats the source, runs Rust unit tests and runs Clippy with warnings denied. The JavaScript strategy workflow runs deterministic regression tests.
 
 ## Deployment policy
 
