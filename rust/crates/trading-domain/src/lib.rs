@@ -7,7 +7,9 @@
 use std::fmt;
 
 pub mod analysis;
+pub mod analysis;
 pub mod backtest;
+pub mod indicators;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum DomainError {
