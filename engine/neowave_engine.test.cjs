@@ -11,6 +11,7 @@ const {
   STRUCTURE_LABEL_SEMANTICS,
   describeStructureLabel,
   detectPatternBoundaryMarkers,
+  segmentPatternLabels,
   parseStructureLabelList,
   parseStructureSequenceNotation,
   PRECONSTRUCTIVE_SEEDS,
@@ -535,6 +536,15 @@ test("Chapter 3 sequence notation rejects missing labels and trailing separators
   for (const notation of ["++ 5-3", "5-3 ++", "5--3", "5-"]) {
     assert.equal(parseStructureSequenceNotation(notation).status, "indeterminate", notation);
   }
+});
+
+test("Pattern label segmentation closes at L5, L3 and sL3 while retaining an open tail", () => {
+  const result = segmentPatternLabels(["F3", "c3", "L5", "F3", "c3", "L3", "F3", "s5"]);
+  assert.equal(result.status, "candidate_patterns_segmented");
+  assert.deepEqual(result.completedPatterns.map((pattern) => pattern.endMarker), ["L5", "L3"]);
+  assert.deepEqual(result.openTail, ["F3", "s5"]);
+  const special = segmentPatternLabels(["F3", "c3", "sL3"]);
+  assert.equal(special.completedPatterns[0].endMarker, "sL3");
 });
 
 test("Last Five, Last Three and Special Last Three expose pattern boundary markers", () => {
