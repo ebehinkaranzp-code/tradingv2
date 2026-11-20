@@ -115,3 +115,10 @@ These are not complete predicates and are not sufficient to reproduce the book's
 
 ## Production gate correction
 The engine's previous public validator accepted caller-supplied `sourceVerified: true` and arbitrary callbacks, which could make synthetic test definitions appear tradable. That was not a safe production certification boundary. The engine now has an explicit closed certification manifest; the validator remains non-tradable regardless of caller-supplied fake provenance until the source-backed rulebook and independent rule tests are genuinely complete. Synthetic tests may test local evaluator behavior, but cannot certify production NeoWave.
+
+
+## Additional source-boundary conflict: Rule 3 Condition e
+
+The Persian scan's Rule 3 prose on printed Chapter 3 p. 3-32 states that Condition e covers m0 between 161.8% and 261.8% of m1, with Condition f above 261.8%. The summary diagram on the following rule-identification page labels the corresponding upper boundary as 2.168 (216.8%), not 2.618 (261.8%). This is a source-internal discrepancy, not a rounding issue. The engine therefore reports Rule 3 m0/m1 values above 216.8% and up to 261.8% as indeterminate; it does not silently choose the prose or diagram. The exact 216.8% endpoint follows the diagram's Condition e endpoint, while values above 261.8% follow the prose's Condition f range. This decision must be revisited against the English scan and surrounding source context before certification.
+
+The same summary diagram groups Rules 5, 6, and 7 under the common m0/m1 condition bands: a below 100%; b from 100% to below 161.8%; c from 161.8% through 261.8%; d above 261.8%. These are identifiers only and do not replace the Pre-Constructive Structure Label decision tree.
