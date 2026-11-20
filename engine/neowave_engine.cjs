@@ -667,8 +667,8 @@ function parseStructureSequenceNotation(sourceNotation) {
     const token = part.trim();
     if (!token) continue;
     if (token === "-" || token === "++") {
-      if (!patterns.at(-1).labels.length) {
-        return { status: "indeterminate", patterns: [], connectors: [], reason: "sequence separator cannot appear without a preceding label" };
+      if (separator !== null || !patterns.at(-1).labels.length) {
+        return { status: "indeterminate", patterns: [], connectors: [], reason: "sequence separators must occur singly after a label" };
       }
       separator = token;
       continue;
@@ -686,7 +686,7 @@ function parseStructureSequenceNotation(sourceNotation) {
     patterns.at(-1).labels.push(token);
     separator = null;
   }
-  if (patterns.at(-1).labels.length === 0) {
+  if (separator !== null || patterns.at(-1).labels.length === 0) {
     return { status: "indeterminate", patterns: [], connectors: [], reason: "sequence cannot end with a separator" };
   }
   return {
