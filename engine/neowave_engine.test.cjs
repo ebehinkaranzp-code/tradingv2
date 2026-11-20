@@ -128,6 +128,15 @@ test("monowave construction rejects malformed and non-chronological pivots", () 
   assert.equal(wave.durationConvention, "endpoint_index_difference");
 });
 
+test("Chapter 5 checklist cannot be applied to an unspecified or unrelated structure", () => {
+  const sections = Array.from({ length: 5 }, (_, i) => ({
+    from: { index: i, price: 10 + i },
+    to: { index: i + 1, price: 11 + i }
+  }));
+  assert.equal(evaluateFiveSectionGuidelines(sections).status, "indeterminate");
+  assert.equal(evaluateFiveSectionGuidelines(sections, { structureType: "corrective" }).status, "indeterminate");
+});
+
 test("Chapter 5 five-section guidelines pass when all seven necessary checks are supported", () => {
   const points = [
     [0, 100], [5, 150], [7, 130], [13, 190], [15, 170], [22, 240]
@@ -136,7 +145,7 @@ test("Chapter 5 five-section guidelines pass when all seven necessary checks are
     from: { index: point[0], price: point[1] },
     to: { index: points[i + 1][0], price: points[i + 1][1] }
   }));
-  const result = evaluateFiveSectionGuidelines(sections);
+  const result = evaluateFiveSectionGuidelines(sections, { structureType: "trend" });
   assert.equal(result.status, "pass");
   assert.equal(result.tradable, false);
   assert.equal(result.sourceVerified, false);
@@ -153,7 +162,7 @@ test("Chapter 5 checklist availability uses the latest confirmed endpoint", () =
     from: { index: point[0], price: point[1], confirmedAt: point[0] + 1 },
     to: { index: points[i + 1][0], price: points[i + 1][1], confirmedAt: points[i + 1][0] + 2 }
   }));
-  const result = evaluateFiveSectionGuidelines(sections);
+  const result = evaluateFiveSectionGuidelines(sections, { structureType: "trend" });
   assert.equal(result.causalAvailabilityVerified, true);
   assert.equal(result.availableAt, 24);
 });
@@ -170,7 +179,7 @@ test("Chapter 5 rejects complete retracements and a smallest third section", () 
       from: { index: point[0], price: point[1] },
       to: { index: points[i + 1][0], price: points[i + 1][1] }
     }));
-    return evaluateFiveSectionGuidelines(sections);
+    return evaluateFiveSectionGuidelines(sections, { structureType: "trend" });
   };
   const fullRetrace2 = evaluate([[5, 50], [5, -50], [5, 60], [5, -20], [5, 70]]);
   assert.equal(fullRetrace2.checks.find((x) => x.id === "section_2_does_not_retrace_section_1").status, "fail");
@@ -190,7 +199,7 @@ test("Chapter 5 leaves ambiguous length semantics indeterminate", () => {
     from: { index: point[0], price: point[1] },
     to: { index: points[i + 1][0], price: points[i + 1][1] }
   }));
-  const result = evaluateFiveSectionGuidelines(sections);
+  const result = evaluateFiveSectionGuidelines(sections, { structureType: "trend" });
   assert.equal(result.status, "indeterminate");
   assert.equal(result.checks.find((x) => x.id === "section_3_longer_than_section_2").status, "indeterminate");
 });
@@ -205,8 +214,8 @@ test("Chapter 5 fifth-section fallback requires at least 38.2 percent by price",
       to: { index: points[i + 1][0], price: points[i + 1][1] }
     }));
   };
-  assert.equal(evaluateFiveSectionGuidelines(make(16)).checks.find((x) => x.id === "section_5_vs_section_4").status, "pass");
-  assert.equal(evaluateFiveSectionGuidelines(make(15)).checks.find((x) => x.id === "section_5_vs_section_4").status, "fail");
+  assert.equal(evaluateFiveSectionGuidelines(make(16), { structureType: "trend" }).checks.find((x) => x.id === "section_5_vs_section_4").status, "pass");
+  assert.equal(evaluateFiveSectionGuidelines(make(15), { structureType: "trend" }).checks.find((x) => x.id === "section_5_vs_section_4").status, "fail");
 });
 
 test("Chapter 6 stage-one confirmation uses the source timing window and pattern-specific line", () => {
