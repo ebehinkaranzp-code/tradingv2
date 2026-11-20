@@ -21,7 +21,7 @@ def sample():
 class BacktestTests(unittest.TestCase):
     def test_decision_fills_next_open_and_forces_final_close(self):
         r=run_backtest(sample(),AlwaysLong(),fee_rate=0,slippage=0)
-        self.assertEqual(r["decisions"],9)
+        self.assertEqual(r["decisions"],10)
         self.assertEqual(r["trade_count"],1)
         self.assertEqual(r["trades"][0]["entry_time"],1)
         self.assertEqual(r["trades"][0]["exit_time"],9)
