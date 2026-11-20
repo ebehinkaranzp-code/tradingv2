@@ -23,7 +23,8 @@ const FIB = Object.freeze({
   // The Rule 3 condition prose says 261.8%, while the source summary diagram
   // labels the corresponding boundary 2.168 (216.8%). Preserve the conflict.
   RULE_3_CONDITION_DIAGRAM_BOUNDARY: 216.8,
-  RULE_3_CONDITION_TEXT_BOUNDARY: 261.8\n});
+  RULE_3_CONDITION_TEXT_BOUNDARY: 261.8
+});
 
 const CONDITION_BANDS = Object.freeze({
   1: [
