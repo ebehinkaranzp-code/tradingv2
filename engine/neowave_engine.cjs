@@ -382,13 +382,19 @@ function evaluateStage2Confirmation({
   }
   const validWave = (wave) => wave && Number.isFinite(wave.from?.price) &&
     Number.isFinite(wave.to?.price) && wave.from.price !== wave.to.price;
-  if (!validWave(pattern) || !validWave(wave4) || !validWave(wave5) ||
+  if (typeof correctionComplete !== "boolean" ||
+      !validWave(pattern) || !validWave(wave4) || !validWave(wave5) ||
       !validWave(correction) || correction.from.price !== pattern.to.price ||
       wave5.from.price !== wave4.to.price || wave5.to.price !== pattern.to.price) {
-    return { ...base, status: "indeterminate", reason: "pattern, wave 4, wave 5 and the post-pattern correction need finite, contiguous endpoints" };
+    return { ...base, status: "indeterminate", reason: "correctionComplete must be boolean and pattern, wave 4, wave 5 and correction need finite, contiguous endpoints" };
   }
   const patternDirection = pattern.to.price > pattern.from.price ? "up" : "down";
+  const wave4Direction = wave4.to.price > wave4.from.price ? "up" : "down";
+  const wave5Direction = wave5.to.price > wave5.from.price ? "up" : "down";
   const correctionDirection = correction.to.price > correction.from.price ? "up" : "down";
+  if (wave4Direction === patternDirection || wave5Direction !== patternDirection) {
+    return { ...base, status: "indeterminate", reason: "wave 4 must oppose the impulse direction and wave 5 must resume it" };
+  }
   if (patternDirection === correctionDirection) {
     return { ...base, status: "indeterminate", reason: "stage-two correction must move opposite to the completed impulse" };
   }
