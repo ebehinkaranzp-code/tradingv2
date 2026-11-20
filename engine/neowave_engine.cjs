@@ -623,12 +623,24 @@ function evaluateStage2Confirmation({
 
 function evaluateStage1Confirmation({
   patternType,
+  bShorterThanA,
   waveStartTime,
   waveEndTime,
   breakAt
 } = {}) {
   if (!["standard", "triangle"].includes(patternType)) {
     return { status: "indeterminate", stage: 1, confirmed: false, overallPatternConfirmed: false, tradable: false, sourceVerified: false, reason: "patternType must be standard or triangle" };
+  }
+  if (patternType === "triangle" && bShorterThanA !== true) {
+    return {
+      status: "indeterminate",
+      stage: 1,
+      confirmed: false,
+      overallPatternConfirmed: false,
+      tradable: false,
+      sourceVerified: false,
+      reason: "the recovered 0-B / c-wave timing rule applies to triangles where wave b is shorter than wave a"
+    };
   }
   if (!Number.isFinite(waveStartTime) || !Number.isFinite(waveEndTime) ||
       waveStartTime < 0 || waveEndTime <= waveStartTime) {
