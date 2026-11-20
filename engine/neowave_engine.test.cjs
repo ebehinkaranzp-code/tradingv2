@@ -88,11 +88,11 @@ test("the production certification barrier cannot be bypassed by caller-supplied
   assert.equal(result.missingRules.length, RULE_CATALOG.length);
 });
 
-test("unknown applicability and failed applicable rules reject the candidate", () => {
+test("unknown applicability and failed rules cannot bypass the production block", () => {
   const unknown = completeDefinitions();
   unknown[0].applies = () => ({ status: "unknown" });
   let result = validateNeoWaveCandidate({ pivots: [], waves: [] }, { ruleDefinitions: unknown });
-  assert.equal(result.status, "rejected");
+  assert.equal(result.status, "blocked_incomplete_rulebook");
   assert.equal(result.tradable, false);
 
   const failed = completeDefinitions({
@@ -100,9 +100,9 @@ test("unknown applicability and failed applicable rules reject the candidate", (
     evaluate: () => ({ status: "fail", reason: "synthetic negative fixture" })
   });
   result = validateNeoWaveCandidate({ pivots: [], waves: [] }, { ruleDefinitions: failed });
-  assert.equal(result.status, "rejected");
+  assert.equal(result.status, "blocked_incomplete_rulebook");
   assert.equal(result.tradable, false);
-  assert.equal(result.failedRules.length, RULE_CATALOG.length);
+  assert.equal(result.missingRules.length, RULE_CATALOG.length);
 });
 
 test("analysis never labels the scaffold as a tradable NeoWave count", () => {
