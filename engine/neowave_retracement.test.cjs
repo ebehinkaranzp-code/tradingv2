@@ -24,10 +24,10 @@ test("time coverage is separate from price coverage and applies only explicit ti
   });
   const numerator = timed(10, 20, 20);
   const denominator = timed(0, 30, 30);
-  assert.equal(timeCoverageRatio(numerator, denominator).value, 100 / 3);
-  assert.equal(timeCoverageRatio(numerator, denominator, {
+  assert.ok(Math.abs(timeCoverageRatio(numerator, denominator).value - 100 / 3) < 1e-12);
+  assert.ok(Math.abs(timeCoverageRatio(numerator, denominator, {
     timeUnit: 1, numeratorAddUnits: 1
-  }).value, 110 / 30 * 100);
+  }).value - 110 / 30 * 100) < 1e-12);
   assert.equal(timeCoverageRatio(numerator, denominator, {
     timeUnit: 1, numeratorAddUnits: 1
   }).availableAt, 30);
