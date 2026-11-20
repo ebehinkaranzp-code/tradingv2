@@ -796,6 +796,27 @@ function parseStructureSequenceNotation(sourceNotation, { completeSeries = false
   };
 }
 
+const STRUCTURE_LABEL_SEMANTICS = Object.freeze({
+  "F3": Object.freeze({ waveForm: "three", position: "first_in_series", description: "First Three" }),
+  "c3": Object.freeze({ waveForm: "three", position: "center_in_series", description: "Center Three" }),
+  "x:c3": Object.freeze({ waveForm: "three", position: "center_in_x_wave", description: "Center Three in X-wave Position" }),
+  "s5": Object.freeze({ waveForm: "five", position: "special_five", description: "Special Five" }),
+  "L5": Object.freeze({ waveForm: "five", position: "last_in_pattern", description: "Last Five" }),
+  "sL3": Object.freeze({ waveForm: "three", position: "special_last_three", description: "Special Last Three" }),
+  "L3": Object.freeze({ waveForm: "three", position: "last_in_pattern", description: "Last Three" })
+});
+
+function describeStructureLabel(label) {
+  if (typeof label !== "string" || !label.trim()) {
+    return { status: "indeterminate", label: null, semantics: null };
+  }
+  const key = label.trim();
+  const semantics = STRUCTURE_LABEL_SEMANTICS[key];
+  return semantics
+    ? { status: "known_source_label", label: key, semantics }
+    : { status: "unclassified_label", label: key, semantics: null };
+}
+
 function parseStructureLabelList(sourceNotation) {
   if (typeof sourceNotation !== "string" || !sourceNotation.trim()) {
     return { status: "indeterminate", candidates: [], reason: "a non-empty source notation is required" };
@@ -816,6 +837,7 @@ function parseStructureLabelList(sourceNotation) {
       role: parenthesized ? "lower_probability_alternative"
         : bracketed ? "rare_or_very_unlikely" : "primary_candidate",
       rank: parenthesized ? "conditional" : bracketed ? "rare" : "primary",
+      semantics: describeStructureLabel(wrapped ? raw.slice(1, -1).trim() : raw).semantics,
       primary: !wrapped,
       raw
     };
@@ -1152,6 +1174,8 @@ module.exports = {
   degreeIndex,
   compareDegrees,
   assessXWaveDegreeRelation,
+  STRUCTURE_LABEL_SEMANTICS,
+  describeStructureLabel,
   parseStructureLabelList,
   parseStructureSequenceNotation,
   PRECONSTRUCTIVE_SEEDS,
