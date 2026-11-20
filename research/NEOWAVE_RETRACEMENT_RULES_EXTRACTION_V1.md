@@ -49,7 +49,7 @@ The Rule 4 condition/category combination feeds into the Pre-Constructive Rules 
 6. **Implementation remains diagnostic-only.** The engine measures activation/condition/category evidence but does not implement the Pre-Constructive Structure Label decision trees or certify any pattern.
 
 ## Required next extraction
-- Complete the 26-page Pre-Constructive Rules of Logic section (printed pp. 3-32 onward) and transcribe the rule/condition-to-Structure-Label mappings as concise original logic tables.
+- Complete the 26-page Pre-Constructive Rules of Logic section (listed at printed p. 3-44 and beginning in the scan around PDF p. 94) and transcribe the rule/condition-to-Structure-Label mappings as concise original logic tables.
 - Review the full Rule 1–7 pages and diagrams at higher resolution to settle boundary/tolerance details.
 - Extract Rules of Observation and the complete Rule of Proportion/Neutrality definitions.
 - Build synthetic fixtures for every activation boundary, each condition, Rule 4 categories, unknown context, and ambiguous monowave termination.
