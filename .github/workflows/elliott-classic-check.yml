@@ -20,4 +20,9 @@ jobs:
         with:
           node-version: 22
       - run: node --test engine/elliott_engine.test.cjs
-      - run: node engine/elliott_historical_scan.cjs data/BTCUSDT-1d.csv
+      - name: Scan daily BTCUSDT
+        run: node engine/elliott_historical_scan.cjs data/BTCUSDT-1d.csv
+      - name: Scan 4-hour BTCUSDT
+        env:
+          TIMEFRAME: 4h
+        run: node engine/elliott_historical_scan.cjs data/BTCUSDT-4h.csv
