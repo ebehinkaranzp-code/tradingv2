@@ -233,6 +233,7 @@ test("Chapter 6 stage-one confirmation uses the source timing window and pattern
   });
   assert.equal(standardPass.status, "stage1_timing_pass");
   assert.equal(standardPass.overallPatternConfirmed, false);
+  assert.equal(standardPass.availableAt, 30);
   assert.equal(standardPass.tradable, false);
 
   const trianglePass = evaluateStage1Confirmation({
