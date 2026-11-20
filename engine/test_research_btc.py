@@ -1,4 +1,6 @@
-import unittest
+import sys,unittest
+from pathlib import Path
+sys.path.insert(0,str(Path(__file__).parent))
 from research_btc import fit_logistic,predict,make_features
 class Tests(unittest.TestCase):
  def test_logistic_separable(self):
