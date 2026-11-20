@@ -29,3 +29,15 @@ The engine's `parseStructureSequenceNotation`:
 - rejects x:c3 outside an explicit `++` connector position.
 
 This parser does not prove that the price/time conditions for any label are satisfied, does not determine pattern family, and does not certify a completed NeoWave count. The remaining status indicators and all surrounding contextual conditions still need source extraction.
+
+
+## Additional status labels (Chapter 4 opening, printed pp. 4-1–4-3; scan PDF pp. 151–153)
+
+The next chapter defines additional labels used in structural sequences:
+
+- `s5`: Special Five.
+- `L5`: Last Five.
+- `sL3`: Special Last Three.
+- `L3`: Last Three.
+
+The engine now exposes these meanings alongside F3, c3 and x:c3 through `describeStructureLabel`. These are source semantics only; their contextual conditions and full pattern-boundary logic are not yet implemented.
