@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Trading V2 is an independent crypto market terminal with live charts, market depth, watchlists and multi-timeframe technical analysis."><meta name="theme-color" content="#090c0a">
 <title>Trading V2 — Independent Market Terminal</title>
 <style>
 :root{color-scheme:dark;--bg:#090c0a;--panel:#101511;--panel2:#0c110e;--line:#273128;--muted:#829087;--text:#e5eee7;--lime:#c5f36b;--green:#79d69b;--red:#f07d7d;--yellow:#e8c878;--blue:#83b7e8}
@@ -9,17 +9,72 @@
 .app{height:100%;display:grid;grid-template-rows:48px 1fr 25px;min-height:560px}.top{display:flex;align-items:center;gap:18px;padding:0 14px;border-bottom:1px solid var(--line);background:#0d120e}.brand{display:flex;align-items:center;gap:9px;min-width:170px;font-weight:800;letter-spacing:.08em}.mark{width:25px;height:25px;border:1px solid var(--lime);color:var(--lime);display:grid;place-items:center;font-weight:900;transform:rotate(-7deg);border-radius:6px}.brand small{display:block;color:#78857a;font-size:8px;letter-spacing:.2em}.mainnav{display:flex;gap:5px}.mainnav button{border:0;background:transparent;color:#89968c}.mainnav button.active{color:var(--lime);background:#1b241a}.topright{margin-left:auto;display:flex;align-items:center;gap:12px;color:var(--muted)}.live{display:flex;align-items:center;gap:7px}.pulse{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 9px #79d69b88}.workspace{min-height:0;display:grid;grid-template-columns:48px minmax(0,1fr) 270px}.rail{border-right:1px solid var(--line);background:#0d120e;display:flex;flex-direction:column;align-items:center;padding:9px 0;gap:8px}.rail button{width:32px;height:32px;padding:0;border:0;background:transparent;color:#7c897e;font-size:15px}.rail button.active{color:var(--lime);background:#1b241a}.center{min-width:0;min-height:0;display:grid;grid-template-rows:42px minmax(260px,1fr) 210px;gap:1px;background:var(--line)}.marketbar,.chartpanel,.lower{background:var(--bg);min-width:0}.marketbar{display:flex;align-items:center;gap:8px;padding:0 12px}.symbol{font-size:14px;font-weight:800;letter-spacing:.03em}.sub{color:var(--muted);font-size:10px}.price{font-size:14px;font-weight:700}.positive{color:var(--green)}.negative{color:var(--red)}.marketspacer{flex:1}.timeframes{display:flex;gap:3px}.timeframes button{padding:5px 8px;border:0;background:transparent;color:#91a095}.chartpanel{display:grid;grid-template-rows:32px minmax(0,1fr) 23px;position:relative;min-height:0}.charttools{display:flex;align-items:center;gap:6px;padding:0 10px;border-bottom:1px solid #1d261f}.charttools button{padding:4px 7px;border:0;background:transparent;color:#8d9a90;font-size:10px}.charttools button.active{color:var(--lime)}.charttitle{font-weight:700;color:#cdd8cf;margin-right:8px}.chartcanvas{width:100%;height:100%;display:block;touch-action:none}.chartfoot{display:flex;align-items:center;justify-content:space-between;padding:0 10px;color:#748178;font-size:9px;border-top:1px solid #1b241d}.lower{display:grid;grid-template-rows:34px minmax(0,1fr);min-height:0}.tabs{display:flex;align-items:center;gap:18px;padding:0 12px;border-bottom:1px solid var(--line)}.tabs button{border:0;border-radius:0;padding:9px 0;background:transparent;color:#7f8b81;font-size:10px;letter-spacing:.06em}.tabs button.active{color:var(--lime);border-bottom:2px solid var(--lime)}.tabbody{overflow:auto;padding:10px 12px}.right{min-width:0;min-height:0;background:var(--bg);display:grid;grid-template-rows:42% 32% 26%;border-left:1px solid var(--line)}.sidepanel{min-height:0;overflow:hidden;border-bottom:1px solid var(--line);display:grid;grid-template-rows:33px minmax(0,1fr)}.sidehead{display:flex;align-items:center;justify-content:space-between;padding:0 10px;border-bottom:1px solid #202a22;font-size:10px;font-weight:800;letter-spacing:.08em}.sidecontent{overflow:auto;padding:6px 9px}.watchrow{display:grid;grid-template-columns:1fr auto auto;gap:9px;align-items:center;padding:8px 3px;border-bottom:1px solid #1b241d;cursor:pointer}.watchrow:hover{background:#131b14}.watchrow strong{font-size:11px}.watchrow small{display:block;color:var(--muted);font-size:9px}.watchrow .chg{text-align:right;font-size:10px}.bookrow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;padding:3px 2px;font:10px ui-monospace,monospace;position:relative}.bookrow span:nth-child(2){text-align:right}.bookrow span:nth-child(3){text-align:right;color:#9ca99e}.bookrow.ask span:first-child{color:var(--red)}.bookrow.bid span:first-child{color:var(--green)}.bookrow .depth{position:absolute;right:0;top:0;bottom:0;opacity:.10;pointer-events:none}.bookrow.ask .depth{background:var(--red)}.bookrow.bid .depth{background:var(--green)}.trade{display:grid;grid-template-columns:1fr 1fr 1fr;padding:4px 2px;font:10px ui-monospace,monospace}.trade span:nth-child(2){text-align:right}.trade span:nth-child(3){text-align:right;color:var(--muted)}.statusbar{display:flex;align-items:center;gap:18px;padding:0 12px;border-top:1px solid var(--line);background:#0c110e;color:#738077;font-size:9px}.statusbar b{color:#a9b6ab;font-weight:600}.statusright{margin-left:auto}.empty{color:var(--muted);padding:14px;text-align:center;font-size:11px}.kv{display:grid;grid-template-columns:1fr auto;gap:8px;padding:7px 0;border-bottom:1px solid #202a22}.kv span{color:var(--muted)}.strategycard{border:1px solid #2a382b;background:#101810;border-radius:6px;padding:10px;margin-bottom:8px}.strategycard h3{font-size:11px;margin:0 0 7px;color:var(--lime)}.strategycard p{font-size:10px;color:var(--muted);margin:0;line-height:1.6}.badge{font-size:9px;border:1px solid #354637;color:#a9c18e;border-radius:3px;padding:2px 5px}.notice{border:1px solid #5a4c2d;color:#d9c28a;background:#1d1a12;padding:8px;border-radius:5px;font-size:10px;margin-bottom:8px}
 @media(max-width:1000px){.workspace{grid-template-columns:42px minmax(0,1fr)}.right{display:none}.brand{min-width:130px}.mainnav{display:none}}
 @media(max-width:600px){.top{gap:7px;padding:0 8px}.brand{min-width:auto;font-size:10px}.brand small{display:none}.topright .clock{display:none}.workspace{grid-template-columns:35px minmax(0,1fr)}.marketbar{gap:5px;padding:0 6px}.marketbar .sub{display:none}.timeframes button{padding:4px 5px;font-size:9px}.center{grid-template-rows:40px minmax(240px,1fr) 190px}.charttools{gap:2px;padding:0 5px}.charttools button{padding:4px}.chartfoot span:last-child{display:none}}
+
+/* Product finish */
+:root{--panel:#101712;--line:#26342a;--muted:#91a095;--lime:#c8f27a}
+html{scrollbar-color:#344437 #0b100c;scrollbar-width:thin}
+body{background:radial-gradient(ellipse at 48% -20%,#18251a 0,transparent 48%),var(--bg)}
+button{transition:background .16s ease,border-color .16s ease,color .16s ease,transform .16s ease}
+button:focus-visible,[data-symbol]:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
+.top{box-shadow:0 5px 24px #0005;position:relative;z-index:2}
+.brand{font-size:12px}
+.mark{box-shadow:0 0 18px #c5f36b20}
+.mainnav button{padding:8px 11px;font-size:10px;letter-spacing:.08em}
+.mainnav button.active{border-radius:5px}
+.live{font-size:10px;letter-spacing:.08em}
+.workspace{background:#080b09}
+.rail{background:#0b100c}
+.center{background:#202b22}
+.marketbar{background:linear-gradient(90deg,#101711,#0b100c)}
+.price{font-variant-numeric:tabular-nums}
+.chartpanel{background:#0b100c}
+.charttools{background:#0e140f}
+.chartcanvas{background:radial-gradient(ellipse at 50% 50%,#101811 0, #0b100c 75%)}
+.lower{background:#0d130e}
+.tabs{gap:20px;overflow-x:auto;white-space:nowrap;scrollbar-width:thin}
+.tabs button{flex:0 0 auto}
+.tabbody{scrollbar-width:thin}
+.strategycard{background:linear-gradient(145deg,#121b14,#0e140f);border-color:#2a3a2d;box-shadow:0 4px 14px #0002}
+.kv{font-variant-numeric:tabular-nums}
+.right{background:#0b100c}
+.sidepanel{background:linear-gradient(180deg,#0e140f,#0b100c)}
+.sidehead{color:#d5e1d7}
+.watchrow{transition:background .15s ease}
+.watchrow:hover{background:#19231a}
+.statusbar{background:#090e0a}
+.badge{letter-spacing:.04em}
+@media(max-width:760px){
+ .app{min-height:520px;grid-template-rows:46px minmax(0,1fr) 23px}
+ .top{gap:6px}
+ .mainnav{gap:1px}
+ .mainnav button{padding:7px 6px;font-size:8px}
+ .topright{gap:6px}
+ .topright .badge{display:none}
+ .rail{gap:5px}
+ .tabs{gap:15px}
+ .tabs button{font-size:9px}
+}
+@media(max-width:420px){
+ .mainnav{display:none}
+ .topright{font-size:9px}
+ .brand{font-size:10px}
+ .center{grid-template-rows:38px minmax(220px,1fr) 180px}
+ .charttitle{display:none}
+ .charttools button{font-size:9px}
+ .marketbar .symbol{font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
 <div class="app">
 <header class="top">
  <div class="brand"><div class="mark">T</div><div>TRADING V2<small>INDEPENDENT MARKET TERMINAL</small></div></div>
- <nav class="mainnav"><button class="active">WORKSPACE</button><button>SCREENER</button><button>STRATEGIES</button><button>RESEARCH</button></nav>
+ <nav class="mainnav" aria-label="Workspace navigation"><button class="active" data-tab="overview">WORKSPACE</button><button data-tab="strategy">STRATEGIES</button><button data-tab="confluence">SIGNALS</button><button data-tab="journal">JOURNAL</button></nav>
  <div class="topright"><span class="live"><i class="pulse"></i><span id="connection">CONNECTING</span></span><span class="clock" id="clock">--:--:-- UTC</span><span class="badge">PAPER / ANALYSIS</span></div>
 </header>
 <div class="workspace">
- <aside class="rail"><button class="active" title="Chart">⌁</button><button title="Watchlist">☷</button><button title="Indicators">∿</button><button title="Drawings">／</button><button title="Market profile">▥</button><button title="Journal">▤</button><button style="margin-top:auto" title="Settings">⚙</button></aside>
+ <aside class="rail" aria-label="Analysis shortcuts"><button class="active" data-tab="overview" title="Overview" aria-label="Overview">⌁</button><button data-tab="confluence" title="Signals" aria-label="Signals">∿</button><button data-tab="footprint" title="Footprint" aria-label="Footprint">▥</button><button data-tab="profile" title="Market profile" aria-label="Market profile">▤</button><button data-tab="strategy" title="Strategies" aria-label="Strategies">⌘</button><button data-tab="journal" title="Journal" aria-label="Journal">▧</button><button data-tab="paper" style="margin-top:auto" title="Paper trading" aria-label="Paper trading">◫</button></aside>
  <main class="center">
   <section class="marketbar">
    <strong class="symbol" id="symbolName">BTCUSDT</strong><span class="sub">BINANCE · SPOT</span><strong class="price" id="lastPrice">—</strong><span id="dayChange" class="sub">—</span>
@@ -49,7 +104,7 @@
   <section class="sidepanel"><div class="sidehead"><span>RECENT TRADES</span><span class="sub">LIVE TAPE</span></div><div class="sidecontent" id="tape"><div class="empty">Waiting for trades…</div></div></section>
  </aside>
 </div>
-<footer class="statusbar"><span>DATA <b id="dataState">CONNECTING</b></span><span>MARKET <b>SPOT</b></span><span>CHART ENGINE <b>CANVAS / NATIVE</b></span><span>TRADINGVIEW <b>NOT REQUIRED</b></span><span class="statusright">TRADING V2 · RESEARCH BUILD</span></footer>
+<footer class="statusbar"><span>DATA <b id="dataState">CONNECTING</b></span><span>MARKET <b>SPOT</b></span><span>CHART ENGINE <b>CANVAS / NATIVE</b></span><span>TRADINGVIEW <b>NOT REQUIRED</b></span><span class="statusright">TRADING V2 · MARKET WORKSPACE</span></footer>
 </div>
 <script>
 (()=>{
