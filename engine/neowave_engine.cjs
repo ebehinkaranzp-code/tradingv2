@@ -740,6 +740,14 @@ function parseStructureSequenceNotation(sourceNotation, { completeSeries = false
     if (labels[0] === "c3") {
       return { status: "indeterminate", patterns: [], connectors: [], reason: "c3 cannot start a series" };
     }
+    for (let i = 1; i < labels.length; i++) {
+      if (labels[i] === "f3") {
+        const isFive = (label) => /(?:^|[a-z])5$/.test(label);
+        if (!isFive(labels[i - 1]) || !isFive(labels[i + 1] || "")) {
+          return { status: "indeterminate", patterns: [], connectors: [], reason: "an internal F3 must be positioned between two 5-wave labels" };
+        }
+      }
+    }
     if (completeSeries && (labels.at(-1) === "c3" || labels.at(-1) === "f3")) {
       return { status: "indeterminate", patterns: [], connectors: [], reason: "c3 cannot end a series and F3 must start, not end, a series" };
     }
