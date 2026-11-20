@@ -498,6 +498,29 @@ test("Chapter 3 sequence notation separates standard patterns with X-wave connec
   }]);
 });
 
+test("Chapter 3 F3, c3 and x:c3 positions follow source sequence rules", () => {
+  const explicitX = parseStructureSequenceNotation("L3 ++ x:c3 ++ F3-c3-L5", { completeSeries: true });
+  assert.equal(explicitX.status, "parsed_sequence_notation");
+  assert.deepEqual(explicitX.patterns.map((x) => x.labels), [
+    ["L3"], ["F3", "c3", "L5"]
+  ]);
+  assert.equal(explicitX.connectors[0].label, "x:c3");
+
+  const f3AfterFive = parseStructureSequenceNotation("5-F3-c3-L5", { completeSeries: true });
+  assert.equal(f3AfterFive.status, "parsed_sequence_notation");
+
+  const newDegree = parseStructureSequenceNotation("F3-F3-c3-L5");
+  assert.equal(newDegree.connectors[0].type, "higher-degree-start");
+  assert.equal(newDegree.patterns.length, 2);
+});
+
+test("Chapter 3 sequence parser blocks c3 at series start/end and x:c3 outside ++", () => {
+  assert.equal(parseStructureSequenceNotation("c3-F3-5").status, "indeterminate");
+  assert.equal(parseStructureSequenceNotation("F3-c3", { completeSeries: true }).status, "indeterminate");
+  assert.equal(parseStructureSequenceNotation("F3-x:c3-5").status, "indeterminate");
+  assert.equal(parseStructureSequenceNotation("F3 ++ x:c3").status, "indeterminate");
+});
+
 test("Chapter 3 sequence notation rejects missing labels and trailing separators", () => {
   for (const notation of ["++ 5-3", "5-3 ++", "5--3", "5-"]) {
     assert.equal(parseStructureSequenceNotation(notation).status, "indeterminate", notation);
