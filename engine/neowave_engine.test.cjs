@@ -453,6 +453,7 @@ test("analysis never labels the scaffold as a tradable NeoWave count", () => {
   assert.equal(result.neoWaveGate.tradable, false);
   assert.equal(result.sourceObservationRulesApplied, false);
   assert.equal(result.patternStatus, "not_evaluated");
+  assert.equal(result.structure.priceTimeMetricStatus, "heuristic_not_Neely_Rule_of_Proportion");
   assert.match(result.pivotMethod, /not_Neely_Rules_of_Observation/);
   assert.match(result.disclaimer, /heuristic candidates/);
 });
