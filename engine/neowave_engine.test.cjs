@@ -7,6 +7,7 @@ const {
   DEGREE_HIERARCHY,
   degreeIndex,
   compareDegrees,
+  assessXWaveDegreeRelation,
   parseStructureLabelList,
   parseStructureSequenceNotation,
   PRECONSTRUCTIVE_SEEDS,
@@ -658,6 +659,30 @@ test("engine public API exposes separate price and time coverage helpers", () =>
     { startIndex: 0, endIndex: 2 },
     { startIndex: 0, endIndex: 4 }
   ).value, 50);
+});
+
+test("X-wave degree is normally one level below adjacent patterns with rare exceptions explicit", () => {
+  assert.equal(assessXWaveDegreeRelation({
+    leftPatternDegree: "Cycle",
+    rightPatternDegree: "Cycle",
+    xWaveDegree: "Primary"
+  }).status, "consistent");
+  assert.equal(assessXWaveDegreeRelation({
+    leftPatternDegree: "Cycle",
+    rightPatternDegree: "Cycle",
+    xWaveDegree: "Intermediate"
+  }).status, "atypical_needs_review");
+  assert.equal(assessXWaveDegreeRelation({
+    leftPatternDegree: "Cycle",
+    rightPatternDegree: "Cycle",
+    xWaveDegree: "Intermediate",
+    documentedException: true
+  }).status, "documented_exception");
+  assert.equal(assessXWaveDegreeRelation({
+    leftPatternDegree: "Cycle",
+    rightPatternDegree: "Primary",
+    xWaveDegree: "Intermediate"
+  }).status, "indeterminate");
 });
 
 test("degree hierarchy follows the source order and refuses unknown degree labels", () => {
