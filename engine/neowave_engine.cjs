@@ -30,6 +30,34 @@ const DEGREE_HIERARCHY = Object.freeze([
   "Sub-Micro"
 ]);
 
+function assessXWaveDegreeRelation({
+  leftPatternDegree,
+  rightPatternDegree,
+  xWaveDegree,
+  documentedException = false
+} = {}) {
+  const left = degreeIndex(leftPatternDegree);
+  const right = degreeIndex(rightPatternDegree);
+  const x = degreeIndex(xWaveDegree);
+  if (left < 0 || right < 0 || x < 0 || typeof documentedException !== "boolean") {
+    return { status: "indeterminate", relation: null, reason: "known degree names and an explicit exception flag are required" };
+  }
+  if (left !== right) {
+    return { status: "indeterminate", relation: null, reason: "source expectation compares the X-wave with two adjacent patterns of the same degree" };
+  }
+  if (x === left + 1) {
+    return { status: "consistent", relation: "one_degree_below_adjacent_patterns" };
+  }
+  if (documentedException) {
+    return { status: "documented_exception", relation: "atypical_degree_relation" };
+  }
+  return {
+    status: "atypical_needs_review",
+    relation: "not_one_degree_below",
+    reason: "source says this is normally one degree below; rare exceptions are possible and need independent evidence"
+  };
+}
+
 function degreeIndex(degree) {
   return DEGREE_HIERARCHY.indexOf(degree);
 }
@@ -687,6 +715,8 @@ function parseStructureSequenceNotation(sourceNotation, { completeSeries = false
       connectors.push({
         type: "X-wave",
         label: "x:c3",
+        degreeExpectation: "normally_one_degree_below_both_adjacent_patterns",
+        degreeExpectationEnforced: false,
         afterPattern: patterns.length - 1,
         beforePattern: patterns.length
       });
@@ -1119,6 +1149,7 @@ module.exports = {
   DEGREE_HIERARCHY,
   degreeIndex,
   compareDegrees,
+  assessXWaveDegreeRelation,
   parseStructureLabelList,
   parseStructureSequenceNotation,
   PRECONSTRUCTIVE_SEEDS,
