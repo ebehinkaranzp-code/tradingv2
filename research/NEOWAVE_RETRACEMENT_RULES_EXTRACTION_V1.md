@@ -26,7 +26,7 @@ These are only activation bands. They do not determine the resulting Elliott/Neo
 
 ## Condition maps recovered (m0 as a percentage of m1)
 
-- Rule 1: (a) below 61.8%; (b) at least 61.8% but below 100%; (c) 100% through 161.8% inclusive; (d) above 161.8%. The wording around the 161.8% boundary on printed p. 3-23 needs verification because the scan/OCR appears to append “inclusive” ambiguously.
+- Rule 1: (a) below 61.8%; (b) at least 61.8% but below 100%; (c) 100% through 161.8% inclusive; (d) above 161.8%. The wording around the 161.8% boundary on printed p. 3-30 needs verification because the scan/OCR appears to append “inclusive” ambiguously.
 - Rule 2: (a) below 38.2%; (b) 38.2% to below 61.8%; (c) 61.8% to below 100%; (d) 100% through 161.8% inclusive; (e) above 161.8%.
 - Rule 3: (a) below 38.2%; (b) 38.2% to below 61.8%; (c) 61.8% to below 100%; (d) 100% to below 161.8%; (e) 161.8% through 261.8% inclusive; (f) above 261.8%.
 - Rule 4: (a) below 38.2%; (b) 38.2% to below 100%; (c) 100% to below 161.8%; (d) 161.8% through 261.8% inclusive; (e) above 261.8%.
@@ -41,12 +41,12 @@ After selecting Rule 4's lettered Condition from m0/m1, the source requires a Ca
 The Rule 4 condition/category combination feeds into the Pre-Constructive Rules of Logic. It is not a stand-alone pattern label.
 
 ## Critical caveats before implementation
-1. **Pre-Constructive Logic is integral.** Printed p. 3-32 says the Rule identifiers and their Condition identifiers must be transformed into Structure Labels using the following 26 pages of instructions. The book warns not to read that section straight through and requires real-time chart context. The activation map alone is not sufficient to implement the seven rules.
+1. **Pre-Constructive Logic is integral.** The Pre-Constructive section (listed in the Chapter 3 contents at printed p. 3-44; scan PDF p. 94 onward) says the Rule identifiers and their Condition identifiers must be transformed into Structure Labels using the following 26 pages of instructions. The book warns not to read that section straight through and requires real-time chart context. The activation map alone is not sufficient to implement the seven rules.
 2. **Tolerance conflict requires resolution.** Printed p. 3-30 labels Rule 3 as an “exactly 61.8%” retracement, while the beginning of the Pre-Constructive section (Pre-Constructive section, scan PDF p. 94 onward) says Fibonacci relationships should receive a slight range, giving 61.8% as approximately 58%–66% (about ±4 percentage points). The engine must not use floating-point exact equality or assume a tolerance policy without reconciling the full rule text and diagrams.
 3. **Boundary semantics need explicit verification.** Several bands use “at least”, “less than”, “between”, “inclusive”, and “more than”. Rule 1's 161.8% boundary is unclear in the scan. Overlap/gap tests are required before coding.
 4. **Monowave identity comes first.** The source says the terminal points of m0, m1, m2 and m3 must be determined using Rules of Observation before applying retracement rules. It also allows some labeled waves to consist of one or more monowaves.
 5. **Context matters.** m0 may be composed of multiple monowaves; the source's diagrams show it can vary widely in length. Rule 4's m3/m2 category is an extra dimension.
-6. **No implementation yet.** The existing `NW-RET-01..07` entries remain blocked placeholders. No retracement predicate or pattern conclusion is certified by this note.
+6. **Implementation remains diagnostic-only.** The engine measures activation/condition/category evidence but does not implement the Pre-Constructive Structure Label decision trees or certify any pattern.
 
 ## Required next extraction
 - Complete the 26-page Pre-Constructive Rules of Logic section (printed pp. 3-32 onward) and transcribe the rule/condition-to-Structure-Label mappings as concise original logic tables.
@@ -57,7 +57,7 @@ The Rule 4 condition/category combination feeds into the Pre-Constructive Rules 
 
 
 ## Pre-Constructive Rules of Logic — what the next section changes
-The section begins on scan PDF p. 94 onward and is described as spanning the next 26 pages. It explicitly transforms each Rule plus its lettered Condition into one or more candidate Structure Labels. The analyst must compare multiple surrounding waves and apply all conditions in each relevant paragraph; the activation band is only the entry point into this decision process.
+The section is listed at printed p. 3-44 and begins around scan PDF p. 94; it is described as spanning the next 26 pages. It explicitly transforms each Rule plus its lettered Condition into one or more candidate Structure Labels. The analyst must compare multiple surrounding waves and apply all conditions in each relevant paragraph; the activation band is only the entry point into this decision process.
 
 The first Rule 1 / Condition "a" material begins on scan PDF p. 95 onward. The opening examples already refer to:
 - relative price and time lengths of m(-1), m0, m1, m2, m3 and sometimes later waves;
