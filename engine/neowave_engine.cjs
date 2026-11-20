@@ -244,7 +244,10 @@ function summarizeStructure(waves) {
  * trend/terminal structure. Ambiguous uses of "longer" remain indeterminate
  * unless price and time comparisons agree.
  */
-function evaluateFiveSectionGuidelines(sections) {
+function evaluateFiveSectionGuidelines(sections, { structureType } = {}) {
+  if (!["trend", "terminal"].includes(structureType)) {
+    return { status: "indeterminate", checks: [], reason: "the Chapter 5 checklist applies only to trend or terminal candidates" };
+  }
   if (!Array.isArray(sections) || sections.length !== 5) {
     return { status: "indeterminate", checks: [], reason: "exactly five adjacent sections are required" };
   }
@@ -334,6 +337,7 @@ function evaluateFiveSectionGuidelines(sections) {
     status,
     tradable: false,
     sourceVerified: false,
+    structureType,
     source: { document: "Mastering Elliott Wave", locator: "Chapter 5, printed p. 5-3, Necessary Structural Rules" },
     checks,
     measurements: metrics,
