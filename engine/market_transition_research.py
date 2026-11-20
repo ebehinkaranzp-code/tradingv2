@@ -150,7 +150,7 @@ def make_signals(b, ind, cfg):
 
 def backtest(b, sig, start_i=0, end_i=None):
     end_i=len(b)-1 if end_i is None else min(end_i,len(b)-1)
-    cash=INITIAL; qty=0.0; entry=None; trades=[]; curve=[]; peak=INITIAL; maxdd=0.0
+    cash=INITIAL; qty=0.0; entry=None; trades=[]; curve=[]; invested_bars=0; peak=INITIAL; maxdd=0.0
     for i in range(max(start_i,0),end_i):
         want=sig[i]
         op=b[i+1]["open"]
@@ -159,20 +159,21 @@ def backtest(b, sig, start_i=0, end_i=None):
             entry={"time":b[i+1]["time"],"price":px,"equity_before":INITIAL if not trades else equity_from_trades(trades)}
         elif not want and qty>0:
             px=op*(1-SLIPPAGE); cash=qty*px*(1-FEE)
-            pnl_pct=(cash/entry["equity_before"]-1)*100
-            trades.append({"entry_time":entry["time"],"exit_time":b[i+1]["time"],"entry_price":entry["price"],"exit_price":px,"return_pct":pnl_pct})
+            pnl_cash=cash-entry["equity_before"]; pnl_pct=(cash/entry["equity_before"]-1)*100
+            trades.append({"entry_time":entry["time"],"exit_time":b[i+1]["time"],"entry_price":entry["price"],"exit_price":px,"return_pct":pnl_pct,"pnl_cash":pnl_cash})
             qty=0.0; entry=None
         equity=cash if qty==0 else qty*b[i+1]["close"]
+        if qty>0: invested_bars+=1
         curve.append(equity); peak=max(peak,equity); maxdd=max(maxdd,(peak-equity)/peak if peak else 0)
     if qty>0:
         px=b[end_i]["close"]*(1-SLIPPAGE); cash=qty*px*(1-FEE)
-        pnl_pct=(cash/entry["equity_before"]-1)*100
-        trades.append({"entry_time":entry["time"],"exit_time":b[end_i]["time"],"entry_price":entry["price"],"exit_price":px,"return_pct":pnl_pct})
+        pnl_cash=cash-entry["equity_before"]; pnl_pct=(cash/entry["equity_before"]-1)*100
+        trades.append({"entry_time":entry["time"],"exit_time":b[end_i]["time"],"entry_price":entry["price"],"exit_price":px,"return_pct":pnl_pct,"pnl_cash":pnl_cash})
         if curve: curve[-1]=cash
-    wins=sum(t["return_pct"]>0 for t in trades); gains=sum(max(0,t["return_pct"]) for t in trades); losses=-sum(min(0,t["return_pct"]) for t in trades)
+    wins=sum(t["pnl_cash"]>0 for t in trades); gains=sum(max(0,t["pnl_cash"]) for t in trades); losses=-sum(min(0,t["pnl_cash"]) for t in trades)
     return {"trades":len(trades),"win_rate_pct":wins/len(trades)*100 if trades else None,
             "return_pct":(cash/INITIAL-1)*100,"profit_factor":gains/losses if losses else (None if not gains else "inf"),
-            "max_drawdown_pct":maxdd*100,"exposure_pct":sum(1 for v in curve if v>0)/len(curve)*100 if curve else 0,
+            "max_drawdown_pct":maxdd*100,"exposure_pct":invested_bars/len(curve)*100 if curve else 0,
             "trade_log":trades}
 
 def equity_from_trades(trades):
