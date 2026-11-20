@@ -28,9 +28,15 @@ test("rejects wave 4 overlap in a standard impulse", () => {
   const p=bull.map(x=>({...x})); p[4].price=115;
   assert.equal(validateImpulse(p).reason,"wave4_overlaps_wave1_territory");
 });
-test("rejects wave 5 that fails to exceed wave 3 end", () => {
+test("recognizes a truncated fifth wave as a candidate, not a standard impulse", () => {
   const p=bull.map(x=>({...x})); p[5].price=140;
-  assert.equal(validateImpulse(p).reason,"wave5_does_not_exceed_wave3_end");
+  assert.equal(validateImpulse(p).status,"candidate_truncated_impulse");
+});
+test("diagonal option never certifies an incomplete diagonal rule set", () => {
+  assert.equal(validateImpulse(bull,{allowDiagonal:true}).status,"candidate_diagonal_rules_incomplete");
+});
+test("rejects malformed OHLC data during pivot extraction", () => {
+  assert.throws(() => confirmedPivots([{time:1,open:5,high:4,low:3,close:4}],1,1),/invalid_ohlc_bar/);
 });
 test("accepts a basic bullish zigzag price sequence", () => {
   const p=[{index:0,price:100,type:"L"},{index:2,price:130,type:"H"},{index:4,price:115,type:"L"},{index:6,price:140,type:"H"}];
