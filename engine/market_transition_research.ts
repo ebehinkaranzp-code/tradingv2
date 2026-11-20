@@ -73,7 +73,7 @@ export function indicators(b:Bar[]):Indicators{
 export function makeSignals(b:Bar[],ind:Indicators,cfg:any):boolean[]{return b.map((x,i)=>{
  const keys=["spanA","spanB","kijun","ema200","rsi","atr","volz","jaw","teeth","lips"];
  if(keys.some(k=>ind[k][i]===null))return false;
- let ok=x.close>Math.max(ind.spanA[i] as number,ind.spanB[i] as number)&&x.close>(ind.kijun[i] as number);
+ let ok=cfg.cloud?x.close>Math.max(ind.spanA[i] as number,ind.spanB[i] as number)&&x.close>(ind.kijun[i] as number):true;
  if(cfg.cloudOnly)ok=x.close>Math.max(ind.spanA[i] as number,ind.spanB[i] as number);
  if(cfg.ema)ok=ok&&x.close>(ind.ema200[i] as number)&&(ind.ema50[i] as number)>(ind.ema200[i] as number);
  if(cfg.ema50)ok=ok&&x.close>(ind.ema50[i] as number);
