@@ -1,10 +1,11 @@
-name: Market Transition Engine - TypeScript 35 experiments
+name: Market Transition Engine - 35 strategies + 5 win-rate experiments
 on:
   push:
     branches: [main]
     paths:
       - "engine/market_transition_research.ts"
       - "engine/market_transition_research.test.cjs"
+      - "engine/win_rate_experiments.cjs"
       - ".github/workflows/market-transition-15.yml"
   workflow_dispatch:
 permissions:
@@ -28,14 +29,17 @@ jobs:
         run: npx tsc engine/market_transition_research.ts --target ES2022 --module commonjs --outDir dist --skipLibCheck --strict
       - name: Run Node.js tests
         run: node --test engine/market_transition_research.test.cjs
-      - name: Download Binance Spot history and run 35 daily + weekly experiments
+      - name: Download Binance Spot history and run 35 daily + weekly strategies
         run: node dist/market_transition_research.js --download --data data/BTCUSDT-1d.csv --output research/results/market-transition-35-node.json
+      - name: Run five take-profit / stop-loss win-rate experiments
+        run: node engine/win_rate_experiments.cjs
       - name: Archive data and reports
         uses: actions/upload-artifact@v4
         with:
-          name: market-transition-35-node-results
+          name: market-transition-35-plus-5-winrate-results
           path: |
             data/BTCUSDT-1d.csv
             research/results/market-transition-35-node.json
             research/results/market-transition-35-node.md
+            research/results/win-rate-five-experiments.json
           retention-days: 90
