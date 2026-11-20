@@ -35,7 +35,7 @@ function buildTests(b,f,idx){const d=f["1d"],h4=f["4h"],h1=f["1h"],m=f["15m"],te
   ["M15K","15m Stochastic recovery above 10",i=>cross(m.k,i,10)],
   ["M15R","15m RSI recovery above 25",i=>cross(m.rsi,i,25)]
  ];
- for(const [fid,fn,filt] of filters.map(([id,name,fn])=>[id,fn,fn]))for(const [tid,tname,trig] of triggers)tests.push({id:fid+"_"+tid,name:filt+" + "+tname,signal:i=>{let a=idx["1d"][i],c=idx["4h"][i],e=idx["1h"][i];return a>=30&&c>=30&&e>=30&&filters.find(x=>x[0]===fid)[2](i)&&trig(i)}})
+ for(const [fid,fname,filterFn] of filters)for(const [tid,tname,trig] of triggers)tests.push({id:fid+"_"+tid,name:fname+" + "+tname,signal:i=>{let a=idx["1d"][i],c=idx["4h"][i],e=idx["1h"][i];return a>=30&&c>=30&&e>=30&&filterFn(i)&&trig(i)}})
  return tests}
 function wilson(w,n){if(!n)return null;let z=1.96,p=w/n,d=1+z*z/n,c=(p+z*z/(2*n))/d,m=z*Math.sqrt(p*(1-p)/n+z*z/(4*n*n))/d;return [Math.max(0,c-m)*100,Math.min(1,c+m)*100]}
 function simulate(b,m,signal,start,end){let cash=INITIAL,pos=null,pending=false,exit=null,peak=INITIAL,dd=0,wins=0,gain=0,loss=0,exposure=0,trades=[];
