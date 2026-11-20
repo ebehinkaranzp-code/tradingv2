@@ -100,7 +100,7 @@ test("context analysis reports evidence but never marks a pattern tradable", () 
   const result = analyzeRetracementContext({
     m0: wave(100, 110),
     m1: wave(110, 130),
-    m2: wave(130, 142.36),
+    m2: wave(130, 117.64),
     m3: wave(142.36, 167.08)
   });
   assert.equal(result.tradable, false);
@@ -113,7 +113,7 @@ test("ambiguous rule activation preserves both nominal and Rule 3 hypotheses", (
   const result = analyzeRetracementContext({
     m0: wave(1, 2),
     m1: wave(2, 102),
-    m2: wave(102, 162)
+    m2: wave(102, 42)
   });
   assert.equal(result.status, "ambiguous_source_tolerance");
   assert.deepEqual(result.activation.ruleIds.sort(), ["NW-RET-02", "NW-RET-03"]);
@@ -125,7 +125,7 @@ test("causal availability is propagated only when every required wave is timesta
   const result = analyzeRetracementContext({
     m0: timed(100, 110, 12),
     m1: timed(110, 130, 13),
-    m2: timed(130, 142.36, 15)
+    m2: timed(130, 117.64, 15)
   });
   assert.equal(result.causalAvailabilityVerified, true);
   assert.equal(result.availableAt, 15);
@@ -133,7 +133,7 @@ test("causal availability is propagated only when every required wave is timesta
   const incomplete = analyzeRetracementContext({
     m0: timed(100, 110, 12),
     m1: timed(110, 130, 13),
-    m2: { startPrice: 130, endPrice: 142.36 }
+    m2: { startPrice: 130, endPrice: 117.64 }
   });
   assert.equal(incomplete.causalAvailabilityVerified, false);
   assert.equal(incomplete.availableAt, null);
