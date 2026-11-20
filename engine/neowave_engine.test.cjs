@@ -506,9 +506,10 @@ test("Chapter 3 F3, c3 and x:c3 positions follow source sequence rules", () => {
   ]);
   assert.equal(explicitX.connectors[0].label, "x:c3");
 
-  const f3AfterFive = parseStructureSequenceNotation("5-F3-c3-L5", { completeSeries: true });
+  const f3AfterFive = parseStructureSequenceNotation("5-F3-5-c3-L5", { completeSeries: true });
   assert.equal(f3AfterFive.status, "parsed_sequence_notation");
 
+  assert.equal(parseStructureSequenceNotation("5-F3-c3-L5").status, "indeterminate");
   const newDegree = parseStructureSequenceNotation("F3-F3-c3-L5");
   assert.equal(newDegree.connectors[0].type, "higher-degree-start");
   assert.equal(newDegree.patterns.length, 2);
