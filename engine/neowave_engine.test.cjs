@@ -346,6 +346,32 @@ test("Chapter 6 stage two applies the 61.8-to-less-than-100 percent rule to exte
   assert.equal(fullRetrace.status, "stage2_price_retracement_fail");
 });
 
+test("Chapter 6 stage two requires causal timestamps for full confirmation", () => {
+  const base = {
+    stage1Confirmed: true,
+    stage1AvailableAt: 11,
+    asOfIndex: 15,
+    extendedWave: 5,
+    pattern: { from: { price: 0 }, to: { price: 200 }, availableAt: 10 },
+    wave4: { from: { price: 150 }, to: { price: 100 }, availableAt: 9 },
+    wave5: { from: { price: 100 }, to: { price: 200 }, availableAt: 10 },
+    correction: { from: { price: 200 }, to: { price: 130 }, availableAt: 14 },
+    correctionComplete: true
+  };
+  const pass = evaluateStage2Confirmation(base);
+  assert.equal(pass.stage2Confirmed, true);
+  assert.equal(pass.causalAvailabilityVerified, true);
+  assert.equal(pass.availableAt, 14);
+  assert.equal(pass.overallPatternConfirmed, true);
+
+  const future = evaluateStage2Confirmation({
+    ...base,
+    asOfIndex: 13
+  });
+  assert.equal(future.status, "indeterminate");
+  assert.equal(future.overallPatternConfirmed, false);
+});
+
 test("Chapter 6 stage two rejects invalid wave directions and non-boolean completion", () => {
   const base = {
     stage1Confirmed: true,
