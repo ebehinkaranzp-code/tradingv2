@@ -659,7 +659,7 @@ function parseStructureSequenceNotation(sourceNotation, { completeSeries = false
   if (typeof sourceNotation !== "string" || !sourceNotation.trim()) {
     return { status: "indeterminate", patterns: [], connectors: [], reason: "non-empty sequence notation is required" };
   }
-  const parts = sourceNotation.trim().split(/(\\+\\+|-)/);
+  const parts = sourceNotation.trim().split(/(\+\+|-)/);
   const patterns = [{ labels: [] }];
   const connectors = [];
   let separator = null;
