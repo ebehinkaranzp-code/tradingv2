@@ -30,8 +30,8 @@ function buildTests(b,f,idx){const d=f["1d"],h4=f["4h"],h1=f["1h"],m=f["15m"],te
   ["D_H4","Daily RSI <=45 and 4H RSI <=40",i=>d.rsi[idx["1d"][i]]<=45&&h4.rsi[idx["4h"][i]]<=40]
  ];
  const triggers=[
-  ["H1R","1H RSI recovery above 30",i=>{let j=idx["1h"][i];return cross(h1.rsi,j,30)}],
-  ["H1DIV","Confirmed 1H bullish RSI divergence",i=>h1.bull[idx["1h"][i]]===true],
+  ["H1R","1H RSI recovery above 30",i=>{let j=idx["1h"][i];return j>=1&&j!==idx["1h"][i-1]&&cross(h1.rsi,j,30)}],
+  ["H1DIV","Confirmed 1H bullish RSI divergence",i=>{let j=idx["1h"][i];return j>=0&&j!==idx["1h"][i-1]&&h1.bull[j]===true}],
   ["M15K","15m Stochastic recovery above 10",i=>cross(m.k,i,10)],
   ["M15R","15m RSI recovery above 25",i=>cross(m.rsi,i,25)]
  ];
