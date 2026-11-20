@@ -352,6 +352,116 @@ function evaluateFiveSectionGuidelines(sections, { structureType } = {}) {
  * A trendline break is supplied by the caller's independently checked
  * price/bar analysis; this function only evaluates the source's time window.
  */
+/**
+ * Chapter 6 second-stage price-retracement confirmation for standard impulses.
+ * This checks the source's minimum/target retracement after stage one. It does
+ * not infer the extended wave or determine when a correction is complete.
+ */
+function evaluateStage2Confirmation({
+  patternType = "impulse",
+  stage1Confirmed,
+  extendedWave,
+  pattern,
+  wave4,
+  wave5,
+  correction,
+  correctionComplete = false
+} = {}) {
+  const base = {
+    stage: 2,
+    stage2Confirmed: false,
+    overallPatternConfirmed: false,
+    tradable: false,
+    sourceVerified: false
+  };
+  if (stage1Confirmed !== true) {
+    return { ...base, status: "stage2_blocked", reason: "stage one must pass before stage two is evaluated" };
+  }
+  if (patternType !== "impulse" || ![1, 3, 5].includes(extendedWave)) {
+    return { ...base, status: "indeterminate", reason: "the recovered stage-two rules apply here only to an impulse with extended wave 1, 3 or 5" };
+  }
+  const validWave = (wave) => wave && Number.isFinite(wave.from?.price) &&
+    Number.isFinite(wave.to?.price) && wave.from.price !== wave.to.price;
+  if (!validWave(pattern) || !validWave(wave4) || !validWave(wave5) ||
+      !validWave(correction) || correction.from.price !== pattern.to.price) {
+    return { ...base, status: "indeterminate", reason: "pattern, wave 4, wave 5 and a contiguous post-pattern correction need finite distinct endpoints" };
+  }
+  const patternDirection = pattern.to.price > pattern.from.price ? "up" : "down";
+  const correctionDirection = correction.to.price > correction.from.price ? "up" : "down";
+  if (patternDirection === correctionDirection) {
+    return { ...base, status: "indeterminate", reason: "stage-two correction must move opposite to the completed impulse" };
+  }
+
+  const reachedWave4 = patternDirection === "up"
+    ? correction.to.price <= wave4.to.price
+    : correction.to.price >= wave4.to.price;
+  if (extendedWave === 1 || extendedWave === 3) {
+    const extensionEvidence = extendedWave === 3
+      ? priceCoverageRatio(correction, pattern).value > 61.8
+      : null;
+    const confirmed = reachedWave4;
+    return {
+      ...base,
+      status: confirmed ? "stage2_price_target_pass" : correctionComplete ? "stage2_price_target_fail" : "stage2_pending",
+      stage2Confirmed: confirmed,
+      overallPatternConfirmed: confirmed && stage1Confirmed === true,
+      target: "end_of_wave_4_price_region",
+      reachedTarget: reachedWave4,
+      extensionEvidence,
+      correctionComplete,
+      reason: confirmed
+        ? "post-pattern correction reached the wave-4 price region required for this extension type"
+        : correctionComplete
+          ? "completed correction failed to reach the wave-4 price region"
+          : "correction has not yet reached the wave-4 price region"
+    };
+  }
+
+  const retracement = priceCoverageRatio(correction, wave5);
+  if (retracement.status !== "measured") {
+    return { ...base, status: "indeterminate", reason: retracement.reason };
+  }
+  const ratio = retracement.value;
+  if (ratio >= 100) {
+    return {
+      ...base,
+      status: "stage2_price_retracement_fail",
+      retracementOfWave5Percent: ratio,
+      correctionComplete,
+      reason: "correction fully retraced or exceeded wave 5; source says an extended fifth should not be completely retraced if the trend is to remain effective"
+    };
+  }
+  if (ratio >= 61.8 && correctionComplete) {
+    return {
+      ...base,
+      status: "stage2_price_retracement_pass",
+      stage2Confirmed: true,
+      overallPatternConfirmed: true,
+      retracementOfWave5Percent: ratio,
+      correctionComplete,
+      reason: "completed correction retraced at least 61.8% but less than 100% of extended wave 5"
+    };
+  }
+  if (!correctionComplete) {
+    return {
+      ...base,
+      status: "stage2_pending",
+      retracementOfWave5Percent: ratio,
+      correctionComplete,
+      reason: ratio < 61.8
+        ? "correction has not yet retraced the required 61.8% of extended wave 5"
+        : "minimum retracement reached; await correction completion to ensure wave 5 is not fully retraced"
+    };
+  }
+  return {
+    ...base,
+    status: "stage2_price_retracement_fail",
+    retracementOfWave5Percent: ratio,
+    correctionComplete,
+    reason: "completed correction retraced less than 61.8% of extended wave 5"
+  };
+}
+
 function evaluateStage1Confirmation({
   patternType,
   waveStartTime,
@@ -772,6 +882,7 @@ module.exports = {
   summarizeStructure,
   evaluateFiveSectionGuidelines,
   evaluateStage1Confirmation,
+  evaluateStage2Confirmation,
   createHypothesisRevision,
   validateNeoWaveCandidate,
   analyze,
