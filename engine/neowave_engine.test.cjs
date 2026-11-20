@@ -1,0 +1,10 @@
+"use strict";
+const test=require("node:test"),assert=require("node:assert/strict");
+const {RULE_CATALOG,confirmedPivots,monowaves,validateNeoWaveCandidate,analyze}=require("./neowave_engine.cjs");
+const bars=[[10,11,9,10],[10,12,9,11],[11,15,10,14],[14,14,11,12],[12,13,8,9],[9,11,8,10],[10,13,9,12],[12,12,10,11],[11,12,7,8],[8,10,7,9],[9,11,8,10],[10,12,9,11]].map((x,i)=>({time:i*60000,open:x[0],high:x[1],low:x[2],close:x[3]}));
+test("confirmed pivots are timestamped only after right-side confirmation",()=>{const p=confirmedPivots(bars,{left:1,right:2});assert.ok(p.length>0);for(const x of p)assert.equal(x.confirmedAt-x.index,2)});
+test("monowaves connect alternating pivots and retain causal availability",()=>{const p=confirmedPivots(bars,{left:1,right:2}),w=monowaves(p);assert.ok(w.length>0);for(const x of w){assert.ok(x.duration>0);assert.ok(x.availableAt>=x.to.index)}});
+test("NeoWave gate fails closed while mandatory rules are undefined",()=>{const r=validateNeoWaveCandidate({});assert.equal(r.status,"blocked_incomplete_rulebook");assert.equal(r.tradable,false);assert.ok(r.missingRules.length>=7)});
+test("all seven retracement rule slots are represented",()=>assert.equal(RULE_CATALOG.filter(x=>x.family==="retracement").length,7));
+test("analysis never labels scaffold as tradable NeoWave",()=>{const r=analyze(bars,{left:1,right:2});assert.equal(r.neoWaveGate.tradable,false);assert.match(r.disclaimer,/not a complete NeoWave count/)});
+test("malformed and non-monotonic OHLC data are rejected",()=>{assert.throws(()=>confirmedPivots([{time:1,open:2,high:1,low:0,close:1}]));assert.throws(()=>confirmedPivots([bars[0],bars[0]]))});
