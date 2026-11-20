@@ -133,7 +133,23 @@ test("Chapter 5 five-section guidelines pass when all seven necessary checks are
   const result = evaluateFiveSectionGuidelines(sections);
   assert.equal(result.status, "pass");
   assert.equal(result.tradable, false);
+  assert.equal(result.sourceVerified, false);
+  assert.equal(result.causalAvailabilityVerified, false);
+  assert.equal(result.availableAt, null);
   assert.equal(result.checks.length, 7);
+});
+
+test("Chapter 5 checklist availability uses the latest confirmed endpoint", () => {
+  const points = [
+    [0, 100], [5, 150], [7, 130], [13, 190], [15, 170], [22, 240]
+  ];
+  const sections = points.slice(0, -1).map((point, i) => ({
+    from: { index: point[0], price: point[1], confirmedAt: point[0] + 1 },
+    to: { index: points[i + 1][0], price: points[i + 1][1], confirmedAt: points[i + 1][0] + 2 }
+  }));
+  const result = evaluateFiveSectionGuidelines(sections);
+  assert.equal(result.causalAvailabilityVerified, true);
+  assert.equal(result.availableAt, 24);
 });
 
 test("Chapter 5 leaves ambiguous length semantics indeterminate", () => {
