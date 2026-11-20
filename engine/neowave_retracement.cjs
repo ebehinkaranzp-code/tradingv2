@@ -231,10 +231,21 @@ function analyzeRetracementContext({ m0, m1, m2, m3 } = {}) {
       : { status: "indeterminate", condition: null, reason: m0m1.reason, availableAt: null, causalAvailabilityVerified: false };
     let category = null;
     if (ruleNumber === 4) {
+      const m3Direction = directionOf(m3);
       const m3m2 = priceCoverageRatio(m3, m2);
-      category = m3m2.status === "measured"
-        ? { ...classifyRule4Category(m3m2.value), availableAt: m3m2.availableAt, causalAvailabilityVerified: m3m2.causalAvailabilityVerified }
-        : { status: "indeterminate", category: null, reason: m3m2.reason, availableAt: null, causalAvailabilityVerified: false };
+      if (!m3Direction || m3Direction === m2Direction) {
+        category = {
+          status: "indeterminate",
+          category: null,
+          reason: "Rule 4 m3 must be measurable and move opposite to the retracement wave m2",
+          availableAt: null,
+          causalAvailabilityVerified: false
+        };
+      } else {
+        category = m3m2.status === "measured"
+          ? { ...classifyRule4Category(m3m2.value), availableAt: m3m2.availableAt, causalAvailabilityVerified: m3m2.causalAvailabilityVerified }
+          : { status: "indeterminate", category: null, reason: m3m2.reason, availableAt: null, causalAvailabilityVerified: false };
+      }
     }
     return { ruleId, m0OverM1Percent: m0m1.value, condition, category };
   });
