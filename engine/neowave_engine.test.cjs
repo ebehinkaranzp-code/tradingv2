@@ -10,6 +10,7 @@ const {
   parseStructureLabelList,
   PRECONSTRUCTIVE_SEEDS,
   getPreconstructiveSeed,
+  analyzeNeoWaveRetracement,
   ENGINE_CERTIFICATION,
   confirmedPivots,
   monowaves,
@@ -287,6 +288,30 @@ test("Structure Label notation preserves primary and wrapped alternatives", () =
   assert.equal(result.candidates[4].primary, false);
   assert.equal(result.candidates[5].notation, "bracketed");
   assert.equal(result.candidates[5].primary, false);
+});
+
+test("retracement analysis attaches only available partial Structure Label seeds", () => {
+  const result = analyzeNeoWaveRetracement({
+    m0: { startPrice: 90, endPrice: 100 },
+    m1: { startPrice: 100, endPrice: 200 },
+    m2: { startPrice: 200, endPrice: 138.2 }
+  });
+  assert.equal(result.preconstructiveStatus, "partial_source_seed");
+  assert.equal(result.tradable, false);
+  assert.equal(result.candidates[0].structureLabelSeed.ruleNumber, 3);
+  assert.deepEqual(result.candidates[0].structureLabelSeed.labels.map((x) => x.label),
+    ["F3", "c3", "s5", "5", "sL3", "L5"]);
+});
+
+test("untranscribed Rule/Condition combinations stay indeterminate", () => {
+  const result = analyzeNeoWaveRetracement({
+    m0: { startPrice: 90, endPrice: 140 },
+    m1: { startPrice: 100, endPrice: 200 },
+    m2: { startPrice: 200, endPrice: 150 }
+  });
+  assert.equal(result.preconstructiveStatus, "incomplete_source_mapping");
+  assert.equal(result.candidates[0].structureLabelSeed.status, "indeterminate");
+  assert.equal(result.tradable, false);
 });
 
 test("Pre-Constructive seed table exposes only transcribed labels and remains non-executable", () => {
