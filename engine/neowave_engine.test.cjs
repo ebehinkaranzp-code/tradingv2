@@ -10,6 +10,7 @@ const {
   assessXWaveDegreeRelation,
   STRUCTURE_LABEL_SEMANTICS,
   describeStructureLabel,
+  detectPatternBoundaryMarkers,
   parseStructureLabelList,
   parseStructureSequenceNotation,
   PRECONSTRUCTIVE_SEEDS,
@@ -534,6 +535,16 @@ test("Chapter 3 sequence notation rejects missing labels and trailing separators
   for (const notation of ["++ 5-3", "5-3 ++", "5--3", "5-"]) {
     assert.equal(parseStructureSequenceNotation(notation).status, "indeterminate", notation);
   }
+});
+
+test("Last Five, Last Three and Special Last Three expose pattern boundary markers", () => {
+  const result = detectPatternBoundaryMarkers(["F3", "c3", "L5", "F3", "sL3", "s5"]);
+  assert.equal(result.status, "boundary_markers_found");
+  assert.deepEqual(result.boundaries, [
+    { index: 2, label: "L5", boundaryType: "five_pattern_end" },
+    { index: 4, label: "sL3", boundaryType: "special_corrective_pattern_end" }
+  ]);
+  assert.equal(detectPatternBoundaryMarkers(["F3", "c3", "s5"]).status, "no_boundary_marker");
 });
 
 test("NeoWave status labels retain their source-defined semantics", () => {
