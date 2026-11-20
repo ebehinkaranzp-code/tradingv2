@@ -31,7 +31,7 @@ For a candidate five-section trend/terminal sequence:
 
 ## Engineering consequence
 
-The engine now exposes these as a **candidate five-section checklist** with explicit unresolved metric semantics. It checks adjacency, directional sequence, the two non-complete-retracement constraints, the 1/3/5 price-coverage condition, and the two 'longer' comparisons. For the latter, it returns indeterminate when price and time comparisons disagree. It must not emit a pattern label from this checklist alone. A future implementation should:
+The engine now exposes these as a **candidate five-section checklist** restricted to trend or terminal candidates, with explicit unresolved metric semantics. It checks adjacency, directional sequence, the two non-complete-retracement constraints, the 1/3/5 price-coverage condition, and the two 'longer' comparisons. For the latter, it returns indeterminate when price and time comparisons disagree. It must not emit a pattern label from this checklist alone. A future implementation should:
 - require five contiguous, ordered sections with explicit endpoints and constituent monowaves;
 - evaluate direction and complete-retracement constraints only where the source wording is unambiguous;
 - return indeterminate for "longer" comparisons until the applicable price/time convention is established from the surrounding rule;
