@@ -360,6 +360,8 @@ function evaluateFiveSectionGuidelines(sections, { structureType } = {}) {
 function evaluateStage2Confirmation({
   patternType = "impulse",
   stage1Confirmed,
+  stage1AvailableAt,
+  asOfIndex,
   extendedWave,
   pattern,
   wave4,
@@ -372,13 +374,15 @@ function evaluateStage2Confirmation({
     stage2Confirmed: false,
     overallPatternConfirmed: false,
     tradable: false,
-    sourceVerified: false
+    sourceVerified: false,
+    causalAvailabilityVerified: false,
+    availableAt: null
   };
   if (stage1Confirmed !== true) {
-    return { ...base, status: "stage2_blocked", reason: "stage one must pass before stage two is evaluated" };
+    return { ...resultBase, status: "stage2_blocked", reason: "stage one must pass before stage two is evaluated" };
   }
   if (patternType !== "impulse" || ![1, 3, 5].includes(extendedWave)) {
-    return { ...base, status: "indeterminate", reason: "the recovered stage-two rules apply here only to an impulse with extended wave 1, 3 or 5" };
+    return { ...resultBase, status: "indeterminate", reason: "the recovered stage-two rules apply here only to an impulse with extended wave 1, 3 or 5" };
   }
   const validWave = (wave) => wave && Number.isFinite(wave.from?.price) &&
     Number.isFinite(wave.to?.price) && wave.from.price !== wave.to.price;
@@ -386,17 +390,36 @@ function evaluateStage2Confirmation({
       !validWave(pattern) || !validWave(wave4) || !validWave(wave5) ||
       !validWave(correction) || correction.from.price !== pattern.to.price ||
       wave5.from.price !== wave4.to.price || wave5.to.price !== pattern.to.price) {
-    return { ...base, status: "indeterminate", reason: "correctionComplete must be boolean and pattern, wave 4, wave 5 and correction need finite, contiguous endpoints" };
+    return { ...resultBase, status: "indeterminate", reason: "correctionComplete must be boolean and pattern, wave 4, wave 5 and correction need finite, contiguous endpoints" };
   }
+  const waveAvailability = (wave) => {
+    if (Number.isFinite(wave.availableAt)) return wave.availableAt;
+    const fromAt = wave.from.confirmedAt;
+    const toAt = wave.to.confirmedAt;
+    return Number.isFinite(fromAt) && Number.isFinite(toAt) ? Math.max(fromAt, toAt) : null;
+  };
+  const evidenceTimes = [pattern, wave4, wave5, correction].map(waveAvailability);
+  const hasAsOf = Number.isInteger(asOfIndex) && asOfIndex >= 0 &&
+    Number.isFinite(stage1AvailableAt);
+  const futureEvidence = hasAsOf &&
+    (stage1AvailableAt > asOfIndex || evidenceTimes.some((time) => Number.isFinite(time) && time > asOfIndex));
+  if (futureEvidence) {
+    return { ...resultBase, status: "indeterminate", reason: "stage-one or wave evidence is later than asOfIndex" };
+  }
+  const causalAvailabilityVerified = hasAsOf && evidenceTimes.every(Number.isFinite);
+  const availableAt = causalAvailabilityVerified
+    ? Math.max(stage1AvailableAt, ...evidenceTimes) : null;
+  const resultBase = { ...resultBase, causalAvailabilityVerified, availableAt };
+
   const patternDirection = pattern.to.price > pattern.from.price ? "up" : "down";
   const wave4Direction = wave4.to.price > wave4.from.price ? "up" : "down";
   const wave5Direction = wave5.to.price > wave5.from.price ? "up" : "down";
   const correctionDirection = correction.to.price > correction.from.price ? "up" : "down";
   if (wave4Direction === patternDirection || wave5Direction !== patternDirection) {
-    return { ...base, status: "indeterminate", reason: "wave 4 must oppose the impulse direction and wave 5 must resume it" };
+    return { ...resultBase, status: "indeterminate", reason: "wave 4 must oppose the impulse direction and wave 5 must resume it" };
   }
   if (patternDirection === correctionDirection) {
-    return { ...base, status: "indeterminate", reason: "stage-two correction must move opposite to the completed impulse" };
+    return { ...resultBase, status: "indeterminate", reason: "stage-two correction must move opposite to the completed impulse" };
   }
 
   const reachedWave4 = patternDirection === "up"
@@ -412,10 +435,10 @@ function evaluateStage2Confirmation({
     const confirmed = reachedWave4 && (extendedWave !== 3 || extensionEvidence === true);
     const failed = correctionComplete && !confirmed;
     return {
-      ...base,
+      ...resultBase,
       status: confirmed ? "stage2_price_target_pass" : failed ? "stage2_price_target_fail" : "stage2_pending",
       stage2Confirmed: confirmed,
-      overallPatternConfirmed: confirmed && stage1Confirmed === true,
+      overallPatternConfirmed: confirmed && causalAvailabilityVerified,
       target: "end_of_wave_4_price_region",
       reachedTarget: reachedWave4,
       wholePatternRetracementPercent: wholePatternRetracement,
@@ -433,12 +456,12 @@ function evaluateStage2Confirmation({
 
   const retracement = priceCoverageRatio(correction, wave5);
   if (retracement.status !== "measured") {
-    return { ...base, status: "indeterminate", reason: retracement.reason };
+    return { ...resultBase, status: "indeterminate", reason: retracement.reason };
   }
   const ratio = retracement.value;
   if (ratio >= 100) {
     return {
-      ...base,
+      ...resultBase,
       status: "stage2_price_retracement_fail",
       retracementOfWave5Percent: ratio,
       correctionComplete,
@@ -447,10 +470,10 @@ function evaluateStage2Confirmation({
   }
   if (ratio >= 61.8 && correctionComplete) {
     return {
-      ...base,
+      ...resultBase,
       status: "stage2_price_retracement_pass",
       stage2Confirmed: true,
-      overallPatternConfirmed: true,
+      overallPatternConfirmed: causalAvailabilityVerified,
       retracementOfWave5Percent: ratio,
       correctionComplete,
       reason: "completed correction retraced at least 61.8% but less than 100% of extended wave 5"
@@ -458,7 +481,7 @@ function evaluateStage2Confirmation({
   }
   if (!correctionComplete) {
     return {
-      ...base,
+      ...resultBase,
       status: "stage2_pending",
       retracementOfWave5Percent: ratio,
       correctionComplete,
@@ -468,7 +491,7 @@ function evaluateStage2Confirmation({
     };
   }
   return {
-    ...base,
+    ...resultBase,
     status: "stage2_price_retracement_fail",
     retracementOfWave5Percent: ratio,
     correctionComplete,
