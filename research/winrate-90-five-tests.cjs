@@ -35,7 +35,9 @@ function run(b, sig, atr, spec, start) {
       const buy=next.open*(1+SLIPPAGE), cost=buy*(1+FEE);
       qty=cash/cost; entry={time:next.time,price:buy,costBasis:cash,stop:buy-spec.sl*atr[i],target:buy+spec.tp*atr[i],bars:0};
       cash=0;
-    } else if(qty>0) {
+    }
+    // Check the full OHLC range of the entry candle as well as every later candle.
+    if(qty>0) {
       entry.bars++;
       let exit=null, reason=null;
       // Conservative same-bar ambiguity: if stop and target both trade, assume stop first.
@@ -67,7 +69,7 @@ function main() {
     const r=run(bars,signals,atr,s,split-1);
     return {id:s.id,name:s.name,entryRule:CONFIGS[s.cfg],takeProfitATR:s.tp,stopLossATR:s.sl,maxHoldingBars:60,metrics:r};
   });
-  const report={title:"Five win-rate experiments",symbol:"BTCUSDT",venue:"Binance Spot",timeframe:"1d",oosStart:"2024-01-01",lastDate:new Date(bars.at(-1).time).toISOString().slice(0,10),bars:bars.length,execution:"Signal on completed daily bar; entry at next open; 0.10% fee and 0.05% slippage per side; long-only; 60-bar time exit; conservative stop-first when stop and target touch in same bar.",caveats:["A win rate near 90% is not evidence of profitability by itself.","OHLC daily bars cannot reveal the exact intraday order when stop and target are both touched; this report assumes the adverse stop first.","The 2024+ OOS window is evaluated without retuning these five cases.","The 95% Wilson interval is shown to expose uncertainty from small samples."],results};
+  const report={title:"Five win-rate experiments",symbol:"BTCUSDT",venue:"Binance Spot",timeframe:"1d",oosStart:"2024-01-01",lastDate:new Date(bars.at(-1).time).toISOString().slice(0,10),bars:bars.length,execution:"Signal on completed daily bar; entry at next open with same-entry-candle stop/target checks; 0.10% fee and 0.05% slippage per side; long-only; 60-bar time exit; conservative stop-first when stop and target touch in same bar.",caveats:["A win rate near 90% is not evidence of profitability by itself.","OHLC daily bars cannot reveal the exact intraday order when stop and target are both touched; this report assumes the adverse stop first.","The 2024+ OOS window is evaluated without retuning these five cases.","The 95% Wilson interval is shown to expose uncertainty from small samples."],results};
   fs.mkdirSync("research/results",{recursive:true});
   fs.writeFileSync("research/results/winrate-90-five-tests.json",JSON.stringify(report,null,2));
   const lines=["# Five experiments: testing the path toward 90% win rate","","BTCUSDT spot, daily bars, out-of-sample from 2024-01-01.","","| Test | Entry | TP (ATR) | SL (ATR) | Trades | Win rate | 95% Wilson CI | Net return | PF | Max DD |","|---|---|---:|---:|---:|---:|---:|---:|---:|---:|"];
