@@ -7,6 +7,7 @@ const {
   ENGINE_CERTIFICATION,
   confirmedPivots,
   monowaves,
+  createHypothesisRevision,
   validateNeoWaveCandidate,
   analyze
 } = require("./neowave_engine.cjs");
@@ -80,6 +81,52 @@ test("monowave construction rejects malformed and non-chronological pivots", () 
   ]);
   assert.equal(wave.duration, 4);
   assert.equal(wave.durationConvention, "endpoint_index_difference");
+});
+
+test("Structure Label hypotheses are retained as causal revisions, not overwritten", () => {
+  const first = createHypothesisRevision({
+    asOfIndex: 10,
+    candidates: [{
+      label: "F3",
+      rank: "primary",
+      source: { document: "Mastering Elliott Wave", locator: "Chapter 3, Rule 1 Condition a" },
+      evidence: [{ id: "m1", availableAt: 8 }],
+      conditions: [{ id: "five-section-check", status: "indeterminate" }]
+    }]
+  });
+  assert.equal(first.latest.revision, 1);
+  assert.equal(first.latest.candidates[0].status, "conditional");
+  assert.equal(first.latest.candidates[0].availableAt, 8);
+
+  const second = createHypothesisRevision({
+    history: first.history,
+    asOfIndex: 14,
+    candidates: [{
+      label: "F3",
+      rank: "primary",
+      source: { document: "Mastering Elliott Wave", locator: "Chapter 3, Rule 1 Condition a" },
+      evidence: [{ id: "m1", availableAt: 8 }, { id: "m2", availableAt: 14 }],
+      conditions: [{ id: "five-section-check", status: "pass" }]
+    }]
+  });
+  assert.equal(second.history.length, 2);
+  assert.equal(second.history[0].asOfIndex, 10);
+  assert.equal(second.latest.asOfIndex, 14);
+  assert.equal(second.latest.candidates[0].status, "supported");
+  assert.equal(second.latest.candidates[0].availableAt, 14);
+});
+
+test("hypothesis ledger rejects future evidence and non-advancing revisions", () => {
+  const candidate = {
+    label: "Z",
+    rank: "conditional",
+    source: { document: "Mastering Elliott Wave", locator: "Chapter 3" },
+    evidence: [{ id: "m3", availableAt: 12 }],
+    conditions: [{ id: "completion", status: "indeterminate" }]
+  };
+  assert.throws(() => createHypothesisRevision({ asOfIndex: 11, candidates: [candidate] }), /future evidence/);
+  const first = createHypothesisRevision({ asOfIndex: 12, candidates: [candidate] });
+  assert.throws(() => createHypothesisRevision({ history: first.history, asOfIndex: 12, candidates: [] }), /advance strictly/);
 });
 
 test("all seven retracement slots and named research families are catalogued", () => {
