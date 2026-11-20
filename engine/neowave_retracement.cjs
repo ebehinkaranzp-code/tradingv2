@@ -89,6 +89,12 @@ function endpointPrices(wave) {
   return { start, end, coverage: Math.abs(end - start) };
 }
 
+function directionOf(wave) {
+  const endpoints = endpointPrices(wave);
+  if (!endpoints) return null;
+  return endpoints.end > endpoints.start ? "up" : "down";
+}
+
 function availabilityOf(wave) {
   if (!wave || typeof wave !== "object") return null;
   if (Number.isFinite(wave.availableAt)) return wave.availableAt;
@@ -202,6 +208,16 @@ function classifyRule4Category(m3OverM2Percent) {
 }
 
 function analyzeRetracementContext({ m0, m1, m2, m3 } = {}) {
+  const m1Direction = directionOf(m1);
+  const m2Direction = directionOf(m2);
+  if (!m1Direction || !m2Direction || m1Direction === m2Direction) {
+    return {
+      status: "indeterminate",
+      tradable: false,
+      reason: "m2 must be a measurable move in the direction opposite to m1 for a retracement rule",
+      source: SOURCE
+    };
+  }
   const m2m1 = priceCoverageRatio(m2, m1);
   if (m2m1.status !== "measured") {
     return { status: "indeterminate", tradable: false, reason: m2m1.reason, source: SOURCE };
