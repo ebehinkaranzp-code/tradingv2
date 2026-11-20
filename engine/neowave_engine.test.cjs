@@ -10,6 +10,7 @@ const {
   parseStructureLabelList,
   PRECONSTRUCTIVE_SEEDS,
   getPreconstructiveSeed,
+  hypothesesFromPreconstructiveSeed,
   analyzeNeoWaveRetracement,
   ENGINE_CERTIFICATION,
   confirmedPivots,
@@ -354,6 +355,20 @@ test("Pre-Constructive seed table exposes only transcribed labels and remains no
   assert.deepEqual(rule3a.labels.map((label) => label.label),
     ["F3", "c3", "s5", "5", "sL3", "L5"]);
   assert.equal(getPreconstructiveSeed(7, "d").status, "indeterminate");
+});
+
+test("partial Pre-Constructive labels become ranked competing hypotheses", () => {
+  const seed = getPreconstructiveSeed(3, "a");
+  const generated = hypothesesFromPreconstructiveSeed(seed, {
+    evidence: [{ id: "m0-m1-m2", availableAt: 12 }],
+    conditions: [{ id: "preconstructive-context", status: "indeterminate" }]
+  });
+  assert.equal(generated.status, "candidate_hypotheses");
+  assert.equal(generated.complete, false);
+  assert.equal(generated.tradable, false);
+  assert.equal(generated.candidates.length, 6);
+  assert.equal(generated.candidates[0].rank, "primary");
+  assert.equal(generated.candidates[4].rank, "conditional");
 });
 
 test("hypothesis with no evaluated conditions remains conditional", () => {
