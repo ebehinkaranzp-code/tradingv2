@@ -91,3 +91,42 @@ test('preserved strategy engine loads and evaluates a closed-candle Quattro seri
   assert.ok(['LONG','FLAT','ENTRY_PENDING'].includes(result.status));
   assert.equal(result.timeframe, '4h');
 });
+
+
+const rsaStart = source.indexOf('function rsiSeries(');
+const rsaEnd = source.indexOf('async function loadConfluence()', rsaStart);
+assert.ok(rsaStart >= 0 && rsaEnd > rsaStart, 'RSI/Stochastic/Alligator engine missing');
+const rsaContext = {};
+vm.runInNewContext(source.slice(rsaStart, rsaEnd) + '\nthis.RSA = {rsiSeries, stochSeries, smmaSeries, evaluateRsa};', rsaContext);
+const rsa = rsaContext.RSA;
+
+test('RSI handles rising, falling and flat markets without NaN', () => {
+  const rising = rsa.rsiSeries(Array.from({length:40}, (_, i) => 100 + i), 14);
+  const falling = rsa.rsiSeries(Array.from({length:40}, (_, i) => 140 - i), 14);
+  const flat = rsa.rsiSeries(Array.from({length:40}, () => 100), 14);
+  assert.equal(rising.at(-1), 100);
+  assert.equal(falling.at(-1), 0);
+  assert.equal(flat.at(-1), 50);
+});
+
+test('Stochastic K and D stay within 0..100 and flat ranges return 50', () => {
+  const rows = Array.from({length:50}, (_, i) => ({high:110, low:90, close:100}));
+  const result = rsa.stochSeries(rows, 14, 3, 3);
+  assert.equal(result.k.at(-1), 50);
+  assert.equal(result.d.at(-1), 50);
+  assert.ok(result.k.every(x => x === null || (x >= 0 && x <= 100)));
+});
+
+test('Alligator SMMA seeds from a simple average and smooths recursively', () => {
+  const result = rsa.smmaSeries([1, 2, 3, 4, 5, 6], 3);
+  assert.equal(result[1], null);
+  assert.equal(result[2], 2);
+  assert.equal(result[3], (2 * 2 + 4) / 3);
+});
+
+test('Combined strategy refuses insufficient closed-candle history', () => {
+  const rows = Array.from({length:30}, (_, i) => ({time:i, closeTime:i, open:1, high:2, low:0, close:1, volume:1}));
+  const result = rsa.evaluateRsa(rows);
+  assert.equal(result.state, 'INSUFFICIENT');
+  assert.equal(result.score, 0);
+});
