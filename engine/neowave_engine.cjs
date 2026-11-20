@@ -153,6 +153,74 @@ function summarizeStructure(waves) {
   };
 }
 
+/**
+ * Append one time-causal snapshot of competing Structure Label hypotheses.
+ * This is a ledger, not a pattern classifier: source rules decide labels;
+ * later evidence creates a new revision rather than rewriting earlier ones.
+ */
+function createHypothesisRevision({ history = [], asOfIndex, candidates = [] } = {}) {
+  if (!Array.isArray(history) || !Number.isInteger(asOfIndex) || asOfIndex < 0 ||
+      !Array.isArray(candidates)) {
+    throw Error("history, non-negative asOfIndex and candidates are required");
+  }
+  const previous = history.at(-1);
+  if (previous && (!Number.isInteger(previous.asOfIndex) || asOfIndex <= previous.asOfIndex)) {
+    throw Error("hypothesis revisions must advance strictly in asOfIndex");
+  }
+
+  const normalized = candidates.map((candidate, index) => {
+    if (!candidate || typeof candidate !== "object" ||
+        typeof candidate.label !== "string" || !candidate.label.trim() ||
+        !["primary", "conditional"].includes(candidate.rank) ||
+        !candidate.source || typeof candidate.source.document !== "string" ||
+        !candidate.source.document.trim() ||
+        typeof candidate.source.locator !== "string" || !candidate.source.locator.trim() ||
+        !Array.isArray(candidate.evidence) || !Array.isArray(candidate.conditions)) {
+      throw Error("Invalid hypothesis candidate at index " + index);
+    }
+
+    const evidence = candidate.evidence.map((item, evidenceIndex) => {
+      if (!item || typeof item.id !== "string" || !item.id.trim() ||
+          !Number.isInteger(item.availableAt) || item.availableAt < 0 ||
+          item.availableAt > asOfIndex) {
+        throw Error("Invalid or future evidence at candidate " + index + ", evidence " + evidenceIndex);
+      }
+      return { id: item.id, availableAt: item.availableAt };
+    });
+
+    const conditions = candidate.conditions.map((condition, conditionIndex) => {
+      if (!condition || typeof condition.id !== "string" || !condition.id.trim() ||
+          !["pass", "fail", "indeterminate"].includes(condition.status)) {
+        throw Error("Invalid condition at candidate " + index + ", condition " + conditionIndex);
+      }
+      return { id: condition.id, status: condition.status };
+    });
+
+    const rejected = conditions.some((condition) => condition.status === "fail");
+    const unresolved = conditions.some((condition) => condition.status === "indeterminate");
+    return Object.freeze({
+      label: candidate.label.trim(),
+      rank: candidate.rank,
+      status: rejected ? "rejected" : unresolved ? "conditional" : "supported",
+      source: Object.freeze({
+        document: candidate.source.document,
+        locator: candidate.source.locator
+      }),
+      evidence: Object.freeze(evidence),
+      conditions: Object.freeze(conditions),
+      availableAt: evidence.length ? Math.max(...evidence.map((item) => item.availableAt)) : null
+    });
+  });
+
+  const revision = Object.freeze({
+    revision: history.length + 1,
+    asOfIndex,
+    candidates: Object.freeze(normalized)
+  });
+  const nextHistory = Object.freeze([...history, revision]);
+  return Object.freeze({ history: nextHistory, latest: revision });
+}
+
 /*
  * Rule-definition contract:
  * {
