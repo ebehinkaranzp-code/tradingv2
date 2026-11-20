@@ -738,7 +738,12 @@ function analyzeNeoWaveRetracement(context) {
     const seed = conditionLetter
       ? getPreconstructiveSeed(ruleNumber, conditionLetter)
       : { status: "indeterminate", tradable: false, reason: "retracement condition is not established" };
-    return { ...candidate, structureLabelSeed: seed };
+    const hypotheses = seed.status === "partial_source_seed"
+      ? hypothesesFromPreconstructiveSeed(seed, {
+          conditions: [{ id: "full_preconstructive_decision_tree", status: "indeterminate" }]
+        })
+      : { status: "indeterminate", candidates: [], reason: seed.reason };
+    return { ...candidate, structureLabelSeed: seed, structureLabelHypotheses: hypotheses };
   });
   const allHaveSeeds = candidates.every((candidate) =>
     candidate.structureLabelSeed.status === "partial_source_seed");
