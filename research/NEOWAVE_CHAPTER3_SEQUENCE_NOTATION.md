@@ -40,4 +40,4 @@ The next chapter defines additional labels used in structural sequences:
 - `sL3`: Special Last Three.
 - `L3`: Last Three.
 
-The engine now exposes these meanings alongside F3, c3 and x:c3 through `describeStructureLabel`. It also reports L5, L3 and sL3 as candidate pattern-boundary markers through `detectPatternBoundaryMarkers`. These are source semantics only; their contextual conditions and full pattern-boundary logic are not yet implemented.
+The engine now exposes these meanings alongside F3, c3 and x:c3 through `describeStructureLabel`. It also reports L5, L3 and sL3 as candidate pattern-boundary markers through `detectPatternBoundaryMarkers`, and can split a label list into completed pattern segments plus an open tail through `segmentPatternLabels`. These are source semantics only; their contextual conditions and full pattern-boundary logic are not yet implemented.
