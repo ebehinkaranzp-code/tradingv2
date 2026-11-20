@@ -35,6 +35,18 @@ test("confirmed pivots are timestamped only after right-side confirmation", () =
   for (const pivot of pivots) assert.equal(pivot.confirmedAt - pivot.index, 2);
 });
 
+test("OHLC bars with both local extremes do not create invented intrabar pivot order", () => {
+  const ambiguous = [
+    [5, 6, 4, 5], [5, 6, 4, 5], [5, 6, 4, 5],
+    [5, 20, 1, 10], [5, 6, 4, 5], [5, 6, 4, 5],
+    [5, 6, 4, 5], [5, 6, 4, 5]
+  ].map((row, i) => ({
+    time: i, open: row[0], high: row[1], low: row[2], close: row[3]
+  }));
+  const pivots = confirmedPivots(ambiguous, { left: 1, right: 1 });
+  assert.equal(pivots.some((pivot) => pivot.index === 3), false);
+});
+
 test("monowaves connect alternating pivots and retain causal availability", () => {
   const pivots = [
     { index: 1, confirmedAt: 3, price: 10, type: "L" },
