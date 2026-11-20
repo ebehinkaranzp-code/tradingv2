@@ -399,6 +399,39 @@ function evaluateStage1Confirmation({
 }
 
 /**
+ * Parse the book's slash-separated Structure Label list notation.
+ * Parenthesized/bracketed labels are retained as alternatives, not promoted
+ * to equal-strength primary labels.
+ */
+function parseStructureLabelList(sourceNotation) {
+  if (typeof sourceNotation !== "string" || !sourceNotation.trim()) {
+    return { status: "indeterminate", candidates: [], reason: "a non-empty source notation is required" };
+  }
+  let body = sourceNotation.trim();
+  if (body.startsWith("{") && body.endsWith("}")) body = body.slice(1, -1);
+  const tokens = body.split("/").map((token) => token.trim()).filter(Boolean);
+  if (!tokens.length) {
+    return { status: "indeterminate", candidates: [], reason: "no Structure Label tokens were found" };
+  }
+  const candidates = tokens.map((raw) => {
+    const parenthesized = raw.startsWith("(") && raw.endsWith(")");
+    const bracketed = raw.startsWith("[") && raw.endsWith("]");
+    const wrapped = parenthesized || bracketed;
+    return {
+      label: wrapped ? raw.slice(1, -1).trim() : raw,
+      notation: parenthesized ? "parenthesized" : bracketed ? "bracketed" : "unwrapped",
+      role: wrapped ? "conditional_alternative" : "primary_candidate",
+      primary: !wrapped,
+      raw
+    };
+  });
+  if (candidates.some((candidate) => !candidate.label)) {
+    return { status: "indeterminate", candidates: [], reason: "empty Structure Label token in source notation" };
+  }
+  return { status: "parsed_source_notation", candidates, sourceNotation };
+}
+
+/**
  * Append one time-causal snapshot of competing Structure Label hypotheses.
  * This is a ledger, not a pattern classifier: source rules decide labels;
  * later evidence creates a new revision rather than rewriting earlier ones.
@@ -635,6 +668,7 @@ module.exports = {
   DEGREE_HIERARCHY,
   degreeIndex,
   compareDegrees,
+  parseStructureLabelList,
   ENGINE_CERTIFICATION,
   confirmedPivots,
   monowaves,
