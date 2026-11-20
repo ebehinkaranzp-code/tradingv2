@@ -404,7 +404,7 @@ function evaluateStage2Confirmation({
   const futureEvidence = hasAsOf &&
     (stage1AvailableAt > asOfIndex || evidenceTimes.some((time) => Number.isFinite(time) && time > asOfIndex));
   if (futureEvidence) {
-    return { ...resultBase, status: "indeterminate", reason: "stage-one or wave evidence is later than asOfIndex" };
+    return { ...base, status: "indeterminate", reason: "stage-one or wave evidence is later than asOfIndex" };
   }
   const causalAvailabilityVerified = hasAsOf && evidenceTimes.every(Number.isFinite);
   const availableAt = causalAvailabilityVerified
