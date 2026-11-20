@@ -8,6 +8,8 @@ const {
   degreeIndex,
   compareDegrees,
   assessXWaveDegreeRelation,
+  STRUCTURE_LABEL_SEMANTICS,
+  describeStructureLabel,
   parseStructureLabelList,
   parseStructureSequenceNotation,
   PRECONSTRUCTIVE_SEEDS,
@@ -532,6 +534,18 @@ test("Chapter 3 sequence notation rejects missing labels and trailing separators
   for (const notation of ["++ 5-3", "5-3 ++", "5--3", "5-"]) {
     assert.equal(parseStructureSequenceNotation(notation).status, "indeterminate", notation);
   }
+});
+
+test("NeoWave status labels retain their source-defined semantics", () => {
+  assert.equal(Object.keys(STRUCTURE_LABEL_SEMANTICS).length, 7);
+  assert.equal(describeStructureLabel("F3").semantics.position, "first_in_series");
+  assert.equal(describeStructureLabel("c3").semantics.position, "center_in_series");
+  assert.equal(describeStructureLabel("x:c3").semantics.position, "center_in_x_wave");
+  assert.equal(describeStructureLabel("s5").semantics.description, "Special Five");
+  assert.equal(describeStructureLabel("L5").semantics.position, "last_in_pattern");
+  assert.equal(describeStructureLabel("sL3").semantics.description, "Special Last Three");
+  assert.equal(describeStructureLabel("L3").semantics.position, "last_in_pattern");
+  assert.equal(describeStructureLabel("unknown").status, "unclassified_label");
 });
 
 test("Structure Label notation preserves primary and wrapped alternatives", () => {
