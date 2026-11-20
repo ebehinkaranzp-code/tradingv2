@@ -7,6 +7,7 @@ const {
   ENGINE_CERTIFICATION,
   confirmedPivots,
   monowaves,
+  aggregateMonowaveGroup,
   createHypothesisRevision,
   evaluateStage1Confirmation,
   validateNeoWaveCandidate,
@@ -63,6 +64,33 @@ test("monowaves connect alternating pivots and retain causal availability", () =
     assert.ok(wave.duration > 0);
     assert.ok(wave.availableAt >= wave.to.index);
   }
+});
+
+test("multi-monowave section uses net endpoint coverage and latest causal availability", () => {
+  const pivots = [
+    { index: 1, confirmedAt: 2, price: 100, type: "L" },
+    { index: 4, confirmedAt: 5, price: 120, type: "H" },
+    { index: 8, confirmedAt: 9, price: 110, type: "L" }
+  ];
+  const waves = monowaves(pivots);
+  const group = aggregateMonowaveGroup(waves);
+  assert.equal(group.constituentCount, 2);
+  assert.equal(group.priceCoverage, 10);
+  assert.equal(group.duration, 7);
+  assert.equal(group.availableAt, 9);
+  assert.equal(group.direction, "up");
+});
+
+test("multi-monowave section rejects disconnected constituents", () => {
+  const disconnected = [
+    {
+      from: { index: 1, price: 10 }, to: { index: 3, price: 12 }, availableAt: 4
+    },
+    {
+      from: { index: 4, price: 12 }, to: { index: 6, price: 11 }, availableAt: 7
+    }
+  ];
+  assert.throws(() => aggregateMonowaveGroup(disconnected), /contiguous/);
 });
 
 test("monowave construction rejects malformed and non-chronological pivots", () => {
