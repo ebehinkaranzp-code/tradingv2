@@ -124,8 +124,8 @@ let confluenceRows=[],confluenceBusy=false,confluenceError='';
 function rsiSeries(values,period=14){
  const out=Array(values.length).fill(null);if(values.length<=period)return out;
  let gain=0,loss=0;for(let i=1;i<=period;i++){const d=values[i]-values[i-1];gain+=Math.max(0,d);loss+=Math.max(0,-d)}
- let ag=gain/period,al=loss/period;out[period]=al===0?100:100-100/(1+ag/al);
- for(let i=period+1;i<values.length;i++){const d=values[i]-values[i-1];ag=(ag*(period-1)+Math.max(0,d))/period;al=(al*(period-1)+Math.max(0,-d))/period;out[i]=al===0?100:100-100/(1+ag/al)}
+ let ag=gain/period,al=loss/period;out[period]=al===0?(ag===0?50:100):100-100/(1+ag/al);
+ for(let i=period+1;i<values.length;i++){const d=values[i]-values[i-1];ag=(ag*(period-1)+Math.max(0,d))/period;al=(al*(period-1)+Math.max(0,-d))/period;out[i]=al===0?(ag===0?50:100):100-100/(1+ag/al)}
  return out;
 }
 function smaSeries(values,period){const out=Array(values.length).fill(null);for(let i=period-1;i<values.length;i++){let sum=0,ok=true;for(let j=i-period+1;j<=i;j++){if(values[j]===null||!Number.isFinite(values[j])){ok=false;break}sum+=values[j]}if(ok)out[i]=sum/period}return out}
