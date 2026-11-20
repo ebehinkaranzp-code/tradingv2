@@ -51,6 +51,25 @@ test("monowaves connect alternating pivots and retain causal availability", () =
   }
 });
 
+test("monowave construction rejects malformed and non-chronological pivots", () => {
+  assert.throws(() => monowaves([
+    { index: 2, confirmedAt: 2, price: 10, type: "L" },
+    { index: 1, confirmedAt: 2, price: 12, type: "H" }
+  ]), /strictly ordered/);
+  assert.throws(() => monowaves([
+    { index: 1, confirmedAt: 0, price: 10, type: "L" }
+  ]), /Invalid pivot/);
+  assert.throws(() => monowaves([
+    { index: 1, confirmedAt: 2, price: 10, type: "X" }
+  ]), /Invalid pivot/);
+  const [wave] = monowaves([
+    { index: 1, confirmedAt: 3, price: 10, type: "L" },
+    { index: 5, confirmedAt: 7, price: 14, type: "H" }
+  ]);
+  assert.equal(wave.duration, 4);
+  assert.equal(wave.durationConvention, "endpoint_index_difference");
+});
+
 test("all seven retracement slots and named research families are catalogued", () => {
   assert.equal(RULE_CATALOG.filter((rule) => rule.family === "retracement").length, 7);
   for (const family of ["impulse", "zigzag", "flat", "triangle", "diametric", "symmetrical", "x_wave"]) {
