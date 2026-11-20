@@ -354,17 +354,20 @@ function evaluateStage1Confirmation({
   breakAt
 } = {}) {
   if (!["standard", "triangle"].includes(patternType)) {
-    return { status: "indeterminate", stage: 1, confirmed: false, reason: "patternType must be standard or triangle" };
+    return { status: "indeterminate", stage: 1, confirmed: false, overallPatternConfirmed: false, tradable: false, sourceVerified: false, reason: "patternType must be standard or triangle" };
   }
   if (!Number.isFinite(waveStartTime) || !Number.isFinite(waveEndTime) ||
       waveStartTime < 0 || waveEndTime <= waveStartTime) {
-    return { status: "indeterminate", stage: 1, confirmed: false, reason: "a positive, ordered wave time interval is required" };
+    return { status: "indeterminate", stage: 1, confirmed: false, overallPatternConfirmed: false, tradable: false, sourceVerified: false, reason: "a positive, ordered wave time interval is required" };
   }
   if (breakAt == null) {
     return {
       status: "pending",
       stage: 1,
       confirmed: false,
+      overallPatternConfirmed: false,
+      tradable: false,
+      sourceVerified: false,
       referenceLine: patternType === "triangle" ? "0-B" : "2-4",
       timingWave: patternType === "triangle" ? "c" : "5",
       deadline: waveEndTime + (waveEndTime - waveStartTime),
@@ -372,15 +375,18 @@ function evaluateStage1Confirmation({
     };
   }
   if (!Number.isFinite(breakAt) || breakAt < waveEndTime) {
-    return { status: "indeterminate", stage: 1, confirmed: false, reason: "breakAt must be a finite time at or after the timing wave ends" };
+    return { status: "indeterminate", stage: 1, confirmed: false, overallPatternConfirmed: false, tradable: false, sourceVerified: false, reason: "breakAt must be a finite time at or after the timing wave ends" };
   }
   const duration = waveEndTime - waveStartTime;
   const deadline = waveEndTime + duration;
   const confirmed = breakAt <= deadline;
   return {
-    status: confirmed ? "stage1_confirmed" : "stage1_not_confirmed",
+    status: confirmed ? "stage1_timing_pass" : "stage1_timing_fail",
     stage: 1,
     confirmed,
+    overallPatternConfirmed: false,
+    tradable: false,
+    sourceVerified: false,
     referenceLine: patternType === "triangle" ? "0-B" : "2-4",
     timingWave: patternType === "triangle" ? "c" : "5",
     duration,
