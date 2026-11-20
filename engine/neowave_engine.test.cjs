@@ -14,6 +14,7 @@ const {
   segmentPatternLabels,
   parseStructureLabelList,
   parseStructureSequenceNotation,
+  analyzeStructureSequenceNotation,
   PRECONSTRUCTIVE_SEEDS,
   getPreconstructiveSeed,
   hypothesesFromPreconstructiveSeed,
@@ -595,6 +596,19 @@ test("Chapter 3 sequence parser blocks c3 at series start/end and x:c3 outside +
   assert.equal(parseStructureSequenceNotation("F3-c3", { completeSeries: true }).status, "indeterminate");
   assert.equal(parseStructureSequenceNotation("F3-x:c3-5").status, "indeterminate");
   assert.equal(parseStructureSequenceNotation("F3 ++ x:c3").status, "indeterminate");
+});
+
+test("Structure sequence analyzer returns provisional polywave candidates with explicit connectors", () => {
+  const result = analyzeStructureSequenceNotation("F3-c3-L5 ++ x:c3 ++ F3-c3-L3", {
+    completeSeries: true
+  });
+  assert.equal(result.status, "polywave_candidate");
+  assert.equal(result.tradable, false);
+  assert.equal(result.sourceVerified, false);
+  assert.equal(result.patterns.length, 2);
+  assert.equal(result.connectors.length, 1);
+  assert.equal(result.connectors[0].label, "x:c3");
+  assert.equal(result.completePatternCount, 2);
 });
 
 test("Chapter 3 sequence notation rejects missing labels and trailing separators", () => {
