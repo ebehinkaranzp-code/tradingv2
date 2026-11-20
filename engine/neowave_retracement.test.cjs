@@ -96,6 +96,26 @@ test("Rule 4 categories enforce the recovered lower bound and inclusive upper ba
   assert.equal(classifyRule4Category(261.8001).category, "iii");
 });
 
+test("Rule 4 category requires m3 to reverse the m2 retracement", () => {
+  const valid = analyzeRetracementContext({
+    m0: wave(50, 100),
+    m1: wave(100, 200),
+    m2: wave(200, 120),
+    m3: wave(120, 240)
+  });
+  assert.equal(valid.activation.ruleIds[0], "NW-RET-04");
+  assert.equal(valid.candidates[0].category.category, "i");
+
+  const invalid = analyzeRetracementContext({
+    m0: wave(50, 100),
+    m1: wave(100, 200),
+    m2: wave(200, 120),
+    m3: wave(120, 40)
+  });
+  assert.equal(invalid.candidates[0].category.status, "indeterminate");
+  assert.match(invalid.candidates[0].category.reason, /opposite to the retracement wave/);
+});
+
 test("retracement context rejects m2 moving in the same direction as m1", () => {
   const result = analyzeRetracementContext({
     m0: wave(90, 100),
