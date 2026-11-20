@@ -239,6 +239,99 @@ function summarizeStructure(waves) {
 }
 
 /**
+ * Evaluate the Chapter 5 seven-point checklist for a candidate five-section
+ * trend/terminal structure. Ambiguous uses of "longer" remain indeterminate
+ * unless price and time comparisons agree.
+ */
+function evaluateFiveSectionGuidelines(sections) {
+  if (!Array.isArray(sections) || sections.length !== 5) {
+    return { status: "indeterminate", checks: [], reason: "exactly five adjacent sections are required" };
+  }
+  for (let i = 0; i < sections.length; i++) {
+    const section = sections[i];
+    if (!section?.from || !section?.to ||
+        !Number.isInteger(section.from.index) || !Number.isInteger(section.to.index) ||
+        section.to.index <= section.from.index ||
+        !Number.isFinite(section.from.price) || !Number.isFinite(section.to.price) ||
+        section.from.price === section.to.price) {
+      return { status: "indeterminate", checks: [], reason: "each section needs ordered endpoints with distinct finite prices" };
+    }
+    if (i && (sections[i - 1].to.index !== section.from.index ||
+        sections[i - 1].to.price !== section.from.price)) {
+      return { status: "indeterminate", checks: [], reason: "the five sections must be contiguous at shared endpoints" };
+    }
+  }
+
+  const metrics = sections.map((section) => ({
+    price: Math.abs(section.to.price - section.from.price),
+    time: section.to.index - section.from.index,
+    direction: section.to.price > section.from.price ? "up" : "down"
+  }));
+  const checks = [];
+  const add = (id, status, detail) => checks.push({ id, status, detail });
+
+  const expectedDirections = [
+    metrics[0].direction,
+    metrics[0].direction === "up" ? "down" : "up",
+    metrics[0].direction,
+    metrics[0].direction === "up" ? "down" : "up",
+    metrics[0].direction
+  ];
+  add("five_section_direction_sequence",
+    metrics.every((metric, i) => metric.direction === expectedDirections[i]) ? "pass" : "fail",
+    "sections 1, 3 and 5 must progress in one direction; sections 2 and 4 must oppose them");
+
+  add("section_2_does_not_retrace_section_1",
+    metrics[1].price < metrics[0].price ? "pass" : "fail",
+    "section 2 must not completely retrace section 1 by price");
+  add("section_4_does_not_retrace_section_3",
+    metrics[3].price < metrics[2].price ? "pass" : "fail",
+    "section 4 must not completely retrace section 3 by price");
+
+  const primaryPrice = metrics[0].price;
+  const thirdPrice = metrics[2].price;
+  const fifthPrice = metrics[4].price;
+  add("section_3_not_smallest_of_1_3_5",
+    thirdPrice > Math.min(primaryPrice, fifthPrice) ? "pass" : "fail",
+    "by vertical price coverage, section 3 must not be the smallest of sections 1, 3 and 5");
+
+  const compareLonger = (first, second) => {
+    const priceGreater = first.price > second.price;
+    const timeGreater = first.time > second.time;
+    const priceNotGreater = first.price <= second.price;
+    const timeNotGreater = first.time <= second.time;
+    if (priceGreater && timeGreater) return "pass";
+    if (priceNotGreater && timeNotGreater) return "fail";
+    return "indeterminate";
+  };
+  add("section_3_longer_than_section_2",
+    compareLonger(metrics[2], metrics[1]),
+    "source says 'longer' without specifying a single metric here; price and time must agree to resolve it");
+
+  const fifthVsFourth = compareLonger(metrics[4], metrics[3]);
+  let fifthStatus = fifthVsFourth;
+  let fifthDetail = "source says section 5 is almost always longer than section 4; price and time comparisons must agree";
+  if (fifthVsFourth === "fail") {
+    const ratio = metrics[4].price / metrics[3].price * 100;
+    fifthStatus = ratio >= 38.2 ? "pass" : "fail";
+    fifthDetail = "section 4 is longer by both price and time; source fallback requires section 5 to cover at least 38.2% of section 4 by price";
+  }
+  add("section_5_vs_section_4", fifthStatus, fifthDetail);
+
+  const statuses = checks.map((check) => check.status);
+  const status = statuses.includes("fail") ? "fail"
+    : statuses.includes("indeterminate") ? "indeterminate" : "pass";
+  return {
+    status,
+    tradable: false,
+    source: { document: "Mastering Elliott Wave", locator: "Chapter 5, printed p. 5-3, Necessary Structural Rules" },
+    checks,
+    measurements: metrics,
+    disclaimer: "This checklist is necessary-conditions diagnostics only; it does not identify a pattern family or establish completion/confirmation."
+  };
+}
+
+/**
  * Chapter 6 first-stage confirmation timing diagnostic.
  * A trendline break is supplied by the caller's independently checked
  * price/bar analysis; this function only evaluates the source's time window.
@@ -530,6 +623,7 @@ module.exports = {
   monowaves,
   aggregateMonowaveGroup,
   summarizeStructure,
+  evaluateFiveSectionGuidelines,
   evaluateStage1Confirmation,
   createHypothesisRevision,
   validateNeoWaveCandidate,
