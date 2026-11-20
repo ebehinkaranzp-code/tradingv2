@@ -244,11 +244,19 @@ test("Chapter 6 stage-one confirmation uses the source timing window and pattern
   assert.equal(standardPass.tradable, false);
 
   const trianglePass = evaluateStage1Confirmation({
-    patternType: "triangle", waveStartTime: 20, waveEndTime: 25, breakAt: 30
+    patternType: "triangle", bShorterThanA: true, waveStartTime: 20, waveEndTime: 25, breakAt: 30
   });
   assert.equal(trianglePass.status, "stage1_timing_pass");
   assert.equal(trianglePass.referenceLine, "0-B");
   assert.equal(trianglePass.timingWave, "c");
+
+  assert.equal(evaluateStage1Confirmation({
+    patternType: "triangle", waveStartTime: 20, waveEndTime: 25, breakAt: 30
+  }).status, "indeterminate");
+  assert.equal(evaluateStage1Confirmation({
+    patternType: "triangle", bShorterThanA: false,
+    waveStartTime: 20, waveEndTime: 25, breakAt: 30
+  }).status, "indeterminate");
 
   const late = evaluateStage1Confirmation({
     patternType: "standard", waveStartTime: 10, waveEndTime: 20, breakAt: 30.001
