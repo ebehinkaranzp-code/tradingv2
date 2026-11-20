@@ -9,7 +9,7 @@ on:
       - ".github/workflows/btc-walk-forward.yml"
   workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
 jobs:
   research:
     runs-on: ubuntu-latest
@@ -28,10 +28,6 @@ jobs:
       - name: Publish report
         run: |
           python -c "import json,pathlib; x=json.loads(pathlib.Path('research/results/btc-walk-forward.json').read_text()); s=x['backtest']; lines=['# BTCUSDT Walk-forward Backtest','',f\"Data: {x['dataset']['first_utc']} to {x['dataset']['last_utc']} ({x['dataset']['candles']} candles)\",f\"Model accuracy: {x['classification']['accuracy_pct']:.2f}%\",f\"Strategy return: {s['return_pct']:.2f}%\",f\"Buy-and-hold return: {x['buy_hold_return_pct']:.2f}%\",f\"Max drawdown: {s['max_drawdown_pct']:.2f}%\",f\"Trades: {s['trades']}\",'','| Year | Train samples | Test samples | Accuracy | Brier |','|---:|---:|---:|---:|---:|']+[f\"| {r['year']} | {r['train_samples']} | {r['test_samples']} | {r['accuracy_pct']:.2f}% | {r['brier']:.4f} |\" for r in x['annual']]; pathlib.Path('research/results/btc-walk-forward.md').write_text('\\n'.join(lines)+'\\n')"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add research/results/
-          git diff --cached --quiet || (git commit -m "Publish BTC walk-forward backtest results" && git push)
       - name: Archive raw data and detailed results
         uses: actions/upload-artifact@v4
         with:
