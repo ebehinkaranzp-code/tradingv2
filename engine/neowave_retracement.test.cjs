@@ -96,6 +96,17 @@ test("Rule 4 categories enforce the recovered lower bound and inclusive upper ba
   assert.equal(classifyRule4Category(261.8001).category, "iii");
 });
 
+test("retracement context rejects m2 moving in the same direction as m1", () => {
+  const result = analyzeRetracementContext({
+    m0: wave(90, 100),
+    m1: wave(100, 120),
+    m2: wave(120, 132.36)
+  });
+  assert.equal(result.status, "indeterminate");
+  assert.equal(result.tradable, false);
+  assert.match(result.reason, /opposite to m1/);
+});
+
 test("context analysis reports evidence but never marks a pattern tradable", () => {
   const result = analyzeRetracementContext({
     m0: wave(100, 110),
