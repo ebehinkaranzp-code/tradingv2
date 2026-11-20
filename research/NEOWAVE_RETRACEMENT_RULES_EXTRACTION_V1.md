@@ -3,7 +3,7 @@
 **Status: extracted activation map, NOT an executable rulebook.**  
 Primary source: Glenn Neely, *Mastering Elliott Wave*, Persian translation scan supplied in this conversation. The English scan has not been verified in this repository.  
 Reviewed scan: Persian page images; OCR is unreliable, so disputed wording is retained as unresolved.  
-Source locators: printed Chapter 3 pages 3-23 through 3-32; supplied PDF pages 34–39. Rule 1 begins on printed p. 3-23/PDF p. 34. Rules 2–7 are printed pp. 3-24–3-30/PDF pp. 35–38. The graphical summary is printed pp. 3-30–3-31/PDF p. 38. The Pre-Constructive Rules of Logic begin printed p. 3-32/PDF p. 39.
+Source locators checked against the supplied Persian page images: Rules 1–7 are shown across printed Chapter 3 pp. 3-30–3-40 (scan PDF pp. 80–91); the graphical summary is printed pp. 3-42–3-43 (scan PDF pp. 92–93). The Pre-Constructive section begins after the summary (scan PDF p. 94 onward). The prior draft's scan-page locators were incorrect and have been replaced.
 
 ## Measurement basis recovered
 The text instructs the analyst to identify monowave termination points first, then measure the price coverage of m2 relative to m1 and express it as a percentage:
@@ -42,7 +42,7 @@ The Rule 4 condition/category combination feeds into the Pre-Constructive Rules 
 
 ## Critical caveats before implementation
 1. **Pre-Constructive Logic is integral.** Printed p. 3-32 says the Rule identifiers and their Condition identifiers must be transformed into Structure Labels using the following 26 pages of instructions. The book warns not to read that section straight through and requires real-time chart context. The activation map alone is not sufficient to implement the seven rules.
-2. **Tolerance conflict requires resolution.** Printed p. 3-23 labels Rule 3 as an “exactly 61.8%” retracement, while the beginning of the Pre-Constructive section (printed p. 3-33/PDF p. 40) says Fibonacci relationships should receive a slight range, giving 61.8% as approximately 58%–66% (about ±4 percentage points). The engine must not use floating-point exact equality or assume a tolerance policy without reconciling the full rule text and diagrams.
+2. **Tolerance conflict requires resolution.** Printed p. 3-30 labels Rule 3 as an “exactly 61.8%” retracement, while the beginning of the Pre-Constructive section (Pre-Constructive section, scan PDF p. 94 onward) says Fibonacci relationships should receive a slight range, giving 61.8% as approximately 58%–66% (about ±4 percentage points). The engine must not use floating-point exact equality or assume a tolerance policy without reconciling the full rule text and diagrams.
 3. **Boundary semantics need explicit verification.** Several bands use “at least”, “less than”, “between”, “inclusive”, and “more than”. Rule 1's 161.8% boundary is unclear in the scan. Overlap/gap tests are required before coding.
 4. **Monowave identity comes first.** The source says the terminal points of m0, m1, m2 and m3 must be determined using Rules of Observation before applying retracement rules. It also allows some labeled waves to consist of one or more monowaves.
 5. **Context matters.** m0 may be composed of multiple monowaves; the source's diagrams show it can vary widely in length. Rule 4's m3/m2 category is an extra dimension.
@@ -57,9 +57,9 @@ The Rule 4 condition/category combination feeds into the Pre-Constructive Rules 
 
 
 ## Pre-Constructive Rules of Logic — what the next section changes
-The section begins on printed p. 3-32 (PDF p. 39) and is described as spanning the next 26 pages. It explicitly transforms each Rule plus its lettered Condition into one or more candidate Structure Labels. The analyst must compare multiple surrounding waves and apply all conditions in each relevant paragraph; the activation band is only the entry point into this decision process.
+The section begins on scan PDF p. 94 onward and is described as spanning the next 26 pages. It explicitly transforms each Rule plus its lettered Condition into one or more candidate Structure Labels. The analyst must compare multiple surrounding waves and apply all conditions in each relevant paragraph; the activation band is only the entry point into this decision process.
 
-The first Rule 1 / Condition "a" material begins on printed p. 3-35 (PDF p. 40). The opening examples already refer to:
+The first Rule 1 / Condition "a" material begins on scan PDF p. 95 onward. The opening examples already refer to:
 - relative price and time lengths of m(-1), m0, m1, m2, m3 and sometimes later waves;
 - complete retracements measured against the time consumed to form a wave, with an added one-time-unit convention;
 - candidate impulse, flat, zigzag, triangle, complex-correction, terminal, and X-wave interpretations;
