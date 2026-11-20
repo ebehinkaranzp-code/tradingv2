@@ -372,6 +372,11 @@ test("partial Pre-Constructive labels become ranked competing hypotheses", () =>
   assert.equal(generated.candidates.length, 6);
   assert.equal(generated.candidates[0].rank, "primary");
   assert.equal(generated.candidates[4].rank, "conditional");
+  const revision = createHypothesisRevision({
+    asOfIndex: 12,
+    candidates: generated.candidates
+  });
+  assert.ok(revision.latest.candidates.every((candidate) => candidate.status === "conditional"));
 });
 
 test("hypothesis with no evaluated conditions remains conditional", () => {
