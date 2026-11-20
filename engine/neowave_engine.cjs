@@ -702,6 +702,30 @@ function analyze(bars, options = {}) {
   };
 }
 
+function analyzeNeoWaveRetracement(context) {
+  const measured = analyzeRetracementContext(context);
+  if (!Array.isArray(measured.candidates)) {
+    return { ...measured, preconstructiveStatus: "indeterminate", tradable: false };
+  }
+  const candidates = measured.candidates.map((candidate) => {
+    const ruleNumber = Number(candidate.ruleId.slice(-2));
+    const conditionLetter = candidate.condition?.condition;
+    const seed = conditionLetter
+      ? getPreconstructiveSeed(ruleNumber, conditionLetter)
+      : { status: "indeterminate", tradable: false, reason: "retracement condition is not established" };
+    return { ...candidate, structureLabelSeed: seed };
+  });
+  const allHaveSeeds = candidates.every((candidate) =>
+    candidate.structureLabelSeed.status === "partial_source_seed");
+  return {
+    ...measured,
+    candidates,
+    preconstructiveStatus: allHaveSeeds ? "partial_source_seed" : "incomplete_source_mapping",
+    tradable: false,
+    disclaimer: "Retracement diagnostics and partial label seeds are not the full Pre-Constructive decision tree; candidate labels remain unconfirmed."
+  };
+}
+
 module.exports = {
   RULE_CATALOG,
   DEGREE_HIERARCHY,
@@ -720,5 +744,6 @@ module.exports = {
   createHypothesisRevision,
   validateNeoWaveCandidate,
   analyze,
-  analyzeRetracementContext
+  analyzeRetracementContext,
+  analyzeNeoWaveRetracement
 };
