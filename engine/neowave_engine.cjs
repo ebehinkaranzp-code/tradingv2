@@ -388,6 +388,7 @@ module.exports = {
   confirmedPivots,
   monowaves,
   summarizeStructure,
+  createHypothesisRevision,
   validateNeoWaveCandidate,
   analyze,
   analyzeRetracementContext
