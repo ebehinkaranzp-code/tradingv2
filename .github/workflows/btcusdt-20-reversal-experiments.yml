@@ -1,0 +1,37 @@
+name: BTCUSDT 20 reversal-cycle experiments
+on:
+  push:
+    branches: [main]
+    paths:
+      - "research/btcusdt-20-reversal-experiments.cjs"
+      - "research/btcusdt-20-reversal-experiments.test.cjs"
+      - ".github/workflows/btcusdt-20-reversal-experiments.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: btcusdt-20-reversal-experiments
+  cancel-in-progress: false
+jobs:
+  reversal-research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate pivot confirmation and statistical helpers
+        run: node --test research/btcusdt-20-reversal-experiments.test.cjs
+      - name: Download full Binance Spot BTCUSDT 4h history and run 20 experiments
+        run: node research/btcusdt-20-reversal-experiments.cjs --download --data data/BTCUSDT-4h.csv
+      - name: Archive source data and reproducible reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: btcusdt-20-reversal-cycle-research
+          path: |
+            data/BTCUSDT-4h.csv
+            research/results/btcusdt-20-reversal-experiments.json
+            research/results/btcusdt-20-reversal-experiments.md
+          retention-days: 90
