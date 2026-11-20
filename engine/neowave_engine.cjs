@@ -543,6 +543,7 @@ function evaluateStage1Confirmation({
     timingWave: patternType === "triangle" ? "c" : "5",
     duration,
     breakAt,
+    availableAt: breakAt,
     deadline,
     reason: confirmed
       ? "required trendline break occurred within one timing-wave duration after its end"
