@@ -36,3 +36,12 @@ The source states that corrective-pattern confirmation does not have one fixed s
 
 
 The stage-two implementation requires the stage-one confirmation time and the availability time of each relevant wave/correction to be no later than the supplied `asOfIndex`. A price-rule pass without causal timestamps is not promoted to overall pattern confirmation. The engine does not infer extension type or correction completion; those remain explicit inputs.
+
+
+## Additional triangle branches (printed Chapter 6 pp. 6-6–6-7; scan PDF pp. 241–242)
+
+- **Wave b longer than wave a:** Stage 1 requires wave c to be completely retraced within a time equal to or shorter than the time wave c took to form. Stage 2 then requires a break of the 0-B trendline within one c-wave duration.
+- **Triangle-type rule:** the source specifies the 1-3 trendline in place of 0-B, with its break measured against one c-wave duration.
+- **Expanding triangles:** validity is supported by non-confirmation: wave c is not fully retraced, or if it is fully retraced, that takes longer than one c-wave duration. The engine exposes this as a separate validity diagnostic.
+
+These branches are kept separate because the source gives different conditions for the b-shorter, b-longer, and triangle-type cases. They are not collapsed into one generic triangle confirmation rule.
