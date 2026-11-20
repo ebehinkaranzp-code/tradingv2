@@ -103,6 +103,18 @@ function confirmedPivots(bars, { left = 3, right = 3 } = {}) {
 
 function monowaves(pivots) {
   if (!Array.isArray(pivots)) throw Error("pivots must be an array");
+  for (let i = 0; i < pivots.length; i++) {
+    const pivot = pivots[i];
+    if (!pivot || !Number.isInteger(pivot.index) || pivot.index < 0 ||
+        !Number.isInteger(pivot.confirmedAt) || pivot.confirmedAt < pivot.index ||
+        !Number.isFinite(pivot.price) || !["H", "L"].includes(pivot.type)) {
+      throw Error("Invalid pivot at index " + i);
+    }
+    if (i && pivot.index <= pivots[i - 1].index) {
+      throw Error("Pivots must be strictly ordered by source-bar index");
+    }
+  }
+
   const waves = [];
   for (let i = 1; i < pivots.length; i++) {
     const from = pivots[i - 1];
@@ -118,6 +130,7 @@ function monowaves(pivots) {
       priceChange,
       absoluteChange: Math.abs(priceChange),
       duration,
+      durationConvention: "endpoint_index_difference",
       barsPerPriceUnit: duration / Math.abs(priceChange),
       availableAt: Math.max(from.confirmedAt, to.confirmedAt)
     });
