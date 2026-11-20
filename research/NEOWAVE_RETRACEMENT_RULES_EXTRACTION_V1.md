@@ -170,4 +170,4 @@ The introductory page (printed p. 3-44; scan PDF p. 95) explicitly distinguishes
 
 ## Scan completeness gap
 
-The introductory text describes a 65-page Pre-Constructive section beginning at printed p. 3-44. The supplied scan reaches printed p. 3-99 at scan PDF p. 150, then jumps to Chapter 4 at scan PDF p. 151 (printed p. 4-10). Printed Chapter 3 pp. 3-100–3-108 are therefore not present in this scan. This is a nine-page source gap; no rules from those pages are inferred or implemented.
+The introductory text describes a 65-page Pre-Constructive section beginning at printed p. 3-44. The supplied scan reaches printed p. 3-99 at scan PDF p. 150, then jumps to Chapter 4 at scan PDF p. 151 (printed p. 4-10). Nine intermediate printed pages are absent from the supplied scan; their chapter assignment cannot be established from the available pages. No rules from those missing pages are inferred or implemented.
