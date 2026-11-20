@@ -95,3 +95,22 @@ test("ambiguous rule activation preserves both nominal and Rule 3 hypotheses", (
   assert.deepEqual(result.activation.ruleIds.sort(), ["NW-RET-02", "NW-RET-03"]);
   assert.equal(result.tradable, false);
 });
+
+test("causal availability is propagated only when every required wave is timestamped", () => {
+  const timed = (startPrice, endPrice, availableAt) => ({ startPrice, endPrice, availableAt });
+  const result = analyzeRetracementContext({
+    m0: timed(100, 110, 12),
+    m1: timed(110, 130, 13),
+    m2: timed(130, 142.36, 15)
+  });
+  assert.equal(result.causalAvailabilityVerified, true);
+  assert.equal(result.availableAt, 15);
+
+  const incomplete = analyzeRetracementContext({
+    m0: timed(100, 110, 12),
+    m1: timed(110, 130, 13),
+    m2: { startPrice: 130, endPrice: 142.36 }
+  });
+  assert.equal(incomplete.causalAvailabilityVerified, false);
+  assert.equal(incomplete.availableAt, null);
+});
