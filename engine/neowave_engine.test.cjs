@@ -303,6 +303,26 @@ test("retracement analysis attaches only available partial Structure Label seeds
     ["F3", "c3", "s5", "5", "sL3", "L5"]);
 });
 
+test("Rule 1:a and Rule 2:a source seeds attach to matching measured contexts", () => {
+  const rule1 = analyzeNeoWaveRetracement({
+    m0: { startPrice: 90, endPrice: 100 },
+    m1: { startPrice: 100, endPrice: 200 },
+    m2: { startPrice: 200, endPrice: 170 }
+  });
+  assert.equal(rule1.activation.ruleIds[0], "NW-RET-01");
+  assert.equal(rule1.candidates[0].condition.condition, "a");
+  assert.equal(rule1.candidates[0].structureLabelSeed.status, "partial_source_seed");
+
+  const rule2 = analyzeNeoWaveRetracement({
+    m0: { startPrice: 90, endPrice: 100 },
+    m1: { startPrice: 100, endPrice: 200 },
+    m2: { startPrice: 200, endPrice: 160 }
+  });
+  assert.equal(rule2.activation.ruleIds[0], "NW-RET-02");
+  assert.equal(rule2.candidates[0].condition.condition, "a");
+  assert.equal(rule2.candidates[0].structureLabelSeed.status, "partial_source_seed");
+});
+
 test("untranscribed Rule/Condition combinations stay indeterminate", () => {
   const result = analyzeNeoWaveRetracement({
     m0: { startPrice: 90, endPrice: 140 },
