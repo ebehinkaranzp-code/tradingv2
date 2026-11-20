@@ -4,6 +4,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const {
   RULE_CATALOG,
+  ENGINE_CERTIFICATION,
   confirmedPivots,
   monowaves,
   validateNeoWaveCandidate,
@@ -75,12 +76,16 @@ test("a passing evaluator without source provenance cannot certify a rule", () =
   assert.equal(result.missingRules.length, RULE_CATALOG.length);
 });
 
-test("pattern-specific not-applicable rules are allowed only with an explicit reason", () => {
-  const definitions = completeDefinitions();
-  definitions[0].applies = () => ({ status: "applies" });
+test("the production certification barrier cannot be bypassed by caller-supplied fake provenance", () => {
+  const definitions = completeDefinitions({
+    applies: () => ({ status: "applies" }),
+    evaluate: () => ({ status: "pass" })
+  });
   const result = validateNeoWaveCandidate({ pivots: [], waves: [] }, { ruleDefinitions: definitions });
-  assert.equal(result.status, "validated");
-  assert.equal(result.tradable, true);
+  assert.equal(ENGINE_CERTIFICATION.complete, false);
+  assert.equal(result.status, "blocked_incomplete_rulebook");
+  assert.equal(result.tradable, false);
+  assert.equal(result.missingRules.length, RULE_CATALOG.length);
 });
 
 test("unknown applicability and failed applicable rules reject the candidate", () => {
