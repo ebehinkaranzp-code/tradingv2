@@ -379,10 +379,10 @@ function evaluateStage2Confirmation({
     availableAt: null
   };
   if (stage1Confirmed !== true) {
-    return { ...resultBase, status: "stage2_blocked", reason: "stage one must pass before stage two is evaluated" };
+    return { ...base, status: "stage2_blocked", reason: "stage one must pass before stage two is evaluated" };
   }
   if (patternType !== "impulse" || ![1, 3, 5].includes(extendedWave)) {
-    return { ...resultBase, status: "indeterminate", reason: "the recovered stage-two rules apply here only to an impulse with extended wave 1, 3 or 5" };
+    return { ...base, status: "indeterminate", reason: "the recovered stage-two rules apply here only to an impulse with extended wave 1, 3 or 5" };
   }
   const validWave = (wave) => wave && Number.isFinite(wave.from?.price) &&
     Number.isFinite(wave.to?.price) && wave.from.price !== wave.to.price;
@@ -390,7 +390,7 @@ function evaluateStage2Confirmation({
       !validWave(pattern) || !validWave(wave4) || !validWave(wave5) ||
       !validWave(correction) || correction.from.price !== pattern.to.price ||
       wave5.from.price !== wave4.to.price || wave5.to.price !== pattern.to.price) {
-    return { ...resultBase, status: "indeterminate", reason: "correctionComplete must be boolean and pattern, wave 4, wave 5 and correction need finite, contiguous endpoints" };
+    return { ...base, status: "indeterminate", reason: "correctionComplete must be boolean and pattern, wave 4, wave 5 and correction need finite, contiguous endpoints" };
   }
   const waveAvailability = (wave) => {
     if (Number.isFinite(wave.availableAt)) return wave.availableAt;
@@ -409,7 +409,7 @@ function evaluateStage2Confirmation({
   const causalAvailabilityVerified = hasAsOf && evidenceTimes.every(Number.isFinite);
   const availableAt = causalAvailabilityVerified
     ? Math.max(stage1AvailableAt, ...evidenceTimes) : null;
-  const resultBase = { ...resultBase, causalAvailabilityVerified, availableAt };
+  const resultBase = { ...base, causalAvailabilityVerified, availableAt };
 
   const patternDirection = pattern.to.price > pattern.from.price ? "up" : "down";
   const wave4Direction = wave4.to.price > wave4.from.price ? "up" : "down";
