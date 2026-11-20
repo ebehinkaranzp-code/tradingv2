@@ -16,7 +16,7 @@ The source distinguishes a basic Structure Label (for example, `3:` or `5:` alon
 
 - **F3 — First Three:** starts a series after an X-wave or between two 5-wave labels. If two F3 labels occur adjacent to one another, the second begins a new pattern at a larger degree.
 - **c3 — Center Three:** cannot start or end a series. The source allows it to describe an X-wave in certain complex corrections, but it is not interchangeable with `x:c3`.
-- **x:c3 — Center Three in X-wave Position:** cannot start or end a series. It is a connector used to join separate corrective structures into a larger standard Elliott structure. Its complexity is generally one degree below the structures it connects; the source notes rare exceptions.
+- **x:c3 — Center Three in X-wave Position:** cannot start or end a series. It is a connector used to join separate corrective structures into a larger standard Elliott structure. Its complexity is generally one degree below both structures it connects; the source notes rare exceptions. The engine exposes this as a diagnostic relation, not a hard invalidation rule.
 
 ## Implementation
 
