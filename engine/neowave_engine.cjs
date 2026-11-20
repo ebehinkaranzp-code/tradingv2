@@ -177,6 +177,8 @@ function aggregateMonowaveGroup(waves) {
   return {
     from: first.from,
     to: last.to,
+    kind: "candidate_group_not_source_verified_NeoWave_section",
+    sourceVerified: false,
     direction: priceChange > 0 ? "up" : priceChange < 0 ? "down" : "flat",
     priceChange,
     absoluteChange: Math.abs(priceChange),
