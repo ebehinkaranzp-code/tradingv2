@@ -364,6 +364,7 @@ function evaluateFiveSectionGuidelines(sections, { structureType } = {}) {
  * "Strong" is qualitative in the source, so the caller must explicitly attest it.
  */
 function evaluateTruncatedFifthFollowThrough({
+  stage1Confirmed,
   pattern,
   wave4,
   wave5,
@@ -376,8 +377,12 @@ function evaluateTruncatedFifthFollowThrough({
     stage: 2,
     tradable: false,
     sourceVerified: false,
-    confirmed: false
+    stage2Confirmed: false,
+    overallPatternConfirmed: false
   };
+  if (stage1Confirmed !== true) {
+    return { ...base, status: "stage2_blocked", reason: "stage one must pass before truncated-fifth follow-through is evaluated" };
+  }
   const validWave = (wave) => wave && Number.isFinite(wave.from?.price) &&
     Number.isFinite(wave.to?.price) && wave.from.price !== wave.to.price;
   if (typeof countertrendFollowThrough !== "boolean" ||
@@ -437,7 +442,8 @@ function evaluateTruncatedFifthFollowThrough({
   return {
     ...base,
     status: "stage2_truncated_fifth_pass",
-    confirmed: true,
+    stage2Confirmed: true,
+    overallPatternConfirmed: false,
     wave4Coverage,
     wave5Coverage,
     fullPatternRetraced: true,
