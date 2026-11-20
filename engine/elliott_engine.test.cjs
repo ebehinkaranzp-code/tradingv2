@@ -51,7 +51,7 @@ test("rejects duplicate/non-alternating pivots", () => {
   assert.equal(validateImpulse(p).reason,"invalid_or_non_alternating_pivots");
 });
 test("pivot confirmation is delayed until right-side bars exist", () => {
-  const bars=Array.from({length:9},(_,i)=>({time:i,high:[1,2,5,3,2,1,2,3,2][i],low:[0,1,2,1,0,-1,0,1,0][i]}));
+  const bars=Array.from({length:9},(_,i)=>({time:i,high:[1,2,5,3,2,1,2,3,2][i],low:[0,1,2,1,0,-1,0,1,0][i],open:([1,2,5,3,2,1,2,3,2][i]+[0,1,2,1,0,-1,0,1,0][i])/2,close:([1,2,5,3,2,1,2,3,2][i]+[0,1,2,1,0,-1,0,1,0][i])/2}));
   const pivots=confirmedPivots(bars,2,2);
   assert.ok(pivots.every(p=>p.confirmedAt===p.index+2));
   assert.ok(pivots.every(p=>p.confirmedAt<bars.length));
