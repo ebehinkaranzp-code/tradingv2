@@ -1066,6 +1066,27 @@ function segmentPatternLabels(labels) {
   };
 }
 
+function analyzeStructureSequenceNotation(sourceNotation, options = {}) {
+  const parsed = parseStructureSequenceNotation(sourceNotation, options);
+  if (parsed.status !== "parsed_sequence_notation") {
+    return { status: "indeterminate", patterns: [], connectors: [], tradable: false, reason: parsed.reason };
+  }
+  const patterns = parsed.patterns.map((pattern) => ({
+    ...pattern,
+    segmentation: segmentPatternLabels(pattern.labels)
+  }));
+  return {
+    status: parsed.connectors.length ? "polywave_candidate" : "single_pattern_candidate",
+    tradable: false,
+    sourceVerified: false,
+    patterns,
+    connectors: parsed.connectors,
+    completePatternCount: patterns.reduce((count, pattern) =>
+      count + pattern.segmentation.completedPatterns.length, 0),
+    disclaimer: "Sequence notation only; this does not validate the component pattern families, their price/time rules, or the complete polywave."
+  };
+}
+
 function parseStructureLabelList(sourceNotation) {
   if (typeof sourceNotation !== "string" || !sourceNotation.trim()) {
     return { status: "indeterminate", candidates: [], reason: "a non-empty source notation is required" };
@@ -1429,6 +1450,7 @@ module.exports = {
   segmentPatternLabels,
   parseStructureLabelList,
   parseStructureSequenceNotation,
+  analyzeStructureSequenceNotation,
   PRECONSTRUCTIVE_SEEDS,
   getPreconstructiveSeed,
   hypothesesFromPreconstructiveSeed,
