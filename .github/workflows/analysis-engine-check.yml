@@ -1,4 +1,4 @@
-name: Trading V2 analysis engine tests
+name: Trading V2 analysis and backtest tests
 
 on:
   push:
@@ -23,7 +23,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Syntax check
-        run: node --check engine/analysis-engine.js
-      - name: Run analysis engine tests
-        run: node --test engine/analysis-engine.test.cjs
+      - name: JavaScript syntax and tests
+        run: |
+          node --check engine/analysis-engine.js
+          node --test engine/analysis-engine.test.cjs
+      - name: Python backtest tests
+        run: python -m unittest discover -s engine -p "test_*.py" -v
