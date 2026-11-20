@@ -152,6 +152,30 @@ test("Chapter 5 checklist availability uses the latest confirmed endpoint", () =
   assert.equal(result.availableAt, 24);
 });
 
+test("Chapter 5 rejects complete retracements and a smallest third section", () => {
+  const evaluate = (values) => {
+    const points = [[0, 100]];
+    let index = 0;
+    for (const [duration, change] of values) {
+      index += duration;
+      points.push([index, points.at(-1)[1] + change]);
+    }
+    const sections = points.slice(0, -1).map((point, i) => ({
+      from: { index: point[0], price: point[1] },
+      to: { index: points[i + 1][0], price: points[i + 1][1] }
+    }));
+    return evaluateFiveSectionGuidelines(sections);
+  };
+  const fullRetrace2 = evaluate([[5, 50], [5, -50], [5, 60], [5, -20], [5, 70]]);
+  assert.equal(fullRetrace2.checks.find((x) => x.id === "section_2_does_not_retrace_section_1").status, "fail");
+
+  const fullRetrace4 = evaluate([[5, 50], [5, -20], [5, 60], [5, -60], [5, 70]]);
+  assert.equal(fullRetrace4.checks.find((x) => x.id === "section_4_does_not_retrace_section_3").status, "fail");
+
+  const thirdSmallest = evaluate([[5, 70], [5, -20], [5, 10], [5, -5], [5, 60]]);
+  assert.equal(thirdSmallest.checks.find((x) => x.id === "section_3_not_smallest_of_1_3_5").status, "fail");
+});
+
 test("Chapter 5 leaves ambiguous length semantics indeterminate", () => {
   const points = [
     [0, 100], [5, 150], [7, 130], [8, 190], [10, 170], [17, 240]
