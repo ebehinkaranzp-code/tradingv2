@@ -8,6 +8,7 @@ const {
   confirmedPivots,
   monowaves,
   createHypothesisRevision,
+  evaluateStage1Confirmation,
   validateNeoWaveCandidate,
   analyze
 } = require("./neowave_engine.cjs");
@@ -81,6 +82,42 @@ test("monowave construction rejects malformed and non-chronological pivots", () 
   ]);
   assert.equal(wave.duration, 4);
   assert.equal(wave.durationConvention, "endpoint_index_difference");
+});
+
+test("Chapter 6 stage-one confirmation uses the source timing window and pattern-specific line", () => {
+  const standardPending = evaluateStage1Confirmation({
+    patternType: "standard", waveStartTime: 10, waveEndTime: 20
+  });
+  assert.equal(standardPending.status, "pending");
+  assert.equal(standardPending.referenceLine, "2-4");
+  assert.equal(standardPending.deadline, 30);
+
+  const standardPass = evaluateStage1Confirmation({
+    patternType: "standard", waveStartTime: 10, waveEndTime: 20, breakAt: 30
+  });
+  assert.equal(standardPass.status, "stage1_confirmed");
+
+  const trianglePass = evaluateStage1Confirmation({
+    patternType: "triangle", waveStartTime: 20, waveEndTime: 25, breakAt: 30
+  });
+  assert.equal(trianglePass.status, "stage1_confirmed");
+  assert.equal(trianglePass.referenceLine, "0-B");
+  assert.equal(trianglePass.timingWave, "c");
+
+  const late = evaluateStage1Confirmation({
+    patternType: "standard", waveStartTime: 10, waveEndTime: 20, breakAt: 30.001
+  });
+  assert.equal(late.status, "stage1_not_confirmed");
+  assert.equal(late.confirmed, false);
+});
+
+test("Chapter 6 stage-one confirmation rejects invalid or premature break times", () => {
+  assert.equal(evaluateStage1Confirmation({
+    patternType: "standard", waveStartTime: 10, waveEndTime: 20, breakAt: 19
+  }).status, "indeterminate");
+  assert.equal(evaluateStage1Confirmation({
+    patternType: "unknown", waveStartTime: 10, waveEndTime: 20, breakAt: 22
+  }).status, "indeterminate");
 });
 
 test("Structure Label hypotheses are retained as causal revisions, not overwritten", () => {
