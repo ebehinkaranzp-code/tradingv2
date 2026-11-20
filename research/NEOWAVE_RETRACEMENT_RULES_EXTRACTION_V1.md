@@ -158,3 +158,6 @@ The engine's `analyzeNeoWaveRetracement` wrapper attaches these partial seeds on
 ## Separate time-coverage measurement
 
 The engine now exposes `timeCoverageRatio` independently from price coverage. It supports explicit time-unit adjustments, but applies none by default. A caller must pass the adjustment only where the specific Pre-Constructive paragraph requires the source's additional one-time-unit convention. The function reports the exact adjustments and causal availability used.
+
+
+For matching measured contexts, `analyzeNeoWaveRetracement` now turns the partial seed list into competing Structure Label hypotheses. Because the complete Pre-Constructive predicates have not been evaluated, every generated hypothesis remains conditional. This preserves alternatives without falsely selecting one.
