@@ -475,6 +475,26 @@ function getPreconstructiveSeed(ruleNumber, condition) {
   };
 }
 
+function hypothesesFromPreconstructiveSeed(seed, { evidence = [], conditions = [] } = {}) {
+  if (!seed || seed.status !== "partial_source_seed" ||
+      !Array.isArray(seed.labels) || !seed.labels.length ||
+      !Array.isArray(evidence) || !Array.isArray(conditions)) {
+    return { status: "indeterminate", candidates: [], reason: "a valid partial source seed and evidence/condition arrays are required" };
+  }
+  return {
+    status: "candidate_hypotheses",
+    complete: false,
+    tradable: false,
+    candidates: seed.labels.map((label) => ({
+      label: label.label,
+      rank: label.primary ? "primary" : "conditional",
+      source: seed.source,
+      evidence,
+      conditions
+    }))
+  };
+}
+
 /**
  * Append one time-causal snapshot of competing Structure Label hypotheses.
  * This is a ledger, not a pattern classifier: source rules decide labels;
@@ -739,6 +759,7 @@ module.exports = {
   parseStructureLabelList,
   PRECONSTRUCTIVE_SEEDS,
   getPreconstructiveSeed,
+  hypothesesFromPreconstructiveSeed,
   ENGINE_CERTIFICATION,
   confirmedPivots,
   monowaves,
