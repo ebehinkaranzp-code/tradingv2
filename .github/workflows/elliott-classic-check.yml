@@ -1,0 +1,23 @@
+name: Elliott classic diagnostics
+on:
+  push:
+    branches: [main, elliott-classic-diagnostics]
+    paths:
+      - "engine/elliott_engine.cjs"
+      - "engine/elliott_engine.test.cjs"
+      - "engine/elliott_historical_scan.cjs"
+      - "data/BTCUSDT-1d.csv"
+      - ".github/workflows/elliott-classic-check.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test engine/elliott_engine.test.cjs
+      - run: node engine/elliott_historical_scan.cjs data/BTCUSDT-1d.csv
