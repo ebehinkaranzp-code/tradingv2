@@ -494,7 +494,7 @@ test("Chapter 3 sequence notation separates standard patterns with X-wave connec
     ["3", "3", "5"]
   ]);
   assert.deepEqual(result.connectors, [{
-    type: "X-wave", afterPattern: 0, beforePattern: 1
+    type: "X-wave", label: null, afterPattern: 0, beforePattern: 1
   }]);
 });
 
