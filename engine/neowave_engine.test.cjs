@@ -18,6 +18,8 @@ const {
   createHypothesisRevision,
   evaluateStage1Confirmation,
   evaluateFiveSectionGuidelines,
+  timeCoverageRatio: engineTimeCoverageRatio,
+  priceCoverageRatio: enginePriceCoverageRatio,
   validateNeoWaveCandidate,
   analyze
 } = require("./neowave_engine.cjs");
@@ -370,6 +372,17 @@ test("hypothesis ledger rejects future evidence and non-advancing revisions", ()
   assert.throws(() => createHypothesisRevision({ asOfIndex: 11, candidates: [candidate] }), /future evidence/);
   const first = createHypothesisRevision({ asOfIndex: 12, candidates: [candidate] });
   assert.throws(() => createHypothesisRevision({ history: first.history, asOfIndex: 12, candidates: [] }), /advance strictly/);
+});
+
+test("engine public API exposes separate price and time coverage helpers", () => {
+  assert.equal(enginePriceCoverageRatio(
+    { startPrice: 1, endPrice: 3 },
+    { startPrice: 1, endPrice: 5 }
+  ).value, 50);
+  assert.equal(engineTimeCoverageRatio(
+    { startIndex: 0, endIndex: 2 },
+    { startIndex: 0, endIndex: 4 }
+  ).value, 50);
 });
 
 test("degree hierarchy follows the source order and refuses unknown degree labels", () => {
