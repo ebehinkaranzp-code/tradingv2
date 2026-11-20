@@ -391,6 +391,193 @@ function evaluateFiveSectionGuidelines(sections, { structureType } = {}) {
  * countertrend move and no new trend extreme before the whole impulse retraces.
  * "Strong" is qualitative in the source, so the caller must explicitly attest it.
  */
+/**
+ * Chapter 6 triangle case where wave b is longer than wave a.
+ * Stage 1: wave c must be completely retraced within one c-wave duration.
+ */
+function evaluateTriangleLongBStage1({
+  waveCStartTime,
+  waveCEndTime,
+  cRetracedAt
+} = {}) {
+  const base = {
+    stage: 1,
+    confirmed: false,
+    overallPatternConfirmed: false,
+    tradable: false,
+    sourceVerified: false,
+    referenceLine: null,
+    trigger: "full_retracement_of_wave_c"
+  };
+  if (!Number.isFinite(waveCStartTime) || !Number.isFinite(waveCEndTime) ||
+      waveCStartTime < 0 || waveCEndTime <= waveCStartTime) {
+    return { ...base, status: "indeterminate", reason: "a positive, ordered wave-c time interval is required" };
+  }
+  const duration = waveCEndTime - waveCStartTime;
+  const deadline = waveCEndTime + duration;
+  if (cRetracedAt == null) {
+    return { ...base, status: "pending", duration, deadline, reason: "awaiting complete retracement of wave c" };
+  }
+  if (!Number.isFinite(cRetracedAt) || cRetracedAt < waveCEndTime) {
+    return { ...base, status: "indeterminate", reason: "cRetracedAt must be a finite time at or after wave c ends" };
+  }
+  const confirmed = cRetracedAt <= deadline;
+  return {
+    ...base,
+    status: confirmed ? "stage1_timing_pass" : "stage1_timing_fail",
+    confirmed,
+    duration,
+    retracedAt: cRetracedAt,
+    availableAt: cRetracedAt,
+    deadline,
+    reason: confirmed
+      ? "wave c was completely retraced within one c-wave duration"
+      : "wave c was not completely retraced within one c-wave duration"
+  };
+}
+
+/**
+ * Chapter 6 triangle case where wave b is longer than wave a.
+ * Stage 2: break of the 0-B line within one c-wave duration.
+ */
+function evaluateTriangleLongBStage2({
+  stage1Confirmed,
+  waveCStartTime,
+  waveCEndTime,
+  breakAt
+} = {}) {
+  const base = {
+    stage: 2,
+    confirmed: false,
+    overallPatternConfirmed: false,
+    tradable: false,
+    sourceVerified: false,
+    referenceLine: "0-B",
+    trigger: "trendline_break"
+  };
+  if (stage1Confirmed !== true) {
+    return { ...base, status: "stage2_blocked", reason: "triangle stage one must pass before stage two" };
+  }
+  if (!Number.isFinite(waveCStartTime) || !Number.isFinite(waveCEndTime) ||
+      waveCStartTime < 0 || waveCEndTime <= waveCStartTime) {
+    return { ...base, status: "indeterminate", reason: "a positive, ordered wave-c time interval is required" };
+  }
+  const duration = waveCEndTime - waveCStartTime;
+  const deadline = waveCEndTime + duration;
+  if (breakAt == null) {
+    return { ...base, status: "pending", duration, deadline, reason: "awaiting a break of the 0-B trendline" };
+  }
+  if (!Number.isFinite(breakAt) || breakAt < waveCEndTime) {
+    return { ...base, status: "indeterminate", reason: "breakAt must be a finite time at or after wave c ends" };
+  }
+  const confirmed = breakAt <= deadline;
+  return {
+    ...base,
+    status: confirmed ? "stage2_timing_pass" : "stage2_timing_fail",
+    confirmed,
+    duration,
+    breakAt,
+    availableAt: breakAt,
+    deadline,
+    reason: confirmed
+      ? "0-B trendline broke within one c-wave duration"
+      : "0-B trendline break exceeded one c-wave duration"
+  };
+}
+
+/**
+ * Chapter 6 triangle-type confirmation uses the 1-3 trendline in place of 0-B.
+ */
+function evaluateTrianglePatternTypeStage1({
+  triangleType,
+  waveCStartTime,
+  waveCEndTime,
+  breakAt
+} = {}) {
+  const base = {
+    stage: 1,
+    confirmed: false,
+    overallPatternConfirmed: false,
+    tradable: false,
+    sourceVerified: false,
+    referenceLine: "1-3",
+    trigger: "trendline_break"
+  };
+  if (!["contracting", "expanding"].includes(triangleType)) {
+    return { ...base, status: "indeterminate", reason: "triangleType must be contracting or expanding" };
+  }
+  if (!Number.isFinite(waveCStartTime) || !Number.isFinite(waveCEndTime) ||
+      waveCStartTime < 0 || waveCEndTime <= waveCStartTime) {
+    return { ...base, status: "indeterminate", reason: "a positive, ordered wave-c time interval is required" };
+  }
+  const duration = waveCEndTime - waveCStartTime;
+  const deadline = waveCEndTime + duration;
+  if (breakAt == null) {
+    return { ...base, status: "pending", duration, deadline, reason: "awaiting a break of the 1-3 trendline" };
+  }
+  if (!Number.isFinite(breakAt) || breakAt < waveCEndTime) {
+    return { ...base, status: "indeterminate", reason: "breakAt must be a finite time at or after wave c ends" };
+  }
+  const confirmed = breakAt <= deadline;
+  return {
+    ...base,
+    status: confirmed ? "stage1_timing_pass" : "stage1_timing_fail",
+    confirmed,
+    duration,
+    breakAt,
+    availableAt: breakAt,
+    deadline,
+    reason: confirmed
+      ? "1-3 trendline broke within one c-wave duration"
+      : "1-3 trendline break exceeded one c-wave duration"
+  };
+}
+
+/**
+ * Expanding triangles gain validity through non-confirmation: wave c is not
+ * fully retraced, or its full retracement takes longer than c itself took.
+ */
+function evaluateExpandingTriangleNonConfirmation({
+  waveCStartTime,
+  waveCEndTime,
+  fullyRetracedC,
+  fullRetracementAt
+} = {}) {
+  const base = { status: "indeterminate", tradable: false, sourceVerified: false, valid: false };
+  if (!Number.isFinite(waveCStartTime) || !Number.isFinite(waveCEndTime) ||
+      waveCStartTime < 0 || waveCEndTime <= waveCStartTime ||
+      typeof fullyRetracedC !== "boolean") {
+    return { ...base, reason: "ordered wave-c times and an explicit fullyRetracedC flag are required" };
+  }
+  const duration = waveCEndTime - waveCStartTime;
+  const deadline = waveCEndTime + duration;
+  if (!fullyRetracedC) {
+    return {
+      ...base,
+      status: "non_confirmation_condition_pass",
+      valid: true,
+      duration,
+      deadline,
+      reason: "wave c has not been fully retraced, satisfying the expanding-triangle non-confirmation condition"
+    };
+  }
+  if (!Number.isFinite(fullRetracementAt) || fullRetracementAt < waveCEndTime) {
+    return { ...base, reason: "fullRetracementAt is required when wave c has been fully retraced" };
+  }
+  const valid = fullRetracementAt > deadline;
+  return {
+    ...base,
+    status: valid ? "non_confirmation_condition_pass" : "non_confirmation_condition_fail",
+    valid,
+    duration,
+    deadline,
+    fullRetracementAt,
+    reason: valid
+      ? "full retracement of wave c took longer than one c-wave duration"
+      : "wave c was fully retraced within one c-wave duration, so the expanding-triangle non-confirmation condition failed"
+  };
+}
+
 function evaluateTruncatedFifthFollowThrough({
   stage1Confirmed,
   pattern,
@@ -1253,6 +1440,10 @@ module.exports = {
   evaluateFiveSectionGuidelines,
   evaluateStage1Confirmation,
   evaluateStage2Confirmation,
+  evaluateTriangleLongBStage1,
+  evaluateTriangleLongBStage2,
+  evaluateTrianglePatternTypeStage1,
+  evaluateExpandingTriangleNonConfirmation,
   evaluateTruncatedFifthFollowThrough,
   createHypothesisRevision,
   validateNeoWaveCandidate,
