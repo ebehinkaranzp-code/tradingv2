@@ -667,7 +667,9 @@ function parseStructureLabelList(sourceNotation) {
     return {
       label: wrapped ? raw.slice(1, -1).trim() : raw,
       notation: parenthesized ? "parenthesized" : bracketed ? "bracketed" : "unwrapped",
-      role: wrapped ? "conditional_alternative" : "primary_candidate",
+      role: parenthesized ? "lower_probability_alternative"
+        : bracketed ? "rare_or_very_unlikely" : "primary_candidate",
+      rank: parenthesized ? "conditional" : bracketed ? "rare" : "primary",
       primary: !wrapped,
       raw
     };
@@ -729,7 +731,7 @@ function hypothesesFromPreconstructiveSeed(seed, { evidence = [], conditions = [
     tradable: false,
     candidates: seed.labels.map((label) => ({
       label: label.label,
-      rank: label.primary ? "primary" : "conditional",
+      rank: label.rank,
       source: seed.source,
       evidence,
       conditions
@@ -755,7 +757,7 @@ function createHypothesisRevision({ history = [], asOfIndex, candidates = [] } =
   const normalized = candidates.map((candidate, index) => {
     if (!candidate || typeof candidate !== "object" ||
         typeof candidate.label !== "string" || !candidate.label.trim() ||
-        !["primary", "conditional"].includes(candidate.rank) ||
+        !["primary", "conditional", "rare"].includes(candidate.rank) ||
         !candidate.source || typeof candidate.source.document !== "string" ||
         !candidate.source.document.trim() ||
         typeof candidate.source.locator !== "string" || !candidate.source.locator.trim() ||
