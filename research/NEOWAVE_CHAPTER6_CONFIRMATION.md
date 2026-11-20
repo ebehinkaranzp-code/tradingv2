@@ -41,3 +41,6 @@ The source also discusses a contracting fifth and warns that failure to meet the
 ## Correction confirmation caveat (printed Chapter 6 p. 6-5; scan PDF p. 240)
 
 The source states that corrective-pattern confirmation does not have one fixed sequence for all corrections; the required confirmation depends on the pattern's internal structure (including whether b is shorter or longer than a). The scan's p. 6-5 begins a triangle-specific procedure: draw the 0-B line and compare its break time with wave c. This is separate from the standard-impulse stage-two procedure above and must not be applied indiscriminately to every corrective pattern.
+
+
+The stage-two implementation requires the stage-one confirmation time and the availability time of each relevant wave/correction to be no later than the supplied `asOfIndex`. A price-rule pass without causal timestamps is not promoted to overall pattern confirmation. The engine does not infer extension type or correction completion; those remain explicit inputs.
