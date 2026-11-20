@@ -1,0 +1,34 @@
+name: NeoWave engine tests
+
+on:
+  push:
+    branches:
+      - main
+      - "work/neowave-engine-completion"
+    paths:
+      - "engine/neowave_engine.cjs"
+      - "engine/neowave_engine.test.cjs"
+      - "engine/neowave_retracement.cjs"
+      - "engine/neowave_retracement.test.cjs"
+      - ".github/workflows/neowave-engine-tests.yml"
+  pull_request:
+    paths:
+      - "engine/neowave_engine.cjs"
+      - "engine/neowave_engine.test.cjs"
+      - "engine/neowave_retracement.cjs"
+      - "engine/neowave_retracement.test.cjs"
+      - ".github/workflows/neowave-engine-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Run NeoWave unit tests
+        run: node --test engine/neowave_engine.test.cjs engine/neowave_retracement.test.cjs
