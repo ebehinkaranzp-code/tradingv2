@@ -52,3 +52,16 @@ Finish Trading V2 as a customer-ready, independent market-analysis terminal. Do 
 
 ### Final release gate
 Do not call the project customer-ready until the build succeeds, critical tests pass, live data behavior is verified, no critical console/runtime errors remain, and the published deployment is checked. List any remaining limitations plainly.
+
+
+## NeoWave research status (2026-11-20)
+
+- The user-provided ZIP has been extracted outside the repository. It contains the English *Mastering Elliott Wave* scan (169 pages) and Persian scan (446 pages). Do not upload either PDF or full OCR output to GitHub; the front matter asserts copyright/translation rights.
+- Source tracking is corrected in `docs/NEOWAVE_SOURCE.md`. First-pass contents map: `research/NEOWAVE_SOURCE_EXTRACTION_V1.md`. Partial seven-rule activation map and unresolved issues: `research/NEOWAVE_RETRACEMENT_RULES_EXTRACTION_V1.md`.
+- English OCR has reviewed the front matter, contents, opening Chapter 1, parts of Chapter 2, and Chapter 3 through the start of the Pre-Constructive Rules of Logic. The Persian OCR is not yet reliable. Neither edition has been fully reviewed.
+- The seven Retracement Rule activation bands are now known from printed Chapter 3 pp. 3-23–3-30, but these are not executable definitions. Rule selection uses m2/m1; lettered conditions use m0/m1; Rule 4 adds a category using m3/m2. The next 26-page Pre-Constructive Rules of Logic section transforms rule/condition identifiers into Structure Labels and contains numerous contextual conditions involving later waves, time, price, trendlines, complex corrections, and X-waves.
+- Important unresolved source issue: the book describes Rule 3 as an exact 61.8% retracement but then gives approximate tolerances for Fibonacci ratios (61.8% ≈ 58–66%). Boundary and tolerance semantics must be reconciled before implementation.
+- `engine/neowave_engine.cjs` now requires source-verified rule definitions, source locators, and explicit pattern applicability. Unknown applicability and non-pass results fail closed. Catalog entries are required for engine certification, not automatically mandatory for every candidate.
+- Tests pass in GitHub Actions, including the expanded NeoWave suite: latest verified NeoWave run `44768775867` succeeded for commit `f10ab32abb80aa3897ef6bc25c620152e88ef9a1`.
+- Do not mark NeoWave complete or tradable. No actual retracement predicates, Pre-Constructive Structure Label decision trees, complete pattern families, post-pattern confirmation, invalidation/recount, or NeoWave-qualified backtest have been completed.
+- Next work: continue page-by-page source extraction of the 26-page Pre-Constructive section and all applicable pattern chapters; build a source-located rule register with positive/negative/boundary/missing-data fixtures; implement only after exact definitions and applicability are verified; preserve causal availability timestamps for all referenced waves; then run synthetic tests before any historical BTCUSDT experiment.
