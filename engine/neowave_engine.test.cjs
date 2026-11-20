@@ -18,6 +18,7 @@ const {
   aggregateMonowaveGroup,
   createHypothesisRevision,
   evaluateStage1Confirmation,
+  evaluateStage2Confirmation,
   evaluateFiveSectionGuidelines,
   timeCoverageRatio: engineTimeCoverageRatio,
   priceCoverageRatio: enginePriceCoverageRatio,
@@ -246,6 +247,84 @@ test("Chapter 6 stage-one confirmation uses the source timing window and pattern
   });
   assert.equal(late.status, "stage1_timing_fail");
   assert.equal(late.confirmed, false);
+});
+
+test("Chapter 6 stage two confirms extended first and third waves at the wave-4 price region", () => {
+  const base = {
+    stage1Confirmed: true,
+    patternType: "impulse",
+    pattern: { from: { price: 0 }, to: { price: 200 } },
+    wave4: { from: { price: 180 }, to: { price: 150 } },
+    wave5: { from: { price: 150 }, to: { price: 200 } }
+  };
+  const pending = evaluateStage2Confirmation({
+    ...base,
+    extendedWave: 1,
+    correction: { from: { price: 200 }, to: { price: 160 } }
+  });
+  assert.equal(pending.status, "stage2_pending");
+
+  const pass = evaluateStage2Confirmation({
+    ...base,
+    extendedWave: 1,
+    correction: { from: { price: 200 }, to: { price: 145 } }
+  });
+  assert.equal(pass.status, "stage2_price_target_pass");
+  assert.equal(pass.overallPatternConfirmed, true);
+
+  const blocked = evaluateStage2Confirmation({
+    ...base,
+    stage1Confirmed: false,
+    extendedWave: 1,
+    correction: { from: { price: 200 }, to: { price: 145 } }
+  });
+  assert.equal(blocked.status, "stage2_blocked");
+});
+
+test("Chapter 6 stage two applies the 61.8-to-less-than-100 percent rule to extended wave five", () => {
+  const base = {
+    stage1Confirmed: true,
+    patternType: "impulse",
+    extendedWave: 5,
+    pattern: { from: { price: 0 }, to: { price: 200 } },
+    wave4: { from: { price: 150 }, to: { price: 100 } },
+    wave5: { from: { price: 100 }, to: { price: 200 } }
+  };
+  const pending = evaluateStage2Confirmation({
+    ...base,
+    correction: { from: { price: 200 }, to: { price: 130 } },
+    correctionComplete: false
+  });
+  assert.equal(pending.status, "stage2_pending");
+  assert.equal(pending.retracementOfWave5Percent, 70);
+
+  const pass = evaluateStage2Confirmation({
+    ...base,
+    correction: { from: { price: 200 }, to: { price: 130 } },
+    correctionComplete: true
+  });
+  assert.equal(pass.status, "stage2_price_retracement_pass");
+  assert.equal(pass.overallPatternConfirmed, true);
+
+  const fullRetrace = evaluateStage2Confirmation({
+    ...base,
+    correction: { from: { price: 200 }, to: { price: 100 } },
+    correctionComplete: true
+  });
+  assert.equal(fullRetrace.status, "stage2_price_retracement_fail");
+});
+
+test("Chapter 6 stage two requires contiguous impulse endpoints", () => {
+  const result = evaluateStage2Confirmation({
+    stage1Confirmed: true,
+    extendedWave: 5,
+    pattern: { from: { price: 0 }, to: { price: 200 } },
+    wave4: { from: { price: 150 }, to: { price: 100 } },
+    wave5: { from: { price: 99 }, to: { price: 200 } },
+    correction: { from: { price: 200 }, to: { price: 130 } },
+    correctionComplete: true
+  });
+  assert.equal(result.status, "indeterminate");
 });
 
 test("Chapter 6 stage-one confirmation rejects invalid or premature break times", () => {
