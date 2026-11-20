@@ -13,7 +13,9 @@ const bars = lines.map(line=>{
 const result=scanBars(bars,{left:3,right:3});
 const first=bars[0]?.time, last=bars.at(-1)?.time;
 console.log(JSON.stringify({
-  symbol:"BTCUSDT",timeframe:"1d",source:path,firstOpenTime:first,lastOpenTime:last,
-  ...result,
+  symbol:"BTCUSDT",timeframe:process.env.TIMEFRAME || "1d",source:path,
+  firstOpenTime:first,lastOpenTime:last,bars:result.bars,pivots:result.pivots,
+  impulseCandidates:result.impulseCandidates,zigzagCandidates:result.zigzagCandidates,
+  sampleImpulses:result.impulses.slice(0,5),sampleZigzags:result.zigzags.slice(0,5),
   interpretation:"Counts are overlapping structural candidates, not unique waves, not accuracy, and not trade performance."
 },null,2));
