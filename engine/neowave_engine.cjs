@@ -1,6 +1,6 @@
 "use strict";
 
-const { analyzeRetracementContext } = require("./neowave_retracement.cjs");
+const { analyzeRetracementContext, timeCoverageRatio, priceCoverageRatio } = require("./neowave_retracement.cjs");
 
 const RETRACEMENT_RULES = Array.from({ length: 7 }, (_, i) => ({
   id: "NW-RET-" + String(i + 1).padStart(2, "0"),
@@ -745,5 +745,7 @@ module.exports = {
   validateNeoWaveCandidate,
   analyze,
   analyzeRetracementContext,
+  priceCoverageRatio,
+  timeCoverageRatio,
   analyzeNeoWaveRetracement
 };
