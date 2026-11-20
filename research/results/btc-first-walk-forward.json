@@ -1,0 +1,91 @@
+{
+  "dataset": {
+    "symbol": "BTCUSDT",
+    "market": "Binance Spot",
+    "interval": "1d",
+    "candles": 3246,
+    "from": "2018-01-01",
+    "to": "2026-11-20"
+  },
+  "method": {
+    "model": "L2 logistic regression",
+    "features": 15,
+    "target": "close(t+5)>close(t)",
+    "walk_forward": "Annual expanding training; only fully matured labels before test year",
+    "execution": "signal after close; next daily open; long-only spot",
+    "fees": "0.1% per side",
+    "slippage": "0.05% per side"
+  },
+  "classification": {
+    "accuracy_pct": 50.179211469534046,
+    "brier": 0.2522506160505639,
+    "confusion": {
+      "true_up": 1038,
+      "false_up": 961,
+      "true_down": 222,
+      "missed_up": 290
+    }
+  },
+  "annual": [
+    {
+      "year": 2020,
+      "train_samples": 525,
+      "test_samples": 366,
+      "accuracy_pct": 51.63934426229508,
+      "brier": 0.25752787742243316
+    },
+    {
+      "year": 2021,
+      "train_samples": 891,
+      "test_samples": 365,
+      "accuracy_pct": 54.24657534246575,
+      "brier": 0.2502115644430302
+    },
+    {
+      "year": 2022,
+      "train_samples": 1256,
+      "test_samples": 365,
+      "accuracy_pct": 45.47945205479452,
+      "brier": 0.2542612129368672
+    },
+    {
+      "year": 2023,
+      "train_samples": 1621,
+      "test_samples": 365,
+      "accuracy_pct": 50.41095890410959,
+      "brier": 0.248804996748157
+    },
+    {
+      "year": 2024,
+      "train_samples": 1986,
+      "test_samples": 366,
+      "accuracy_pct": 54.09836065573771,
+      "brier": 0.24762477738314714
+    },
+    {
+      "year": 2025,
+      "train_samples": 2352,
+      "test_samples": 365,
+      "accuracy_pct": 52.054794520547944,
+      "brier": 0.25106286167156927
+    },
+    {
+      "year": 2026,
+      "train_samples": 2717,
+      "test_samples": 319,
+      "accuracy_pct": 42.31974921630094,
+      "brier": 0.25683728268733835
+    }
+  ],
+  "backtest": {
+    "initial_equity": 10000,
+    "final_equity": 12222.47723673321,
+    "return_pct": 22.22477236733209,
+    "max_drawdown_pct": 66.91733997166313,
+    "trades": 282,
+    "win_rate_pct": 53.90070921985816,
+    "profit_factor": 1.0369508394502076
+  },
+  "buy_hold_return_pct": 754.5522214985342,
+  "conclusion": "No robust edge found. Research only; do not use for live trading."
+}
