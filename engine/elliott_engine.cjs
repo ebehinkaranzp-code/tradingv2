@@ -49,12 +49,18 @@ function validateImpulse(points, options = {}) {
   if (w[2] < Math.min(w[0], w[4])) {
     return { pattern: "impulse", status: "rejected", reason: "wave3_is_shortest" };
   }
-  if (p[5] <= p[3]) {
-    return { pattern: "impulse", status: "rejected", reason: "wave5_does_not_exceed_wave3_end" };
+  const truncated = p[5] <= p[3];
+  if (diagonal) {
+    return {
+      pattern: "diagonal_impulse",
+      status: "candidate_diagonal_rules_incomplete",
+      direction: bullish ? "bullish" : "bearish",
+      limitations: ["diagonal_subtype_rules_not_implemented", "subdivision_not_checked"]
+    };
   }
   return {
-    pattern: diagonal ? "impulse_candidate_diagonal_rules_not_fully_checked" : "impulse",
-    status: "valid_under_checked_rules",
+    pattern: truncated ? "truncated_impulse_candidate" : "impulse",
+    status: truncated ? "candidate_truncated_impulse" : "valid_under_checked_rules",
     direction: bullish ? "bullish" : "bearish",
     waveLengths: w.map(Math.abs),
     availableAt: points[5].confirmedAt ?? points[5].index,
@@ -87,6 +93,14 @@ function validateZigzag(points) {
 function confirmedPivots(bars, left = 3, right = 3) {
   if (!Array.isArray(bars) || !Number.isInteger(left) || !Number.isInteger(right) || left < 1 || right < 1) {
     throw new Error("invalid_pivot_arguments");
+  }
+  for (let i = 0; i < bars.length; i++) {
+    const b = bars[i];
+    if (!b || ![b.time,b.open,b.high,b.low,b.close].every(Number.isFinite) ||
+        b.low > Math.min(b.open,b.close) || b.high < Math.max(b.open,b.close) ||
+        b.low > b.high || (i && b.time <= bars[i-1].time)) {
+      throw new Error("invalid_ohlc_bar_at_" + i);
+    }
   }
   const out = [];
   for (let i = left; i < bars.length - right; i++) {
