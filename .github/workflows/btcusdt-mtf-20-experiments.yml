@@ -1,0 +1,54 @@
+name: BTCUSDT 20 multi-timeframe reversal experiments
+on:
+  push:
+    branches: [main]
+    paths:
+      - "research/btcusdt-mtf-20-experiments.cjs"
+      - "research/btcusdt-mtf-20-experiments.test.cjs"
+      - ".github/workflows/btcusdt-mtf-20-experiments.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: btcusdt-mtf-20-experiments
+  cancel-in-progress: false
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Test timeframe alignment and statistical helpers
+        run: node --test research/btcusdt-mtf-20-experiments.test.cjs
+      - name: Download Binance Spot history and run 20 MTF experiments
+        run: node research/btcusdt-mtf-20-experiments.cjs --download
+      - name: Archive datasets and experiment results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f data/BTCUSDT-1d.csv data/BTCUSDT-4h.csv data/BTCUSDT-1h.csv data/BTCUSDT-15m.csv data/BTCUSDT-mtf-metadata.json research/results/btcusdt-mtf-20-experiments.json research/results/btcusdt-mtf-20-experiments.md
+          if git diff --cached --quiet; then
+            echo "MTF research archive is already up to date."
+          else
+            git commit -m "Archive BTCUSDT multi-timeframe datasets and results"
+            git push
+          fi
+      - name: Upload reproducible research artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: btcusdt-mtf-20-experiments
+          path: |
+            data/BTCUSDT-1d.csv
+            data/BTCUSDT-4h.csv
+            data/BTCUSDT-1h.csv
+            data/BTCUSDT-15m.csv
+            data/BTCUSDT-mtf-metadata.json
+            research/results/btcusdt-mtf-20-experiments.json
+            research/results/btcusdt-mtf-20-experiments.md
+          retention-days: 90
