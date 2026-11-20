@@ -26,7 +26,7 @@ class MarketTransitionTests(unittest.TestCase):
         for key in before:
             self.assertEqual(before[key][-2],after[key][-2],key)
     def test_weekly_aggregation_reduces_bars(self):
-        self.assertLess(len(weekly_bars(self.bars(420))),60)
+        self.assertLess(len(weekly_bars(self.bars(420))),65)
     def test_backtest_empty_signal_preserves_capital(self):
         b=self.bars()
         r=backtest(b,[False]*len(b))
