@@ -127,3 +127,8 @@ The same summary diagram groups Rules 5, 6, and 7 under the common m0/m1 conditi
 ## Monowave groups and endpoint measurement (Chapter 3, printed pp. 3-3 onward)
 
 The source's Rules of Observation show that m0 and m2 may each consist of one monowave or a group of monowaves. Their start/end boundaries are determined from the surrounding confirmed price action; the internal zigzag does not change the definition of the group's overall price coverage. Ratios for grouped waves must therefore use the group's termination endpoints, not the sum of all internal up/down segments. The engine now exposes `aggregateMonowaveGroup` for contiguous constituent monowaves and reports the net endpoint coverage plus the latest constituent confirmation time. It does not decide which monowaves belong together; that grouping still requires the source's full observation and context rules.
+
+
+## Structure Label notation sample (Rule 3, Condition a)
+
+The supplied scan's Rule 3 Condition-a heading shows the slash-separated label list `{F3/c3/s5/5/(sL3)/[L5]}` (scan PDF p. 106, printed Chapter 3 p. 3-58). The engine now parses this notation while preserving unwrapped labels as primary candidates and parenthesized/bracketed labels as conditional alternatives. This parser only preserves source notation; it does not evaluate the conditions that select or eliminate any candidate label.
