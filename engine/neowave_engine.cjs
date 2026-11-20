@@ -15,6 +15,39 @@ const ENGINE_CERTIFICATION = Object.freeze({
   reason: "The source-backed NeoWave rulebook and independent pattern tests are incomplete."
 });
 
+// Chapter 7 degree names in source order, from largest to smallest.
+const DEGREE_HIERARCHY = Object.freeze([
+  "Grand Supercycle",
+  "Supercycle",
+  "Cycle",
+  "Primary",
+  "Intermediate",
+  "Minor",
+  "Minute",
+  "Minuette",
+  "Sub-Minuette",
+  "Micro",
+  "Sub-Micro"
+]);
+
+function degreeIndex(degree) {
+  return DEGREE_HIERARCHY.indexOf(degree);
+}
+
+function compareDegrees(first, second) {
+  const a = degreeIndex(first);
+  const b = degreeIndex(second);
+  if (a < 0 || b < 0) {
+    return { status: "indeterminate", relation: null, reason: "unknown degree name" };
+  }
+  return {
+    status: "measured",
+    relation: a === b ? "same" : a < b ? "higher" : "lower",
+    firstIndex: a,
+    secondIndex: b
+  };
+}
+
 const OTHER_RULE_FAMILIES = [
   "monowave", "polywave", "degree_consistency", "price_time_proportionality",
   "impulse", "zigzag", "flat", "triangle", "combination", "diametric",
@@ -489,6 +522,9 @@ function analyze(bars, options = {}) {
 
 module.exports = {
   RULE_CATALOG,
+  DEGREE_HIERARCHY,
+  degreeIndex,
+  compareDegrees,
   ENGINE_CERTIFICATION,
   confirmedPivots,
   monowaves,
