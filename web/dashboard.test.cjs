@@ -215,7 +215,7 @@ test('malformed or non-array local browser state safely falls back to an empty a
 
 test('stale open WebSocket is detected while healthy and closed sockets are not', () => {
   const start = source.indexOf('function websocketIsStale(');
-  const end = source.indexOf('\\nasync function refreshBars', start);
+  const end = source.indexOf('\nasync function refreshBars', start);
   assert.ok(start >= 0 && end > start, 'WebSocket staleness helper missing');
   const isStale = vm.runInNewContext(source.slice(start, end) + '; websocketIsStale');
   assert.equal(isStale(1, 1000, 46001, 1), true);
