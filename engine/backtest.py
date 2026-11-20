@@ -106,7 +106,7 @@ def run_backtest(candles: list[Candle], strategy: Strategy, *, initial_cash=1000
             fills.append({"time":time,"side":"BUY" if add>0 else "SELL","price":px,"fee":fee,"reason":reason})
         if abs(qty)>1e-12: stop,target=new_stop,new_target
 
-    for i in range(max(1,start_index),len(candles)):
+    for i in range(max(0,start_index),len(candles)):
         bar=candles[i]
         # Execute yesterday's close decision at today's open. Future candles are not passed to strategy.
         if pending is not None:
