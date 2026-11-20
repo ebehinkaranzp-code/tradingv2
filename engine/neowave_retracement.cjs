@@ -104,6 +104,54 @@ function availabilityOf(wave) {
     ? Math.max(fromAt, toAt) : null;
 }
 
+function endpointDuration(wave) {
+  if (!wave || typeof wave !== "object") return null;
+  if (Number.isFinite(wave.duration) && wave.duration > 0) return wave.duration;
+  const start = Number.isFinite(wave.from?.index) ? wave.from.index
+    : Number.isFinite(wave.startIndex) ? wave.startIndex
+    : Number.isFinite(wave.startTime) ? wave.startTime : null;
+  const end = Number.isFinite(wave.to?.index) ? wave.to.index
+    : Number.isFinite(wave.endIndex) ? wave.endIndex
+    : Number.isFinite(wave.endTime) ? wave.endTime : null;
+  return start !== null && end !== null && end > start ? end - start : null;
+}
+
+/**
+ * Compare elapsed time coverage separately from price coverage.
+ * Added time units are explicit caller options; no +1 convention is implicit.
+ */
+function timeCoverageRatio(numeratorWave, denominatorWave, {
+  timeUnit = 1,
+  numeratorAddUnits = 0,
+  denominatorAddUnits = 0
+} = {}) {
+  const numeratorDuration = endpointDuration(numeratorWave);
+  const denominatorDuration = endpointDuration(denominatorWave);
+  if (!Number.isFinite(numeratorDuration) || !Number.isFinite(denominatorDuration) ||
+      !Number.isFinite(timeUnit) || timeUnit <= 0 ||
+      !Number.isFinite(numeratorAddUnits) || numeratorAddUnits < 0 ||
+      !Number.isFinite(denominatorAddUnits) || denominatorAddUnits < 0) {
+    return { status: "indeterminate", value: null, reason: "positive durations and explicit non-negative time-unit adjustments are required" };
+  }
+  const numerator = numeratorDuration + numeratorAddUnits * timeUnit;
+  const denominator = denominatorDuration + denominatorAddUnits * timeUnit;
+  if (denominator <= 0) {
+    return { status: "indeterminate", value: null, reason: "adjusted denominator duration must be positive" };
+  }
+  const numeratorAvailable = availabilityOf(numeratorWave);
+  const denominatorAvailable = availabilityOf(denominatorWave);
+  const causalAvailabilityVerified = Number.isFinite(numeratorAvailable) && Number.isFinite(denominatorAvailable);
+  return {
+    status: "measured",
+    value: numerator / denominator * 100,
+    numeratorDuration: numerator,
+    denominatorDuration: denominator,
+    availableAt: causalAvailabilityVerified ? Math.max(numeratorAvailable, denominatorAvailable) : null,
+    causalAvailabilityVerified,
+    timeAdjustments: { timeUnit, numeratorAddUnits, denominatorAddUnits }
+  };
+}
+
 function priceCoverageRatio(numeratorWave, denominatorWave) {
   const numerator = endpointPrices(numeratorWave);
   const denominator = endpointPrices(denominatorWave);
@@ -274,6 +322,8 @@ module.exports = {
   FIB,
   CONDITION_BANDS,
   priceCoverageRatio,
+  timeCoverageRatio,
+  endpointDuration,
   availabilityOf,
   classifyRetracementActivation,
   classifyCondition,
