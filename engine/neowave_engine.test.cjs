@@ -133,7 +133,7 @@ test("Chapter 5 five-section guidelines pass when all seven necessary checks are
   const result = evaluateFiveSectionGuidelines(sections);
   assert.equal(result.status, "pass");
   assert.equal(result.tradable, false);
-  assert.equal(result.checks.length, 6);
+  assert.equal(result.checks.length, 7);
 });
 
 test("Chapter 5 leaves ambiguous length semantics indeterminate", () => {
