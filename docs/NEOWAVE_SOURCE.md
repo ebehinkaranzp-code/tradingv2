@@ -15,7 +15,7 @@ The user supplied a ZIP containing both PDFs. The files were extracted in the wo
 - `Glenn-Neely-Mastering-Elliott-Waves.pdf` (English, 169 pages)
 - `Glenn-Neely-Mastering-Elliott-Wave__Persian_.pdf` (Persian, 446 pages)
 
-The English PDF is an image scan. OCR has been performed on the cover, copyright/acknowledgments, table-of-contents pages, preface, and selected opening pages of Chapter 1. The Persian PDF's extracted text layer is not reliably readable due to font/encoding problems; only a small number of introductory/contents pages have been inspected with OCR. Neither edition has yet been read and verified end-to-end. See `research/neowave_source_extraction_v1.md` for the limited first-pass outline and page locators.
+The English PDF is an image scan. OCR has been performed on the cover, copyright/acknowledgments, table-of-contents pages, preface, and selected opening pages of Chapter 1. The Persian PDF's extracted text layer is not reliably readable due to font/encoding problems; only a small number of introductory/contents pages have been inspected with OCR. Neither edition has yet been read and verified end-to-end. See `research/NEOWAVE_SOURCE_EXTRACTION_V1.md` for the first-pass chapter map and `research/NEOWAVE_RETRACEMENT_RULES_EXTRACTION_V1.md` for the partial retracement activation map and its unresolved caveats.
 
 ## Supplementary Persian Q&A source
 - Category: پرسش‌وپاسخ‌های گلن نیلی (Neely FAQ)
