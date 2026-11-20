@@ -397,24 +397,31 @@ function evaluateStage2Confirmation({
     ? correction.to.price <= wave4.to.price
     : correction.to.price >= wave4.to.price;
   if (extendedWave === 1 || extendedWave === 3) {
-    const extensionEvidence = extendedWave === 3
-      ? priceCoverageRatio(correction, pattern).value > 61.8
+    const wholePatternRetracement = extendedWave === 3
+      ? priceCoverageRatio(correction, pattern).value
       : null;
-    const confirmed = reachedWave4;
+    const extensionEvidence = extendedWave === 3
+      ? Number.isFinite(wholePatternRetracement) && wholePatternRetracement > 61.8
+      : null;
+    const confirmed = reachedWave4 && (extendedWave !== 3 || extensionEvidence === true);
+    const failed = correctionComplete && !confirmed;
     return {
       ...base,
-      status: confirmed ? "stage2_price_target_pass" : correctionComplete ? "stage2_price_target_fail" : "stage2_pending",
+      status: confirmed ? "stage2_price_target_pass" : failed ? "stage2_price_target_fail" : "stage2_pending",
       stage2Confirmed: confirmed,
       overallPatternConfirmed: confirmed && stage1Confirmed === true,
       target: "end_of_wave_4_price_region",
       reachedTarget: reachedWave4,
+      wholePatternRetracementPercent: wholePatternRetracement,
       extensionEvidence,
       correctionComplete,
       reason: confirmed
-        ? "post-pattern correction reached the wave-4 price region required for this extension type"
-        : correctionComplete
-          ? "completed correction failed to reach the wave-4 price region"
-          : "correction has not yet reached the wave-4 price region"
+        ? extendedWave === 3
+          ? "correction reached the wave-4 price region and retraced more than 61.8% of the whole pattern, supporting an extended third wave"
+          : "post-pattern correction reached the wave-4 price region required for an extended first wave"
+        : failed
+          ? "completed correction failed the required wave-4 price-region or extended-third retracement condition"
+          : "correction has not yet satisfied the required wave-4 price-region/retracement conditions"
     };
   }
 
