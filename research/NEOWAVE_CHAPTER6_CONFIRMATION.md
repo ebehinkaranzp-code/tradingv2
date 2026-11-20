@@ -18,7 +18,7 @@ The code's Chapter 6 first-stage diagnostic only checks this timing window after
 The Chapter 6 contents list also identifies:
 - Stage 2;
 - extended 1st, 3rd and 5th waves;
-- contracting fifth waves;
+- truncated fifth waves;
 - corrections;
 - requirements for pattern confirmation;
 - triangles.
@@ -36,7 +36,7 @@ After stage one, identify which wave is extended. The source then specifies:
 
 The code's `evaluateStage2Confirmation` implements these price checks only after stage one passes. It requires contiguous wave-4, wave-5, full-pattern and correction endpoints. It does not infer which wave is extended, detect the end of the correction, or certify a complete market count. For an extended fifth, the caller must explicitly state whether the correction is complete; otherwise the result remains pending.
 
-The source also discusses a contracting fifth and warns that failure to meet the expected retracement behavior may require structural relabeling or recounting. The exact contracting-fifth decision procedure remains unimplemented pending full transcription of its conditions.
+The source also describes a truncated fifth (wave 5 shorter than wave 4). The engine now checks that condition, requires a post-pattern move opposite the impulse, and checks that the entire impulse retraces without a new trend extreme beforehand. Because the source's 'strong countertrend' criterion is qualitative, the caller must explicitly attest it; the engine does not invent a numerical strength threshold.
 
 ## Correction confirmation caveat (printed Chapter 6 p. 6-5; scan PDF p. 240)
 
