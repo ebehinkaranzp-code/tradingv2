@@ -3,13 +3,13 @@
 // Source-backed Chapter 3 measurements only. This module deliberately does not
 // convert a retracement activation into a Structure Label or a completed pattern.
 // Source notes: research/NEOWAVE_RETRACEMENT_RULES_EXTRACTION_V1.md
-// Printed Chapter 3 pp. 3-23–3-30 (scan PDF pp. 34–38); Pre-Constructive
-// tolerance discussion begins printed p. 3-33 (scan PDF p. 40).
+// Printed Chapter 3 pp. 3-30–3-43 (scan PDF pp. 80–93); Pre-Constructive
+// logic/tolerance discussion begins after the activation map (scan PDF p. 94 onward).
 
 const SOURCE = Object.freeze({
   document: "Glenn Neely, Mastering Elliott Wave, Version 2.0",
-  activation: "Chapter 3, printed pp. 3-23–3-30; scan PDF pp. 34–38",
-  tolerance: "Chapter 3, printed p. 3-33; scan PDF p. 40"
+  activation: "Chapter 3, printed pp. 3-30–3-43; scan PDF pp. 80–93",
+  tolerance: "Chapter 3, Pre-Constructive Logic; scan PDF p. 94 onward"
 });
 
 const EPSILON = 1e-9;
