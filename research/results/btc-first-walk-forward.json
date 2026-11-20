@@ -24,7 +24,10 @@
       "false_up": 961,
       "true_down": 222,
       "missed_up": 290
-    }
+    },
+    "majority_class_accuracy_pct": 52.88729589804858,
+    "majority_class": "up",
+    "constant_base_rate_brier": 0.24916635223971118
   },
   "annual": [
     {
@@ -86,6 +89,6 @@
     "win_rate_pct": 53.90070921985816,
     "profit_factor": 1.0369508394502076
   },
-  "buy_hold_return_pct": 754.5522214985342,
+  "buy_hold_return_pct": 801.0546094376018,
   "conclusion": "No robust edge found. Research only; do not use for live trading."
 }
