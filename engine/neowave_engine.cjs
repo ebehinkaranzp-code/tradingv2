@@ -730,6 +730,8 @@ function parseStructureSequenceNotation(sourceNotation, { completeSeries = false
       connectors.push({
         type: "X-wave",
         label: null,
+        degreeExpectation: "normally_one_degree_below_both_adjacent_patterns",
+        degreeExpectationEnforced: false,
         afterPattern: patterns.length - 1,
         beforePattern: patterns.length
       });
