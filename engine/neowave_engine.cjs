@@ -69,13 +69,16 @@ function confirmedPivots(bars, { left = 3, right = 3 } = {}) {
       if (bars[j].high >= bars[p].high) isHigh = false;
       if (bars[j].low <= bars[p].low) isLow = false;
     }
+    // If one OHLC bar is simultaneously the local high and local low,
+    // OHLC data does not reveal which extreme occurred first. Do not invent
+    // an intrabar ordering or emit two pivots at the same source index.
+    if (isHigh && isLow) continue;
     if (isHigh) {
       events.push({
         index: p, confirmedAt: p + right, time: bars[p].time,
         price: bars[p].high, type: "H"
       });
-    }
-    if (isLow) {
+    } else if (isLow) {
       events.push({
         index: p, confirmedAt: p + right, time: bars[p].time,
         price: bars[p].low, type: "L"
