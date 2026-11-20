@@ -409,7 +409,7 @@ test("engine exposes source-located retracement diagnostics without certifying a
   const result = analyzeRetracementContext({
     m0: { startPrice: 100, endPrice: 110 },
     m1: { startPrice: 110, endPrice: 130 },
-    m2: { startPrice: 130, endPrice: 142.36 }
+    m2: { startPrice: 130, endPrice: 117.64 }
   });
   assert.equal(result.tradable, false);
   assert.equal(result.activation.ruleIds[0], "NW-RET-03");
