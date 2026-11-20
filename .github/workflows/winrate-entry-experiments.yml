@@ -1,0 +1,44 @@
+name: BTCUSDT win-rate research - five new entry filters
+on:
+  push:
+    branches: [main]
+    paths:
+      - "research/winrate-entry-experiments.cjs"
+      - ".github/workflows/winrate-entry-experiments.yml"
+      - "research/winrate-90-five-tests.cjs"
+      - "engine/market_transition_research.ts"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: winrate-entry-experiments
+  cancel-in-progress: false
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install pinned TypeScript compiler
+        run: npm install --no-save --no-package-lock typescript@5.8.3
+      - name: Compile research engine
+        run: npx tsc engine/market_transition_research.ts --target ES2022 --module commonjs --outDir dist --skipLibCheck --strict
+      - name: Run existing execution-model regression tests
+        run: node --test research/winrate-90-five-tests.test.cjs
+      - name: Download Binance Spot daily history
+        run: node dist/market_transition_research.js --download --data data/BTCUSDT-1d.csv --output research/results/market-transition-35-node.json
+      - name: Run five new entry-filter experiments
+        run: node research/winrate-entry-experiments.cjs data/BTCUSDT-1d.csv
+      - name: Archive reproducible data and results
+        uses: actions/upload-artifact@v4
+        with:
+          name: winrate-entry-five-experiments
+          path: |
+            data/BTCUSDT-1d.csv
+            research/results/winrate-entry-experiments.json
+            research/results/winrate-entry-experiments.md
+          retention-days: 90
