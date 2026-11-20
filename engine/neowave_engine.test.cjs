@@ -19,6 +19,7 @@ const {
   createHypothesisRevision,
   evaluateStage1Confirmation,
   evaluateStage2Confirmation,
+  evaluateTruncatedFifthFollowThrough,
   evaluateFiveSectionGuidelines,
   timeCoverageRatio: engineTimeCoverageRatio,
   priceCoverageRatio: enginePriceCoverageRatio,
@@ -371,6 +372,41 @@ test("Chapter 6 stage two requires causal timestamps for full confirmation", () 
   });
   assert.equal(future.status, "indeterminate");
   assert.equal(future.overallPatternConfirmed, false);
+});
+
+test("Chapter 6 truncated fifth requires strong countertrend follow-through and full retracement", () => {
+  const base = {
+    pattern: { from: { price: 0 }, to: { price: 170 } },
+    wave4: { from: { price: 180 }, to: { price: 150 } },
+    wave5: { from: { price: 150 }, to: { price: 170 } },
+    postPatternMove: { from: { price: 170 }, to: { price: 0 } },
+    countertrendFollowThrough: true,
+    newExtremeBeforeFullRetracement: false
+  };
+  const pass = evaluateTruncatedFifthFollowThrough(base);
+  assert.equal(pass.status, "stage2_truncated_fifth_pass");
+  assert.equal(pass.confirmed, true);
+  assert.equal(pass.wave5Coverage, 20);
+  assert.equal(pass.wave4Coverage, 30);
+
+  const pending = evaluateTruncatedFifthFollowThrough({
+    ...base,
+    postPatternMove: { from: { price: 170 }, to: { price: 100 } }
+  });
+  assert.equal(pending.status, "stage2_pending");
+
+  const fail = evaluateTruncatedFifthFollowThrough({
+    ...base,
+    postPatternMove: { from: { price: 170 }, to: { price: 100 } },
+    newExtremeBeforeFullRetracement: true
+  });
+  assert.equal(fail.status, "stage2_truncated_fifth_fail");
+
+  const qualitativeUnknown = evaluateTruncatedFifthFollowThrough({
+    ...base,
+    countertrendFollowThrough: false
+  });
+  assert.equal(qualitativeUnknown.status, "indeterminate");
 });
 
 test("Chapter 6 stage two rejects invalid wave directions and non-boolean completion", () => {
