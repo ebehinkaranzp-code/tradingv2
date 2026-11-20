@@ -27,7 +27,7 @@ jobs:
       - name: Test timeframe alignment and statistical helpers
         run: node --test research/btcusdt-mtf-20-experiments.test.cjs
       - name: Download Binance Spot history and run 20 MTF experiments
-        run: node research/btcusdt-mtf-20-experiments.cjs --download
+        run: node research/btcusdt-mtf-20-experiments.cjs
       - name: Archive datasets and experiment results
         run: |
           git config user.name "github-actions[bot]"
