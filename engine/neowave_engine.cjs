@@ -357,6 +357,94 @@ function evaluateFiveSectionGuidelines(sections, { structureType } = {}) {
  * This checks the source's minimum/target retracement after stage one. It does
  * not infer the extended wave or determine when a correction is complete.
  */
+/**
+ * Chapter 6 truncated-fifth follow-through check.
+ * The source describes a fifth wave shorter than wave 4, followed by a strong
+ * countertrend move and no new trend extreme before the whole impulse retraces.
+ * "Strong" is qualitative in the source, so the caller must explicitly attest it.
+ */
+function evaluateTruncatedFifthFollowThrough({
+  pattern,
+  wave4,
+  wave5,
+  postPatternMove,
+  countertrendFollowThrough,
+  newExtremeBeforeFullRetracement = false
+} = {}) {
+  const base = {
+    status: "indeterminate",
+    stage: 2,
+    tradable: false,
+    sourceVerified: false,
+    confirmed: false
+  };
+  const validWave = (wave) => wave && Number.isFinite(wave.from?.price) &&
+    Number.isFinite(wave.to?.price) && wave.from.price !== wave.to.price;
+  if (typeof countertrendFollowThrough !== "boolean" ||
+      typeof newExtremeBeforeFullRetracement !== "boolean" ||
+      !validWave(pattern) || !validWave(wave4) || !validWave(wave5) ||
+      !validWave(postPatternMove) ||
+      wave5.from.price !== wave4.to.price || wave5.to.price !== pattern.to.price ||
+      postPatternMove.from.price !== pattern.to.price) {
+    return { ...base, reason: "finite contiguous pattern, wave-4, wave-5 and post-pattern move endpoints plus explicit qualitative follow-through flags are required" };
+  }
+  const patternDirection = pattern.to.price > pattern.from.price ? "up" : "down";
+  const wave4Direction = wave4.to.price > wave4.from.price ? "up" : "down";
+  const wave5Direction = wave5.to.price > wave5.from.price ? "up" : "down";
+  const postDirection = postPatternMove.to.price > postPatternMove.from.price ? "up" : "down";
+  if (wave4Direction === patternDirection || wave5Direction !== patternDirection ||
+      postDirection === patternDirection) {
+    return { ...base, reason: "wave 4 must oppose the impulse, wave 5 must resume it, and the post-pattern move must reverse it" };
+  }
+  const wave4Coverage = Math.abs(wave4.to.price - wave4.from.price);
+  const wave5Coverage = Math.abs(wave5.to.price - wave5.from.price);
+  if (wave5Coverage >= wave4Coverage) {
+    return { ...base, status: "not_applicable", reason: "wave 5 is not shorter than wave 4; truncated-fifth rules do not apply" };
+  }
+  const fullPatternRetraced = patternDirection === "up"
+    ? postPatternMove.to.price <= pattern.from.price
+    : postPatternMove.to.price >= pattern.from.price;
+  if (newExtremeBeforeFullRetracement) {
+    return {
+      ...base,
+      status: "stage2_truncated_fifth_fail",
+      wave4Coverage,
+      wave5Coverage,
+      fullPatternRetraced,
+      reason: "a new trend extreme occurred before the entire impulse was retraced, contrary to the truncated-fifth follow-through rule"
+    };
+  }
+  if (!fullPatternRetraced) {
+    return {
+      ...base,
+      status: "stage2_pending",
+      wave4Coverage,
+      wave5Coverage,
+      fullPatternRetraced: false,
+      reason: "awaiting full retracement of the impulse; the source expects no new trend extreme before this occurs"
+    };
+  }
+  if (!countertrendFollowThrough) {
+    return {
+      ...base,
+      status: "indeterminate",
+      wave4Coverage,
+      wave5Coverage,
+      fullPatternRetraced: true,
+      reason: "the entire impulse retraced, but the source's qualitative strong-countertrend follow-through has not been established"
+    };
+  }
+  return {
+    ...base,
+    status: "stage2_truncated_fifth_pass",
+    confirmed: true,
+    wave4Coverage,
+    wave5Coverage,
+    fullPatternRetraced: true,
+    reason: "wave 5 was shorter than wave 4, a strong countertrend follow-through was attested, and the full impulse retraced without a new trend extreme beforehand"
+  };
+}
+
 function evaluateStage2Confirmation({
   patternType = "impulse",
   stage1Confirmed,
@@ -921,6 +1009,7 @@ module.exports = {
   evaluateFiveSectionGuidelines,
   evaluateStage1Confirmation,
   evaluateStage2Confirmation,
+  evaluateTruncatedFifthFollowThrough,
   createHypothesisRevision,
   validateNeoWaveCandidate,
   analyze,
