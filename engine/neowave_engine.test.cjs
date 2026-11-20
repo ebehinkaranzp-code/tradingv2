@@ -25,6 +25,10 @@ const {
   createHypothesisRevision,
   evaluateStage1Confirmation,
   evaluateStage2Confirmation,
+  evaluateTriangleLongBStage1,
+  evaluateTriangleLongBStage2,
+  evaluateTrianglePatternTypeStage1,
+  evaluateExpandingTriangleNonConfirmation,
   evaluateTruncatedFifthFollowThrough,
   evaluateFiveSectionGuidelines,
   timeCoverageRatio: engineTimeCoverageRatio,
@@ -386,6 +390,59 @@ test("Chapter 6 stage two requires causal timestamps for full confirmation", () 
   });
   assert.equal(future.status, "indeterminate");
   assert.equal(future.overallPatternConfirmed, false);
+});
+
+test("Chapter 6 b-longer-than-a triangle uses c retracement for stage one and 0-B break for stage two", () => {
+  const stage1 = evaluateTriangleLongBStage1({
+    waveCStartTime: 20, waveCEndTime: 30, cRetracedAt: 40
+  });
+  assert.equal(stage1.status, "stage1_timing_pass");
+  assert.equal(stage1.availableAt, 40);
+
+  const stage2 = evaluateTriangleLongBStage2({
+    stage1Confirmed: true,
+    waveCStartTime: 20, waveCEndTime: 30, breakAt: 40
+  });
+  assert.equal(stage2.status, "stage2_timing_pass");
+  assert.equal(stage2.referenceLine, "0-B");
+
+  const late = evaluateTriangleLongBStage2({
+    stage1Confirmed: true,
+    waveCStartTime: 20, waveCEndTime: 30, breakAt: 40.001
+  });
+  assert.equal(late.status, "stage2_timing_fail");
+});
+
+test("Chapter 6 triangle-type stage one uses the 1-3 line within c-wave duration", () => {
+  const result = evaluateTrianglePatternTypeStage1({
+    triangleType: "contracting",
+    waveCStartTime: 20, waveCEndTime: 30, breakAt: 40
+  });
+  assert.equal(result.status, "stage1_timing_pass");
+  assert.equal(result.referenceLine, "1-3");
+  assert.equal(evaluateTrianglePatternTypeStage1({
+    triangleType: "unknown",
+    waveCStartTime: 20, waveCEndTime: 30, breakAt: 40
+  }).status, "indeterminate");
+});
+
+test("Chapter 6 expanding triangle non-confirmation accepts no full retracement or a late retracement", () => {
+  const notRetraced = evaluateExpandingTriangleNonConfirmation({
+    waveCStartTime: 20, waveCEndTime: 30, fullyRetracedC: false
+  });
+  assert.equal(notRetraced.status, "non_confirmation_condition_pass");
+
+  const lateRetracement = evaluateExpandingTriangleNonConfirmation({
+    waveCStartTime: 20, waveCEndTime: 30,
+    fullyRetracedC: true, fullRetracementAt: 41
+  });
+  assert.equal(lateRetracement.status, "non_confirmation_condition_pass");
+
+  const earlyRetracement = evaluateExpandingTriangleNonConfirmation({
+    waveCStartTime: 20, waveCEndTime: 30,
+    fullyRetracedC: true, fullRetracementAt: 40
+  });
+  assert.equal(earlyRetracement.status, "non_confirmation_condition_fail");
 });
 
 test("Chapter 6 truncated fifth requires strong countertrend follow-through and full retracement", () => {
