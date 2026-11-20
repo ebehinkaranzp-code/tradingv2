@@ -115,3 +115,14 @@ test("malformed and non-monotonic OHLC data are rejected", () => {
   assert.throws(() => confirmedPivots([{ time: 1, open: 2, high: 1, low: 0, close: 1 }]));
   assert.throws(() => confirmedPivots([bars[0], bars[0]]));
 });
+
+test("engine exposes source-located retracement diagnostics without certifying a count", () => {
+  const { analyzeRetracementContext } = require("./neowave_engine.cjs");
+  const result = analyzeRetracementContext({
+    m0: { startPrice: 100, endPrice: 110 },
+    m1: { startPrice: 110, endPrice: 130 },
+    m2: { startPrice: 130, endPrice: 142.36 }
+  });
+  assert.equal(result.tradable, false);
+  assert.equal(result.activation.ruleIds[0], "NW-RET-03");
+});
