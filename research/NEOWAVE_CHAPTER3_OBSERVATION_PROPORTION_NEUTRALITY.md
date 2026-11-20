@@ -4,11 +4,15 @@
 
 ## Rules of Observation — monowave endpoints
 
+Source locator: printed Chapter 3 pp. 3-2–3-4 (scan PDF pp. 50–55).
+
 The Chapter 3 opening explains that a chart must be prepared before identifying individual monowaves. It uses the most important low/high as the initial reference, then identifies successive change-of-direction points from the price path. A monowave runs between two successive identified turning points. The book distinguishes the end of one monowave from the start/end of the next and emphasizes that the terminal point is the point at which the market's direction changes, not an arbitrary fixed-window local extreme.
 
 The scan's examples also show why a generic fixed left/right fractal detector cannot be treated as Neely's Rules of Observation. The current engine's symmetric-fractal pivots are therefore explicitly labeled heuristic candidates and are not certified as NeoWave monowaves.
 
 ## Rule of Proportion
+
+Source locator: printed Chapter 3 p. 3-5 (scan PDF p. 55).
 
 The source says chart construction requires selecting both a price scale and a time scale. Their purpose is to make the price/time behavior of the wave pattern observable and comparable. It explicitly cautions that:
 - there is no single independent time unit that is always suitable for analysis;
@@ -19,6 +23,8 @@ The source says chart construction requires selecting both a price scale and a t
 The diagrams show that the same data can appear materially different under different horizontal/vertical scales. Therefore the engine must preserve source time and price units and must not infer a universal bars-per-price-unit threshold from chart pixels or a fixed display ratio.
 
 ## Directional and non-directional movement; Neutrality Rule
+
+Source locators: printed Chapter 3 pp. 3-6–3-13 (scan PDF pp. 56–63).
 
 The source distinguishes directional movement (price movement with a discernible upward/downward direction) from non-directional or neutral movement. A neutral move is not automatically a flat line and cannot be identified by one fixed price threshold alone. Its interpretation depends on surrounding movement and on the selected chart scale. The examples distinguish:
 - neutral movement in relation to preceding/following waves;
