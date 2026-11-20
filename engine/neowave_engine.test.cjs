@@ -8,6 +8,7 @@ const {
   degreeIndex,
   compareDegrees,
   parseStructureLabelList,
+  parseStructureSequenceNotation,
   PRECONSTRUCTIVE_SEEDS,
   getPreconstructiveSeed,
   hypothesesFromPreconstructiveSeed,
@@ -483,6 +484,24 @@ test("Structure Label hypotheses are retained as causal revisions, not overwritt
   assert.equal(second.latest.asOfIndex, 14);
   assert.equal(second.latest.candidates[0].status, "supported");
   assert.equal(second.latest.candidates[0].availableAt, 14);
+});
+
+test("Chapter 3 sequence notation separates standard patterns with X-wave connectors", () => {
+  const result = parseStructureSequenceNotation("5-3-5 ++ 3-3-5");
+  assert.equal(result.status, "parsed_sequence_notation");
+  assert.deepEqual(result.patterns.map((pattern) => pattern.labels), [
+    ["5", "3", "5"],
+    ["3", "3", "5"]
+  ]);
+  assert.deepEqual(result.connectors, [{
+    type: "X-wave", afterPattern: 0, beforePattern: 1
+  }]);
+});
+
+test("Chapter 3 sequence notation rejects missing labels and trailing separators", () => {
+  for (const notation of ["++ 5-3", "5-3 ++", "5--3", "5-"]) {
+    assert.equal(parseStructureSequenceNotation(notation).status, "indeterminate", notation);
+  }
 });
 
 test("Structure Label notation preserves primary and wrapped alternatives", () => {
