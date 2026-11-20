@@ -189,29 +189,32 @@ function analyzeRetracementContext({ m0, m1, m2, m3 } = {}) {
     const ruleNumber = Number(ruleId.slice(-2));
     const m0m1 = priceCoverageRatio(m0, m1);
     const condition = m0m1.status === "measured"
-      ? classifyCondition(ruleNumber, m0m1.value)
-      : { status: "indeterminate", condition: null, reason: m0m1.reason };
+      ? { ...classifyCondition(ruleNumber, m0m1.value), availableAt: m0m1.availableAt, causalAvailabilityVerified: m0m1.causalAvailabilityVerified }
+      : { status: "indeterminate", condition: null, reason: m0m1.reason, availableAt: null, causalAvailabilityVerified: false };
     let category = null;
     if (ruleNumber === 4) {
       const m3m2 = priceCoverageRatio(m3, m2);
       category = m3m2.status === "measured"
-        ? classifyRule4Category(m3m2.value)
-        : { status: "indeterminate", category: null, reason: m3m2.reason };
+        ? { ...classifyRule4Category(m3m2.value), availableAt: m3m2.availableAt, causalAvailabilityVerified: m3m2.causalAvailabilityVerified }
+        : { status: "indeterminate", category: null, reason: m3m2.reason, availableAt: null, causalAvailabilityVerified: false };
     }
     return { ruleId, m0OverM1Percent: m0m1.value, condition, category };
   });
   return {
     status: activation.status === "ambiguous_source_tolerance" ? activation.status
-      : candidates.every(x => x.condition.status === "classified_condition_only") ? "activation_and_condition_measured"
-      : "partially_measured",
+      : candidates.every(x => x.condition.status === "classified_condition_only" &&
+        (x.ruleId !== "NW-RET-04" || x.category?.status === "classified_category_only"))
+        ? "activation_and_condition_measured" : "partially_measured",
     tradable: false,
     m2OverM1Percent: m2m1.value,
     activation,
     candidates,
-    availableAt: [m2m1, ...candidates.map(x => ({ availableAt: x.condition?.availableAt, causalAvailabilityVerified: x.condition?.causalAvailabilityVerified }))]
+    availableAt: [m2m1, ...candidates.flatMap(x => [x.condition, x.category].filter(Boolean))]
       .every(x => Number.isFinite(x.availableAt))
-      ? Math.max(m2m1.availableAt, ...candidates.map(x => x.condition.availableAt)) : null,
-    causalAvailabilityVerified: Number.isFinite(m2m1.availableAt) && candidates.every(x => x.condition?.causalAvailabilityVerified === true),
+      ? Math.max(m2m1.availableAt, ...candidates.flatMap(x => [x.condition, x.category].filter(Boolean).map(y => y.availableAt))) : null,
+    causalAvailabilityVerified: Number.isFinite(m2m1.availableAt) &&
+      candidates.every(x => x.condition?.causalAvailabilityVerified === true &&
+        (x.ruleId !== "NW-RET-04" || x.category?.causalAvailabilityVerified === true)),
     source: SOURCE,
     disclaimer: "These measurements only identify retracement-rule activation and letter/category identifiers. They do not implement the Pre-Constructive Structure Label decision tree, pattern construction, completion, confirmation, invalidation, or recount."
   };
