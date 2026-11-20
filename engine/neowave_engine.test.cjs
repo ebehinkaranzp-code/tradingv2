@@ -248,6 +248,20 @@ test("Structure Label hypotheses are retained as causal revisions, not overwritt
   assert.equal(second.latest.candidates[0].availableAt, 14);
 });
 
+test("hypothesis with no evaluated conditions remains conditional", () => {
+  const result = createHypothesisRevision({
+    asOfIndex: 3,
+    candidates: [{
+      label: "F3",
+      rank: "primary",
+      source: { document: "Mastering Elliott Wave", locator: "Chapter 3" },
+      evidence: [{ id: "m1", availableAt: 3 }],
+      conditions: []
+    }]
+  });
+  assert.equal(result.latest.candidates[0].status, "conditional");
+});
+
 test("hypothesis ledger rejects future evidence and non-advancing revisions", () => {
   const candidate = {
     label: "Z",
