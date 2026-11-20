@@ -31,7 +31,7 @@
    <div class="chartfoot"><span id="chartStatus">Loading exchange candles…</span><span id="volumeInfo">VOL —</span><span>Drag to pan · Wheel to zoom · Crosshair for OHLC</span></div>
   </section>
   <section class="lower">
-   <div class="tabs" id="lowerTabs"><button class="active" data-tab="overview">OVERVIEW</button><button data-tab="footprint">FOOTPRINT</button><button data-tab="profile">MARKET PROFILE</button><button data-tab="strategy">STRATEGIES</button><button data-tab="journal">JOURNAL</button><button data-tab="paper">PAPER</button></div>
+   <div class="tabs" id="lowerTabs"><button class="active" data-tab="overview">OVERVIEW</button><button data-tab="confluence">RSI · STOCH · ALLIGATOR</button><button data-tab="footprint">FOOTPRINT</button><button data-tab="profile">MARKET PROFILE</button><button data-tab="strategy">STRATEGIES</button><button data-tab="journal">JOURNAL</button><button data-tab="paper">PAPER</button></div>
    <div class="tabbody" id="tabBody">
     <div class="strategycard"><h3>MARKET STRUCTURE</h3><p>Live candles are loaded directly from Binance public market-data endpoints. Quattro Donchian v2 and TSMOM remain separate research engines; no signal is fabricated from missing data.</p></div>
     <div class="kv"><span>Data venue</span><b>Binance Spot</b></div><div class="kv"><span>Closed candles loaded</span><b id="barCount">—</b></div><div class="kv"><span>Last update</span><b id="lastUpdate">—</b></div>
@@ -100,7 +100,8 @@ $('drawLine').onclick=()=>{drawingMode=!drawingMode;$('drawLine').classList.togg
 $('clearDrawings').onclick=()=>{drawings=drawings.filter(d=>d.symbol!==symbol||d.tf!==tf);localStorage.setItem('tv2_drawings',JSON.stringify(drawings));draw()};
 canvas.addEventListener('pointerleave',()=>{if(!drag){cross=null;draw()}});
 canvas.addEventListener('wheel',e=>{e.preventDefault();const old=visible;visible=Math.max(25,Math.min(350,visible+(e.deltaY>0?12:-12)));if(old!==visible){offset=Math.min(offset,Math.max(0,bars.length-visible));draw()}},{passive:false});
-document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',async()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));const tab=b.dataset.tab;if(tab==='footprint'){await loadAggTrades()}const content={
+document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',async()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));const tab=b.dataset.tab;if(tab==='footprint'){await loadAggTrades()}if(tab==='confluence'){await renderConfluence()}const content={
+confluence:renderConfluencePanel(),
 overview:'<div class="strategycard"><h3>MARKET STRUCTURE</h3><p>Real exchange candles are displayed above. Select a panel to inspect the independent analysis modules.</p></div><div class="kv"><span>Closed candles loaded</span><b>'+bars.length+'</b></div><div class="kv"><span>Venue / market</span><b>Binance Spot</b></div><div class="kv"><span>Chart interval</span><b>'+tf+'</b></div>',
 footprint:renderFootprint(),
 profile:renderProfile(),
@@ -117,6 +118,67 @@ function paperTrade(side){const price=bars[bars.length-1]?.close||0,qty=+$('pape
 function bindPaper(){if($('paperBuy'))$('paperBuy').onclick=()=>paperTrade('BUY');if($('paperSell'))$('paperSell').onclick=()=>paperTrade('SELL');if($('paperReset'))$('paperReset').onclick=()=>{if(confirm('Reset virtual account and simulated trade history?')){paper={cash:100000,qty:0,avg:0,realized:0,trades:[]};persistPaper();$('tabBody').innerHTML=renderPaper();bindPaper()}}}
 function renderJournal(){return '<div class="strategycard"><h3>LOCAL RESEARCH JOURNAL</h3><p>Notes are stored in this browser only and are not sent to an exchange.</p></div><textarea id="journalNote" rows="4" style="width:100%;background:#0d140f;border:1px solid #354437;color:#e5eee7;padding:9px;border-radius:5px" placeholder="Record market structure, thesis, invalidation and observations…">'+(localStorage.getItem('tv2_journal')||'')+'</textarea><button id="saveJournal" style="margin-top:8px">SAVE NOTE</button><div class="kv"><span>Saved locally</span><b id="journalSaved">'+(localStorage.getItem('tv2_journal')?'YES':'NO')+'</b></div>'}
 function checkAlerts(){const p=bars[bars.length-1]?.close;if(!p)return;alerts.forEach(a=>{if(!a.hit&&((a.direction==='above'&&p>=a.price)||(a.direction==='below'&&p<=a.price))){a.hit=true;alert(symbol+' crossed '+fmt(a.price));}});localStorage.setItem('tv2_alerts',JSON.stringify(alerts))}
+
+const STRATEGY_TFS=['15m','1h','4h','1d'];
+let confluenceRows=[],confluenceBusy=false,confluenceError='';
+function rsiSeries(values,period=14){
+ const out=Array(values.length).fill(null);if(values.length<=period)return out;
+ let gain=0,loss=0;for(let i=1;i<=period;i++){const d=values[i]-values[i-1];gain+=Math.max(0,d);loss+=Math.max(0,-d)}
+ let ag=gain/period,al=loss/period;out[period]=al===0?100:100-100/(1+ag/al);
+ for(let i=period+1;i<values.length;i++){const d=values[i]-values[i-1];ag=(ag*(period-1)+Math.max(0,d))/period;al=(al*(period-1)+Math.max(0,-d))/period;out[i]=al===0?100:100-100/(1+ag/al)}
+ return out;
+}
+function smaSeries(values,period){const out=Array(values.length).fill(null);for(let i=period-1;i<values.length;i++){let sum=0,ok=true;for(let j=i-period+1;j<=i;j++){if(values[j]===null||!Number.isFinite(values[j])){ok=false;break}sum+=values[j]}if(ok)out[i]=sum/period}return out}
+function stochSeries(rows,period=14,smoothK=3,smoothD=3){
+ const raw=Array(rows.length).fill(null);for(let i=period-1;i<rows.length;i++){let hi=-Infinity,lo=Infinity;for(let j=i-period+1;j<=i;j++){hi=Math.max(hi,rows[j].high);lo=Math.min(lo,rows[j].low)}raw[i]=hi===lo?50:100*(rows[i].close-lo)/(hi-lo)}
+ const k=smaSeries(raw,smoothK),d=smaSeries(k,smoothD);return {k,d};
+}
+function smmaSeries(values,period){const out=Array(values.length).fill(null);if(values.length<period)return out;let seed=0;for(let i=0;i<period;i++)seed+=values[i];let v=seed/period;out[period-1]=v;for(let i=period;i<values.length;i++){v=(v*(period-1)+values[i])/period;out[i]=v}return out}
+function evaluateRsa(rows){
+ const closed=rows.filter(x=>x.closeTime<Date.now());if(closed.length<80)return {tf:'',state:'INSUFFICIENT',score:0,reason:'حداقل ۸۰ کندل بسته‌شده لازم است',count:closed.length};
+ const c=closed.map(x=>x.close),r=rsiSeries(c,14),st=stochSeries(closed,14,3,3);
+ const median=closed.map(x=>(x.high+x.low)/2),jaw=smmaSeries(median,13),teeth=smmaSeries(median,8),lips=smmaSeries(median,5);
+ const i=closed.length-1,p=i-1;
+ const vals=[r[i],r[p],st.k[i],st.k[p],st.d[i],st.d[p],jaw[i],teeth[i],lips[i]];
+ if(vals.some(x=>x===null||!Number.isFinite(x)))return {state:'INSUFFICIENT',score:0,reason:'داده کافی برای محاسبه اندیکاتورها وجود ندارد',count:closed.length};
+ const bull=[r[i]>50&&r[i]>r[p],st.k[i]>st.d[i]&&(st.k[p]<=st.d[p]||st.k[i]<50),lips[i]>teeth[i]&&teeth[i]>jaw[i]&&c[i]>lips[i]];
+ const bear=[r[i]<50&&r[i]<r[p],st.k[i]<st.d[i]&&(st.k[p]>=st.d[p]||st.k[i]>50),lips[i]<teeth[i]&&teeth[i]<jaw[i]&&c[i]<lips[i]];
+ const bs=bull.filter(Boolean).length,ss=bear.filter(Boolean).length;
+ const state=bs>=2&&bs>ss?'BUY':ss>=2&&ss>bs?'SELL':'WAIT';
+ const reasons=[
+  'RSI '+r[i].toFixed(1)+(bull[0]?' صعودی':bear[0]?' نزولی':' خنثی'),
+  'Stoch K/D '+st.k[i].toFixed(1)+' / '+st.d[i].toFixed(1)+(bull[1]?' تقاطع/چیدمان صعودی':bear[1]?' تقاطع/چیدمان نزولی':' بدون تأیید'),
+  'Alligator '+(bull[2]?'مرتب‌سازی صعودی':bear[2]?'مرتب‌سازی نزولی':'بدون روند همسو')
+ ];
+ return {state,score:Math.max(bs,ss),bull:bs,bear:ss,rsi:r[i],k:st.k[i],d:st.d[i],close:c[i],reasons,count:closed.length,time:closed[i].time};
+}
+async function loadConfluence(){
+ confluenceBusy=true;confluenceError='';confluenceRows=[];
+ try{
+  const results=await Promise.all(STRATEGY_TFS.map(async interval=>{
+   const raw=await get('/klines?symbol='+symbol+'&interval='+interval+'&limit=500');
+   const rows=raw.map(normalize);const result=evaluateRsa(rows);result.tf=interval;return result;
+  }));
+  confluenceRows=results;
+ }catch(e){confluenceError='دریافت داده بازار ناموفق بود: '+e.message}
+ finally{confluenceBusy=false}
+}
+function renderConfluencePanel(){
+ if(confluenceBusy)return '<div class="notice">در حال دریافت کندل‌های واقعی و محاسبه اندیکاتورها…</div>';
+ if(confluenceError)return '<div class="notice">'+confluenceError+'</div>';
+ if(!confluenceRows.length)return '<div class="empty">برای شروع تحلیل، این پنل را باز کن.</div>';
+ const label=s=>s==='BUY'?'خرید':s==='SELL'?'فروش':s==='INSUFFICIENT'?'داده ناکافی':'انتظار';
+ const cls=s=>s==='BUY'?'positive':s==='SELL'?'negative':'';
+ return '<div class="strategycard"><h3>RSI + STOCHASTIC + WILLIAMS ALLIGATOR</h3><p>تحلیل ترکیبی روی کندل‌های بسته‌شده Binance Spot. هر تایم‌فریم مستقل محاسبه می‌شود؛ این خروجی توصیه مالی یا اجرای سفارش نیست.</p></div>'+
+ '<div class="kv"><span>نماد / بازار</span><b>'+symbol+' · Binance Spot</b></div>'+
+ '<div class="kv"><span>قواعد پیش‌فرض</span><b>RSI 14 · Stoch 14,3,3 · Alligator 13/8/5</b></div>'+
+ '<table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="color:#8b998e;text-align:right"><th>تایم‌فریم</th><th>وضعیت</th><th>امتیاز</th><th>RSI</th><th>Stoch K/D</th><th>کندل بسته</th></tr></thead><tbody>'+
+ confluenceRows.map(x=>'<tr style="border-top:1px solid #29332b"><td style="padding:8px">'+x.tf+'</td><td class="'+cls(x.state)+'">'+label(x.state)+'</td><td>'+x.score+'/3</td><td>'+(x.rsi==null?'—':x.rsi.toFixed(1))+'</td><td>'+(x.k==null?'—':x.k.toFixed(1)+' / '+x.d.toFixed(1))+'</td><td>'+(x.count||0)+'</td></tr>').join('')+
+ '</tbody></table>'+confluenceRows.map(x=>'<div class="strategycard"><h3>'+x.tf+' · '+label(x.state)+'</h3><p>'+(x.reasons||[x.reason||'']).join(' · ')+'</p></div>').join('')+
+ '<button id="refreshConfluence">به‌روزرسانی تحلیل</button><div class="sub" style="margin-top:8px">امتیاز ۲ از ۳ به معنی هم‌جهتی حداقل دو مؤلفه است؛ سیگنال قطعی یا تضمین سود نیست. محاسبه واگرایی و بک‌تست هنوز در این نسخه فعال نشده‌اند.</div>';
+}
+async function renderConfluence(){await loadConfluence();$('tabBody').innerHTML=renderConfluencePanel();if($('refreshConfluence'))$('refreshConfluence').onclick=renderConfluence}
+
 function clock(){$('clock').textContent=new Date().toISOString().slice(11,19)+' UTC'}
 if('ResizeObserver'in window){resizeObs=new ResizeObserver(draw);resizeObs.observe(canvas)}
 loadBars().then(()=>{connect();updateBook();updateTape()});updateTicker();setInterval(updateTicker,15000);setInterval(updateBook,5000);setInterval(updateTape,4000);setInterval(clock,1000);clock();
