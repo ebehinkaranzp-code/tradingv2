@@ -817,6 +817,29 @@ function describeStructureLabel(label) {
     : { status: "unclassified_label", label: key, semantics: null };
 }
 
+function detectPatternBoundaryMarkers(labels) {
+  if (!Array.isArray(labels) || !labels.length || labels.some((label) => typeof label !== "string")) {
+    return { status: "indeterminate", boundaries: [], reason: "a non-empty array of Structure Labels is required" };
+  }
+  const boundaries = [];
+  labels.forEach((label, index) => {
+    const semantics = describeStructureLabel(label).semantics;
+    if (semantics && ["last_in_pattern", "special_last_three"].includes(semantics.position)) {
+      boundaries.push({
+        index,
+        label,
+        boundaryType: semantics.position === "special_last_three"
+          ? "special_corrective_pattern_end" : semantics.waveForm + "_pattern_end"
+      });
+    }
+  });
+  return {
+    status: boundaries.length ? "boundary_markers_found" : "no_boundary_marker",
+    boundaries,
+    sourceVerified: false
+  };
+}
+
 function parseStructureLabelList(sourceNotation) {
   if (typeof sourceNotation !== "string" || !sourceNotation.trim()) {
     return { status: "indeterminate", candidates: [], reason: "a non-empty source notation is required" };
@@ -1176,6 +1199,7 @@ module.exports = {
   assessXWaveDegreeRelation,
   STRUCTURE_LABEL_SEMANTICS,
   describeStructureLabel,
+  detectPatternBoundaryMarkers,
   parseStructureLabelList,
   parseStructureSequenceNotation,
   PRECONSTRUCTIVE_SEEDS,
