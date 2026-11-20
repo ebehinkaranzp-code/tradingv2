@@ -18,6 +18,7 @@ assert.match(html, /TRADINGVIEW/);
 assert.match(source, /function validBar\(b\)/);
 assert.match(source, /function escapeHtml\(value\)/);
 assert.match(source, /function scheduleReconnect\(generation\)/);
+assert.match(source, /function websocketIsStale\(readyState,lastMessage/);
 assert.match(source, /async function refreshBars\(\)/);
 assert.match(source, /function closedBarCount\(\)/);
 assert.match(source, /REST FALLBACK/);
@@ -210,4 +211,15 @@ test('malformed or non-array local browser state safely falls back to an empty a
     localStorage: {getItem: () => '[null,"invalid",{"id":1}]'}
   });
   assert.equal(Array.from(mixed('drawings')).length, 1);
+});
+
+test('stale open WebSocket is detected while healthy and closed sockets are not', () => {
+  const start = source.indexOf('function websocketIsStale(');
+  const end = source.indexOf('\\nasync function refreshBars', start);
+  assert.ok(start >= 0 && end > start, 'WebSocket staleness helper missing');
+  const isStale = vm.runInNewContext(source.slice(start, end) + '; websocketIsStale');
+  assert.equal(isStale(1, 1000, 46001, 1), true);
+  assert.equal(isStale(1, 1000, 46000, 1), false);
+  assert.equal(isStale(3, 1000, 90000, 1), false);
+  assert.equal(isStale(1, 50000, 1000, 1), false);
 });
