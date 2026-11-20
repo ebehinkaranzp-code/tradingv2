@@ -313,6 +313,8 @@ test("retracement analysis attaches only available partial Structure Label seeds
   assert.equal(result.candidates[0].structureLabelSeed.ruleNumber, 3);
   assert.deepEqual(result.candidates[0].structureLabelSeed.labels.map((x) => x.label),
     ["F3", "c3", "s5", "5", "sL3", "L5"]);
+  assert.equal(result.candidates[0].structureLabelHypotheses.status, "candidate_hypotheses");
+  assert.ok(result.candidates[0].structureLabelHypotheses.candidates.every((x) => x.rank === "conditional"));
 });
 
 test("Rule 1:a and Rule 2:a source seeds attach to matching measured contexts", () => {
