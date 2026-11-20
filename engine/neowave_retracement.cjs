@@ -12,6 +12,8 @@ const SOURCE = Object.freeze({
   tolerance: "Chapter 3, printed p. 3-33; scan PDF p. 40"
 });
 
+const EPSILON = 1e-9;
+
 const FIB = Object.freeze({
   RATIO_38_2: 38.2,
   RATIO_61_8: 61.8,
@@ -114,8 +116,11 @@ function priceCoverageRatio(numeratorWave, denominatorWave) {
 }
 
 function inBand(value, band) {
-  return (value > band.min || (band.minInclusive && value === band.min)) &&
-    (value < band.max || (band.maxInclusive && value === band.max));
+  const aboveMin = value > band.min + EPSILON ||
+    (band.minInclusive && Math.abs(value - band.min) <= EPSILON);
+  const belowMax = value < band.max - EPSILON ||
+    (band.maxInclusive && Math.abs(value - band.max) <= EPSILON);
+  return aboveMin && belowMax;
 }
 
 function classifyRetracementActivation(m2OverM1Percent) {
@@ -124,19 +129,20 @@ function classifyRetracementActivation(m2OverM1Percent) {
   }
 
   const v = m2OverM1Percent;
-  const baseline = v < 38.2 ? 1
-    : v < 61.8 ? 2
-    : v === 61.8 ? 3
-    : v < 100 ? 4
-    : v < 161.8 ? 5
-    : v <= 261.8 ? 6 : 7;
+  const at618 = Math.abs(v - 61.8) <= EPSILON;
+  const baseline = v < 38.2 - EPSILON ? 1
+    : v < 61.8 - EPSILON ? 2
+    : at618 ? 3
+    : v < 100 - EPSILON ? 4
+    : v < 161.8 - EPSILON ? 5
+    : v <= 261.8 + EPSILON ? 6 : 7;
 
   // Rule 3 is called exactly 61.8% in the activation table, but the following
   // logic section gives 58–66% as an example tolerance. Do not silently choose
   // one interpretation: surface both the nominal band and Rule-3 ambiguity.
   const inRule3Tolerance = v >= FIB.RULE_3_TOLERANCE_LOW &&
     v <= FIB.RULE_3_TOLERANCE_HIGH;
-  if (inRule3Tolerance && v !== 61.8) {
+  if (inRule3Tolerance && !at618) {
     const ids = [baseline, 3].map(n => "NW-RET-" + String(n).padStart(2, "0"));
     return {
       status: "ambiguous_source_tolerance",
@@ -162,8 +168,8 @@ function classifyCondition(ruleNumber, m0OverM1Percent) {
   // Rule 3's prose and summary diagram disagree: the prose gives 261.8%,
   // while the diagram labels 2.168 (216.8%). Do not silently select either.
   if (ruleNumber === 3 &&
-      m0OverM1Percent > FIB.RULE_3_CONDITION_DIAGRAM_BOUNDARY &&
-      m0OverM1Percent <= FIB.RULE_3_CONDITION_TEXT_BOUNDARY) {
+      m0OverM1Percent > FIB.RULE_3_CONDITION_DIAGRAM_BOUNDARY + EPSILON &&
+      m0OverM1Percent <= FIB.RULE_3_CONDITION_TEXT_BOUNDARY + EPSILON) {
     return {
       status: "indeterminate",
       condition: null,
@@ -189,9 +195,9 @@ function classifyRule4Category(m3OverM2Percent) {
     return { status: "indeterminate", category: null, reason: "finite non-negative m3/m2 percentage is required" };
   }
   const v = m3OverM2Percent;
-  if (v >= 100 && v < 161.8) return { status: "classified_category_only", category: "i", source: SOURCE };
-  if (v >= 161.8 && v <= 261.8) return { status: "classified_category_only", category: "ii", source: SOURCE };
-  if (v > 261.8) return { status: "classified_category_only", category: "iii", source: SOURCE };
+  if (v >= 100 - EPSILON && v < 161.8 - EPSILON) return { status: "classified_category_only", category: "i", source: SOURCE };
+  if (v >= 161.8 - EPSILON && v <= 261.8 + EPSILON) return { status: "classified_category_only", category: "ii", source: SOURCE };
+  if (v > 261.8 + EPSILON) return { status: "classified_category_only", category: "iii", source: SOURCE };
   return { status: "indeterminate", category: null, reason: "the extracted Rule 4 category map starts at 100%; below 100% is not defined in the current source note" };
 }
 
