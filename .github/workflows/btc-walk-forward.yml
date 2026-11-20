@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - "engine/research_btc.py"
+      - "engine/test_research_btc.py"
       - "engine/download_binance_history.py"
       - ".github/workflows/btc-walk-forward.yml"
   workflow_dispatch:
