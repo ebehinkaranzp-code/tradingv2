@@ -21,7 +21,7 @@ test("rejects wave 2 beyond wave 1 origin", () => {
   assert.equal(validateImpulse(p).reason,"wave2_exceeds_origin_of_wave1");
 });
 test("rejects wave 3 as the shortest motive wave", () => {
-  const p=bull.map(x=>({...x})); p[3].price=122; p[5].price=160;
+  const p=bull.map(x=>({...x})); p[3].price=125; p[4].price=123; p[5].price=145;
   assert.equal(validateImpulse(p).reason,"wave3_is_shortest");
 });
 test("rejects wave 4 overlap in a standard impulse", () => {
