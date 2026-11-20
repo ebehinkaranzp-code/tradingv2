@@ -35,7 +35,11 @@ function completeDefinitions({ applies = () => ({ status: "not_applicable", reas
 test("confirmed pivots are timestamped only after right-side confirmation", () => {
   const pivots = confirmedPivots(bars, { left: 1, right: 2 });
   assert.ok(pivots.length > 0);
-  for (const pivot of pivots) assert.equal(pivot.confirmedAt - pivot.index, 2);
+  for (const pivot of pivots) {
+    assert.equal(pivot.confirmedAt - pivot.index, 2);
+    assert.equal(pivot.method, "symmetric_fractal_candidate");
+    assert.equal(pivot.sourceVerified, false);
+  }
 });
 
 test("OHLC bars with both local extremes do not create invented intrabar pivot order", () => {
@@ -251,7 +255,10 @@ test("unknown applicability and failed rules cannot bypass the production block"
 test("analysis never labels the scaffold as a tradable NeoWave count", () => {
   const result = analyze(bars, { left: 1, right: 2 });
   assert.equal(result.neoWaveGate.tradable, false);
-  assert.match(result.disclaimer, /not a complete NeoWave count/);
+  assert.equal(result.sourceObservationRulesApplied, false);
+  assert.equal(result.patternStatus, "not_evaluated");
+  assert.match(result.pivotMethod, /not_Neely_Rules_of_Observation/);
+  assert.match(result.disclaimer, /heuristic candidates/);
 });
 
 test("malformed and non-monotonic OHLC data are rejected", () => {
