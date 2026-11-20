@@ -15,6 +15,7 @@ const {
   parseStructureLabelList,
   parseStructureSequenceNotation,
   analyzeStructureSequenceNotation,
+  aggregatePolywaveCandidate,
   PRECONSTRUCTIVE_SEEDS,
   getPreconstructiveSeed,
   hypothesesFromPreconstructiveSeed,
@@ -596,6 +597,46 @@ test("Chapter 3 sequence parser blocks c3 at series start/end and x:c3 outside +
   assert.equal(parseStructureSequenceNotation("F3-c3", { completeSeries: true }).status, "indeterminate");
   assert.equal(parseStructureSequenceNotation("F3-x:c3-5").status, "indeterminate");
   assert.equal(parseStructureSequenceNotation("F3 ++ x:c3").status, "indeterminate");
+});
+
+test("Polywave candidate aggregation enforces continuity, causal availability and X-wave degree", () => {
+  const patterns = [
+    {
+      from: { index: 0, price: 100 }, to: { index: 5, price: 150 },
+      degree: "Cycle", availableAt: 6
+    },
+    {
+      from: { index: 10, price: 140 }, to: { index: 15, price: 190 },
+      degree: "Cycle", availableAt: 16
+    }
+  ];
+  const xWaves = [{
+    from: { index: 5, price: 150 }, to: { index: 10, price: 140 },
+    degree: "Primary", availableAt: 11
+  }];
+  const result = aggregatePolywaveCandidate({ patterns, xWaves, asOfIndex: 20 });
+  assert.equal(result.status, "candidate_polywave");
+  assert.equal(result.xWaveCount, 1);
+  assert.equal(result.priceCoverage, 90);
+  assert.equal(result.duration, 15);
+  assert.equal(result.availableAt, 16);
+  assert.equal(result.causalAvailabilityVerified, true);
+  assert.equal(result.degreeDiagnostics[0].status, "consistent");
+  assert.equal(result.tradable, false);
+
+  const broken = aggregatePolywaveCandidate({
+    patterns,
+    xWaves: [{ ...xWaves[0], to: { index: 10, price: 141 } }],
+    asOfIndex: 20
+  });
+  assert.equal(broken.status, "indeterminate");
+
+  const future = aggregatePolywaveCandidate({
+    patterns,
+    xWaves: [{ ...xWaves[0], availableAt: 21 }],
+    asOfIndex: 20
+  });
+  assert.equal(future.status, "indeterminate");
 });
 
 test("Structure sequence analyzer returns provisional polywave candidates with explicit connectors", () => {
