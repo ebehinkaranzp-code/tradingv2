@@ -340,6 +340,25 @@ test("Chapter 6 stage two applies the 61.8-to-less-than-100 percent rule to exte
   assert.equal(fullRetrace.status, "stage2_price_retracement_fail");
 });
 
+test("Chapter 6 stage two rejects invalid wave directions and non-boolean completion", () => {
+  const base = {
+    stage1Confirmed: true,
+    extendedWave: 5,
+    pattern: { from: { price: 0 }, to: { price: 200 } },
+    wave4: { from: { price: 150 }, to: { price: 180 } },
+    wave5: { from: { price: 180 }, to: { price: 200 } },
+    correction: { from: { price: 200 }, to: { price: 130 } },
+    correctionComplete: true
+  };
+  assert.equal(evaluateStage2Confirmation(base).status, "indeterminate");
+  assert.equal(evaluateStage2Confirmation({
+    ...base,
+    wave4: { from: { price: 180 }, to: { price: 150 } },
+    wave5: { from: { price: 150 }, to: { price: 200 } },
+    correctionComplete: "yes"
+  }).status, "indeterminate");
+});
+
 test("Chapter 6 stage two requires contiguous impulse endpoints", () => {
   const result = evaluateStage2Confirmation({
     stage1Confirmed: true,
