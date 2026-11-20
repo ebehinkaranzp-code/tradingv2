@@ -145,3 +145,8 @@ The following heading-level candidate lists have been visually transcribed from 
 | 3:a | `{F3/c3/s5/5/(sL3)/[L5]}` | 106 |
 
 The parser preserves unwrapped labels as primary candidates and wrapped labels as alternatives. These seeds do **not** include the full condition predicates, subsequent-wave tests, or all other Rule/Condition combinations. They are not enough to emit a valid Structure Label or certify a count; all other combinations return indeterminate.
+
+
+## Directional sequence checks
+
+The retracement diagrams define m2 as a move opposite to m1. Rule 4's m3 follows m2 and moves opposite to it when measuring the next leg. The executable context analyzer now refuses to classify a same-direction m2/m1 pair and leaves Rule 4's category indeterminate unless m3 is measurable and reverses m2. These checks prevent magnitude-only ratios from being mislabeled as retracements.
