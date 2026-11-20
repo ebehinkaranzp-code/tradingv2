@@ -76,12 +76,12 @@ function confirmedPivots(bars, { left = 3, right = 3 } = {}) {
     if (isHigh) {
       events.push({
         index: p, confirmedAt: p + right, time: bars[p].time,
-        price: bars[p].high, type: "H"
+        price: bars[p].high, type: "H", method: "symmetric_fractal_candidate", sourceVerified: false
       });
     } else if (isLow) {
       events.push({
         index: p, confirmedAt: p + right, time: bars[p].time,
-        price: bars[p].low, type: "L"
+        price: bars[p].low, type: "L", method: "symmetric_fractal_candidate", sourceVerified: false
       });
     }
   }
@@ -129,6 +129,8 @@ function monowaves(pivots) {
     waves.push({
       from,
       to,
+      kind: "candidate_segment_not_source_verified_monowave",
+      sourceVerified: false,
       direction: priceChange > 0 ? "up" : "down",
       priceChange,
       absoluteChange: Math.abs(priceChange),
@@ -194,7 +196,7 @@ function summarizeStructure(waves) {
   const sorted = ratios.slice().sort((a, b) => a - b);
   return {
     waveCount: waves.length,
-    classification: waves.length ? "unclassified_polywave" : "insufficient_data",
+    classification: waves.length ? "unclassified_candidate_wave_sequence" : "insufficient_data",
     alternating: waves.every((wave, i) => i === 0 || wave.direction !== waves[i - 1].direction),
     priceTimeRatios: ratios,
     medianBarsPerPriceUnit: sorted.length ? sorted[Math.floor(sorted.length / 2)] : null
@@ -472,11 +474,14 @@ function analyze(bars, options = {}) {
   );
   return {
     asOfIndex: bars.length - 1,
+    pivotMethod: "symmetric_fractal_candidate_not_Neely_Rules_of_Observation",
+    sourceObservationRulesApplied: false,
+    patternStatus: "not_evaluated",
     pivots,
     waves,
     structure,
     neoWaveGate,
-    disclaimer: "Pivot/monowave diagnostics are not a complete NeoWave count. No candidate is tradable until every catalog rule is source-verified, applicable rules pass, and independent tests are complete."
+    disclaimer: "The fixed-window fractal pivots and resulting wave segments are heuristic candidates, not source-verified NeoWave monowaves. Rules of Observation, grouping, pattern construction and confirmation are not complete. No candidate is tradable."
   };
 }
 
