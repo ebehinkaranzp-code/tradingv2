@@ -1,8 +1,8 @@
 # NeoWave Retracement Rules — first-pass extraction
 
 **Status: extracted activation map, NOT an executable rulebook.**  
-Primary source: Glenn Neely, *Mastering Elliott Wave*, Version 2.0, 1990.  
-Reviewed scan: English image PDF.  
+Primary source: Glenn Neely, *Mastering Elliott Wave*, Persian translation scan supplied in this conversation. The English scan has not been verified in this repository.  
+Reviewed scan: Persian page images; OCR is unreliable, so disputed wording is retained as unresolved.  
 Source locators: printed Chapter 3 pages 3-23 through 3-32; supplied PDF pages 34–39. Rule 1 begins on printed p. 3-23/PDF p. 34. Rules 2–7 are printed pp. 3-24–3-30/PDF pp. 35–38. The graphical summary is printed pp. 3-30–3-31/PDF p. 38. The Pre-Constructive Rules of Logic begin printed p. 3-32/PDF p. 39.
 
 ## Measurement basis recovered
