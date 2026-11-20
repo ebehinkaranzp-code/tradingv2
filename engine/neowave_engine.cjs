@@ -431,6 +431,45 @@ function parseStructureLabelList(sourceNotation) {
   return { status: "parsed_source_notation", candidates, sourceNotation };
 }
 
+// Partial, visually transcribed Structure Label seeds. These are not full
+// Pre-Constructive predicates; all untranscribed conditions remain blocked.
+const PRECONSTRUCTIVE_SEEDS = Object.freeze({
+  "1:a": Object.freeze({
+    notation: "{5/(c3)/(x:c3)/[sL3]/[s5]}",
+    source: Object.freeze({ document: "Mastering Elliott Wave", locator: "Chapter 3, scan PDF p. 95, Rule 1 Condition a" })
+  }),
+  "2:a": Object.freeze({
+    notation: "{5/(sL3)/[c3]/[s5]}",
+    source: Object.freeze({ document: "Mastering Elliott Wave", locator: "Chapter 3, scan PDF p. 96, Rule 2 Condition a" })
+  }),
+  "3:a": Object.freeze({
+    notation: "{F3/c3/s5/5/(sL3)/[L5]}",
+    source: Object.freeze({ document: "Mastering Elliott Wave", locator: "Chapter 3, scan PDF p. 106, Rule 3 Condition a" })
+  })
+});
+
+function getPreconstructiveSeed(ruleNumber, condition) {
+  const seed = PRECONSTRUCTIVE_SEEDS[String(ruleNumber) + ":" + String(condition).toLowerCase()];
+  if (!seed) {
+    return {
+      status: "indeterminate",
+      tradable: false,
+      reason: "no visually verified Structure Label seed is available for this Rule/Condition"
+    };
+  }
+  return {
+    status: "partial_source_seed",
+    tradable: false,
+    sourceVerified: false,
+    ruleNumber,
+    condition: String(condition).toLowerCase(),
+    ...seed,
+    labels: parseStructureLabelList(seed.notation).candidates,
+    conditionsEvaluated: false,
+    completeness: "partial_not_executable_rule"
+  };
+}
+
 /**
  * Append one time-causal snapshot of competing Structure Label hypotheses.
  * This is a ledger, not a pattern classifier: source rules decide labels;
@@ -669,6 +708,8 @@ module.exports = {
   degreeIndex,
   compareDegrees,
   parseStructureLabelList,
+  PRECONSTRUCTIVE_SEEDS,
+  getPreconstructiveSeed,
   ENGINE_CERTIFICATION,
   confirmedPivots,
   monowaves,
