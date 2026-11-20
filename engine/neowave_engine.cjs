@@ -655,39 +655,94 @@ function evaluateStage1Confirmation({
  * A single dash continues one standard pattern; a double plus closes one
  * standard pattern and inserts an X-wave connector before the next pattern.
  */
-function parseStructureSequenceNotation(sourceNotation) {
+function parseStructureSequenceNotation(sourceNotation, { completeSeries = false } = {}) {
   if (typeof sourceNotation !== "string" || !sourceNotation.trim()) {
     return { status: "indeterminate", patterns: [], connectors: [], reason: "non-empty sequence notation is required" };
   }
-  const parts = sourceNotation.trim().split(/(\+\+|-)/);
+  const parts = sourceNotation.trim().split(/(\\+\\+|-)/);
   const patterns = [{ labels: [] }];
   const connectors = [];
   let separator = null;
+  let closesExplicitXWave = false;
   for (const part of parts) {
     const token = part.trim();
     if (!token) continue;
     if (token === "-" || token === "++") {
+      if (closesExplicitXWave && token === "++") {
+        closesExplicitXWave = false;
+        continue;
+      }
       if (separator !== null || !patterns.at(-1).labels.length) {
         return { status: "indeterminate", patterns: [], connectors: [], reason: "sequence separators must occur singly after a label" };
       }
       separator = token;
       continue;
     }
-    if (separator === "++") {
+
+    const normalized = token.toLowerCase();
+    if (normalized === "x:c3") {
+      if (separator !== "++") {
+        return { status: "indeterminate", patterns: [], connectors: [], reason: "x:c3 must occupy an explicit ++ X-wave connector position" };
+      }
       connectors.push({
         type: "X-wave",
+        label: "x:c3",
         afterPattern: patterns.length - 1,
         beforePattern: patterns.length
       });
       patterns.push({ labels: [] });
+      separator = null;
+      closesExplicitXWave = true;
+      continue;
+    }
+
+    if (separator === "++") {
+      connectors.push({
+        type: "X-wave",
+        label: null,
+        afterPattern: patterns.length - 1,
+        beforePattern: patterns.length
+      });
+      patterns.push({ labels: [] });
+      separator = null;
     } else if (separator === "-" && patterns.at(-1).labels.length === 0) {
       return { status: "indeterminate", patterns: [], connectors: [], reason: "single-dash separator cannot appear without a preceding label" };
     }
+
+    const current = patterns.at(-1);
+    if (normalized === "f3" && current.labels.length > 0) {
+      const previous = current.labels.at(-1).toLowerCase();
+      if (previous === "f3") {
+        connectors.push({
+          type: "higher-degree-start",
+          label: null,
+          afterPattern: patterns.length - 1,
+          beforePattern: patterns.length
+        });
+        patterns.push({ labels: [] });
+      } else if (!/(?:^|[a-z])5$/.test(previous)) {
+        return { status: "indeterminate", patterns: [], connectors: [], reason: "F3 may follow an X-wave connector or a 5-wave label, but not this preceding label" };
+      }
+    }
     patterns.at(-1).labels.push(token);
     separator = null;
+    closesExplicitXWave = false;
   }
-  if (separator !== null || patterns.at(-1).labels.length === 0) {
-    return { status: "indeterminate", patterns: [], connectors: [], reason: "sequence cannot end with a separator" };
+
+  if (separator !== null || closesExplicitXWave || patterns.at(-1).labels.length === 0) {
+    return { status: "indeterminate", patterns: [], connectors: [], reason: "sequence cannot end with a separator or X-wave connector" };
+  }
+  for (const pattern of patterns) {
+    const labels = pattern.labels.map((label) => label.toLowerCase());
+    if (labels.includes("x:c3")) {
+      return { status: "indeterminate", patterns: [], connectors: [], reason: "x:c3 is a connector and cannot be a standard-pattern label" };
+    }
+    if (labels[0] === "c3") {
+      return { status: "indeterminate", patterns: [], connectors: [], reason: "c3 cannot start a series" };
+    }
+    if (completeSeries && (labels.at(-1) === "c3" || labels.at(-1) === "f3")) {
+      return { status: "indeterminate", patterns: [], connectors: [], reason: "c3 cannot end a series and F3 must start, not end, a series" };
+    }
   }
   return {
     status: "parsed_sequence_notation",
