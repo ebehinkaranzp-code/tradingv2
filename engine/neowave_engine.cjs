@@ -154,6 +154,56 @@ function summarizeStructure(waves) {
 }
 
 /**
+ * Chapter 6 first-stage confirmation timing diagnostic.
+ * A trendline break is supplied by the caller's independently checked
+ * price/bar analysis; this function only evaluates the source's time window.
+ */
+function evaluateStage1Confirmation({
+  patternType,
+  waveStartTime,
+  waveEndTime,
+  breakAt
+} = {}) {
+  if (!["standard", "triangle"].includes(patternType)) {
+    return { status: "indeterminate", stage: 1, confirmed: false, reason: "patternType must be standard or triangle" };
+  }
+  if (!Number.isFinite(waveStartTime) || !Number.isFinite(waveEndTime) ||
+      waveStartTime < 0 || waveEndTime <= waveStartTime) {
+    return { status: "indeterminate", stage: 1, confirmed: false, reason: "a positive, ordered wave time interval is required" };
+  }
+  if (breakAt == null) {
+    return {
+      status: "pending",
+      stage: 1,
+      confirmed: false,
+      referenceLine: patternType === "triangle" ? "0-B" : "2-4",
+      timingWave: patternType === "triangle" ? "c" : "5",
+      deadline: waveEndTime + (waveEndTime - waveStartTime),
+      reason: "awaiting a confirmed break of the required reference trendline"
+    };
+  }
+  if (!Number.isFinite(breakAt) || breakAt < waveEndTime) {
+    return { status: "indeterminate", stage: 1, confirmed: false, reason: "breakAt must be a finite time at or after the timing wave ends" };
+  }
+  const duration = waveEndTime - waveStartTime;
+  const deadline = waveEndTime + duration;
+  const confirmed = breakAt <= deadline;
+  return {
+    status: confirmed ? "stage1_confirmed" : "stage1_not_confirmed",
+    stage: 1,
+    confirmed,
+    referenceLine: patternType === "triangle" ? "0-B" : "2-4",
+    timingWave: patternType === "triangle" ? "c" : "5",
+    duration,
+    breakAt,
+    deadline,
+    reason: confirmed
+      ? "required trendline break occurred within one timing-wave duration after its end"
+      : "trendline break exceeded the source's first-stage confirmation time window; consider an incomplete wave, terminal development, or an incorrect interpretation"
+  };
+}
+
+/**
  * Append one time-causal snapshot of competing Structure Label hypotheses.
  * This is a ledger, not a pattern classifier: source rules decide labels;
  * later evidence creates a new revision rather than rewriting earlier ones.
@@ -388,6 +438,7 @@ module.exports = {
   confirmedPivots,
   monowaves,
   summarizeStructure,
+  evaluateStage1Confirmation,
   createHypothesisRevision,
   validateNeoWaveCandidate,
   analyze,
