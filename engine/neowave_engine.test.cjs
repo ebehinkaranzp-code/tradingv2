@@ -252,22 +252,24 @@ test("Chapter 6 stage-one confirmation uses the source timing window and pattern
 test("Chapter 6 stage two confirms extended first and third waves at the wave-4 price region", () => {
   const base = {
     stage1Confirmed: true,
+    stage1AvailableAt: 11,
+    asOfIndex: 15,
     patternType: "impulse",
-    pattern: { from: { price: 0 }, to: { price: 200 } },
-    wave4: { from: { price: 180 }, to: { price: 150 } },
-    wave5: { from: { price: 150 }, to: { price: 200 } }
+    pattern: { from: { price: 0 }, to: { price: 200 }, availableAt: 10 },
+    wave4: { from: { price: 180 }, to: { price: 150 }, availableAt: 9 },
+    wave5: { from: { price: 150 }, to: { price: 200 }, availableAt: 10 }
   };
   const pending = evaluateStage2Confirmation({
     ...base,
     extendedWave: 1,
-    correction: { from: { price: 200 }, to: { price: 160 } }
+    correction: { from: { price: 200 }, to: { price: 160 }, availableAt: 14 }
   });
   assert.equal(pending.status, "stage2_pending");
 
   const pass = evaluateStage2Confirmation({
     ...base,
     extendedWave: 1,
-    correction: { from: { price: 200 }, to: { price: 145 } }
+    correction: { from: { price: 200 }, to: { price: 145 }, availableAt: 14 }
   });
   assert.equal(pass.status, "stage2_price_target_pass");
   assert.equal(pass.overallPatternConfirmed, true);
@@ -284,15 +286,17 @@ test("Chapter 6 stage two confirms extended first and third waves at the wave-4 
 test("Chapter 6 extended third wave requires more than 61.8 percent of the whole pattern to retrace", () => {
   const base = {
     stage1Confirmed: true,
+    stage1AvailableAt: 11,
+    asOfIndex: 15,
     patternType: "impulse",
     extendedWave: 3,
-    pattern: { from: { price: 0 }, to: { price: 200 } },
-    wave4: { from: { price: 180 }, to: { price: 50 } },
-    wave5: { from: { price: 50 }, to: { price: 200 } }
+    pattern: { from: { price: 0 }, to: { price: 200 }, availableAt: 10 },
+    wave4: { from: { price: 180 }, to: { price: 50 }, availableAt: 9 },
+    wave5: { from: { price: 50 }, to: { price: 200 }, availableAt: 10 }
   };
   const pass = evaluateStage2Confirmation({
     ...base,
-    correction: { from: { price: 200 }, to: { price: 40 } },
+    correction: { from: { price: 200 }, to: { price: 40 }, availableAt: 14 },
     correctionComplete: true
   });
   assert.equal(pass.status, "stage2_price_target_pass");
@@ -300,7 +304,7 @@ test("Chapter 6 extended third wave requires more than 61.8 percent of the whole
 
   const fail = evaluateStage2Confirmation({
     ...base,
-    correction: { from: { price: 200 }, to: { price: 100 } },
+    correction: { from: { price: 200 }, to: { price: 100 }, availableAt: 14 },
     correctionComplete: true
   });
   assert.equal(fail.status, "stage2_price_target_fail");
@@ -310,15 +314,17 @@ test("Chapter 6 extended third wave requires more than 61.8 percent of the whole
 test("Chapter 6 stage two applies the 61.8-to-less-than-100 percent rule to extended wave five", () => {
   const base = {
     stage1Confirmed: true,
+    stage1AvailableAt: 11,
+    asOfIndex: 15,
     patternType: "impulse",
     extendedWave: 5,
-    pattern: { from: { price: 0 }, to: { price: 200 } },
-    wave4: { from: { price: 150 }, to: { price: 100 } },
-    wave5: { from: { price: 100 }, to: { price: 200 } }
+    pattern: { from: { price: 0 }, to: { price: 200 }, availableAt: 10 },
+    wave4: { from: { price: 150 }, to: { price: 100 }, availableAt: 9 },
+    wave5: { from: { price: 100 }, to: { price: 200 }, availableAt: 10 }
   };
   const pending = evaluateStage2Confirmation({
     ...base,
-    correction: { from: { price: 200 }, to: { price: 130 } },
+    correction: { from: { price: 200 }, to: { price: 130 }, availableAt: 14 },
     correctionComplete: false
   });
   assert.equal(pending.status, "stage2_pending");
