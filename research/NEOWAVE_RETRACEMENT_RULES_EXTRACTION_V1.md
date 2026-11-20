@@ -150,3 +150,6 @@ The parser preserves unwrapped labels as primary candidates and wrapped labels a
 ## Directional sequence checks
 
 The retracement diagrams define m2 as a move opposite to m1. Rule 4's m3 follows m2 and moves opposite to it when measuring the next leg. The executable context analyzer now refuses to classify a same-direction m2/m1 pair and leaves Rule 4's category indeterminate unless m3 is measurable and reverses m2. These checks prevent magnitude-only ratios from being mislabeled as retracements.
+
+
+The engine's `analyzeNeoWaveRetracement` wrapper attaches these partial seeds only when the measured Rule/Condition matches one of the three transcribed entries. Other combinations remain `indeterminate`; even a seed match is explicitly non-tradable and does not imply that its surrounding Pre-Constructive predicates passed.
