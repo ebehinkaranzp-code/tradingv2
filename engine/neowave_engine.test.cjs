@@ -8,6 +8,8 @@ const {
   degreeIndex,
   compareDegrees,
   parseStructureLabelList,
+  PRECONSTRUCTIVE_SEEDS,
+  getPreconstructiveSeed,
   ENGINE_CERTIFICATION,
   confirmedPivots,
   monowaves,
@@ -285,6 +287,17 @@ test("Structure Label notation preserves primary and wrapped alternatives", () =
   assert.equal(result.candidates[4].primary, false);
   assert.equal(result.candidates[5].notation, "bracketed");
   assert.equal(result.candidates[5].primary, false);
+});
+
+test("Pre-Constructive seed table exposes only transcribed labels and remains non-executable", () => {
+  assert.deepEqual(Object.keys(PRECONSTRUCTIVE_SEEDS).sort(), ["1:a", "2:a", "3:a"]);
+  const rule3a = getPreconstructiveSeed(3, "a");
+  assert.equal(rule3a.status, "partial_source_seed");
+  assert.equal(rule3a.tradable, false);
+  assert.equal(rule3a.conditionsEvaluated, false);
+  assert.deepEqual(rule3a.labels.map((label) => label.label),
+    ["F3", "c3", "s5", "5", "sL3", "L5"]);
+  assert.equal(getPreconstructiveSeed(7, "d").status, "indeterminate");
 });
 
 test("hypothesis with no evaluated conditions remains conditional", () => {
