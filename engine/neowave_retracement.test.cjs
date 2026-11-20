@@ -52,7 +52,7 @@ test("condition maps return one letter at their documented boundaries", () => {
   const cases = [
     [1, 61.8, "b"], [1, 100, "c"], [1, 161.8, "c"], [1, 161.8001, "d"],
     [2, 38.2, "b"], [2, 61.8, "c"], [2, 100, "d"], [2, 161.8, "d"], [2, 161.8001, "e"],
-    [3, 161.8, "e"], [3, 261.8, "e"], [3, 261.8001, "f"],
+    [3, 161.8, "e"], [3, 216.8, "e"], [3, 261.8001, "f"],
     [4, 100, "c"], [4, 161.8, "d"], [4, 261.8, "d"], [4, 261.8001, "e"],
     [5, 100, "b"], [5, 161.8, "c"], [5, 261.8, "c"], [5, 261.8001, "d"],
     [6, 100, "b"], [7, 261.8, "c"]
@@ -61,6 +61,30 @@ test("condition maps return one letter at their documented boundaries", () => {
     const result = classifyCondition(rule, value);
     assert.equal(result.status, "classified_condition_only", `rule ${rule}, value ${value}`);
     assert.equal(result.condition, expected, `rule ${rule}, value ${value}`);
+  }
+});
+
+test("Rule 3 condition boundary conflict between prose and diagram remains indeterminate", () => {
+  assert.equal(classifyCondition(3, 216.8).condition, "e");
+  for (const value of [216.8001, 230, 261.8]) {
+    const result = classifyCondition(3, value);
+    assert.equal(result.status, "indeterminate");
+    assert.match(result.reason, /source conflict/);
+  }
+  assert.equal(classifyCondition(3, 261.8001).condition, "f");
+});
+
+test("Rules 5, 6 and 7 share the source diagram's four m0/m1 condition bands", () => {
+  for (const rule of [5, 6, 7]) {
+    const cases = [
+      [99.999, "a"], [100, "b"], [161.7999, "b"],
+      [161.8, "c"], [261.8, "c"], [261.8001, "d"]
+    ];
+    for (const [ratio, expected] of cases) {
+      const result = classifyCondition(rule, ratio);
+      assert.equal(result.status, "classified_condition_only", `rule ${rule}, ratio ${ratio}`);
+      assert.equal(result.condition, expected, `rule ${rule}, ratio ${ratio}`);
+    }
   }
 });
 
