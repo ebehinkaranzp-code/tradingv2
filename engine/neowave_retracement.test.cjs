@@ -4,6 +4,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const {
   priceCoverageRatio,
+  timeCoverageRatio,
   classifyRetracementActivation,
   classifyCondition,
   classifyRule4Category,
@@ -15,6 +16,22 @@ const wave = (start, end) => ({ startPrice: start, endPrice: end });
 test("price coverage is measured from termination prices, independent of direction", () => {
   assert.equal(priceCoverageRatio(wave(100, 120), wave(200, 240)).value, 50);
   assert.equal(priceCoverageRatio(wave(120, 100), wave(240, 200)).value, 50);
+});
+
+test("time coverage is separate from price coverage and applies only explicit time-unit adjustments", () => {
+  const timed = (startIndex, endIndex, availableAt) => ({
+    startIndex, endIndex, availableAt
+  });
+  const numerator = timed(10, 20, 20);
+  const denominator = timed(0, 30, 30);
+  assert.equal(timeCoverageRatio(numerator, denominator).value, 100 / 3);
+  assert.equal(timeCoverageRatio(numerator, denominator, {
+    timeUnit: 1, numeratorAddUnits: 1
+  }).value, 110 / 30 * 100);
+  assert.equal(timeCoverageRatio(numerator, denominator, {
+    timeUnit: 1, numeratorAddUnits: 1
+  }).availableAt, 30);
+  assert.equal(timeCoverageRatio({ startIndex: 4, endIndex: 4 }, denominator).status, "indeterminate");
 });
 
 test("missing, equal, and zero-denominator waves are indeterminate", () => {
