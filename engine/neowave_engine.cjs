@@ -6,6 +6,13 @@ const RETRACEMENT_RULES = Array.from({ length: 7 }, (_, i) => ({
   status: "blocked_missing_authoritative_definition"
 }));
 
+const ENGINE_CERTIFICATION = Object.freeze({
+  complete: false,
+  sourceReviewed: false,
+  independentRuleTests: false,
+  reason: "The source-backed NeoWave rulebook and independent pattern tests are incomplete."
+});
+
 const OTHER_RULE_FAMILIES = [
   "monowave", "polywave", "degree_consistency", "price_time_proportionality",
   "impulse", "zigzag", "flat", "triangle", "combination", "diametric",
@@ -157,6 +164,20 @@ function validateNeoWaveCandidate(candidate, { ruleDefinitions = [] } = {}) {
     throw Error("ruleDefinitions must be an array");
   }
 
+  // Caller-supplied callbacks and provenance are useful for isolated tests,
+  // but must never certify the production engine.
+  if (!ENGINE_CERTIFICATION.complete ||
+      !ENGINE_CERTIFICATION.sourceReviewed ||
+      !ENGINE_CERTIFICATION.independentRuleTests) {
+    return {
+      status: "blocked_incomplete_rulebook",
+      tradable: false,
+      missingRules: RULE_CATALOG.map((rule) => rule.id),
+      failedRules: [],
+      certification: ENGINE_CERTIFICATION
+    };
+  }
+
   const definitions = new Map(ruleDefinitions.map((definition) => [definition.id, definition]));
   const required = RULE_CATALOG.filter((rule) => rule.requiredForEngineCertification);
   const missing = required.filter((rule) => {
@@ -277,6 +298,7 @@ function analyze(bars, options = {}) {
 
 module.exports = {
   RULE_CATALOG,
+  ENGINE_CERTIFICATION,
   confirmedPivots,
   monowaves,
   summarizeStructure,
