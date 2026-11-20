@@ -232,6 +232,7 @@ function summarizeStructure(waves) {
   return {
     waveCount: waves.length,
     classification: waves.length ? "unclassified_candidate_wave_sequence" : "insufficient_data",
+    priceTimeMetricStatus: "heuristic_not_Neely_Rule_of_Proportion",
     alternating: waves.every((wave, i) => i === 0 || wave.direction !== waves[i - 1].direction),
     priceTimeRatios: ratios,
     medianBarsPerPriceUnit: sorted.length ? sorted[Math.floor(sorted.length / 2)] : null
