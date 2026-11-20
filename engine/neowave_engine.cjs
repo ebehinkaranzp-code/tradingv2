@@ -1323,6 +1323,66 @@ function createHypothesisRevision({ history = [], asOfIndex, candidates = [] } =
   return Object.freeze({ history: nextHistory, latest: revision });
 }
 
+function createDegreeAssignmentRevision({ history = [], asOfIndex, assignments = [] } = {}) {
+  if (!Array.isArray(history) || !Number.isInteger(asOfIndex) || asOfIndex < 0 ||
+      !Array.isArray(assignments)) {
+    throw Error("history, non-negative asOfIndex and assignments are required");
+  }
+  const previous = history.at(-1);
+  if (previous && (!Number.isInteger(previous.asOfIndex) || asOfIndex <= previous.asOfIndex)) {
+    throw Error("degree-assignment revisions must advance strictly in asOfIndex");
+  }
+  const previousById = new Map((previous?.assignments || []).map((item) => [item.structureId, item]));
+  const seen = new Set();
+  const normalized = assignments.map((assignment, index) => {
+    if (!assignment || typeof assignment.structureId !== "string" ||
+        !assignment.structureId.trim() || seen.has(assignment.structureId) ||
+        degreeIndex(assignment.degree) < 0 ||
+        !assignment.source || typeof assignment.source.document !== "string" ||
+        !assignment.source.document.trim() ||
+        typeof assignment.source.locator !== "string" ||
+        !assignment.source.locator.trim() ||
+        !Array.isArray(assignment.evidence)) {
+      throw Error("Invalid degree assignment at index " + index);
+    }
+    seen.add(assignment.structureId);
+    const prior = previousById.get(assignment.structureId);
+    if (prior && prior.degree !== assignment.degree &&
+        (typeof assignment.recountReason !== "string" || !assignment.recountReason.trim())) {
+      throw Error("a changed degree assignment requires an explicit recountReason");
+    }
+    const evidence = assignment.evidence.map((item, evidenceIndex) => {
+      if (!item || typeof item.id !== "string" || !item.id.trim() ||
+          !Number.isInteger(item.availableAt) || item.availableAt < 0 ||
+          item.availableAt > asOfIndex) {
+        throw Error("Invalid or future degree evidence at assignment " + index + ", evidence " + evidenceIndex);
+      }
+      return { id: item.id, availableAt: item.availableAt };
+    });
+    return Object.freeze({
+      structureId: assignment.structureId.trim(),
+      degree: assignment.degree,
+      degreeIndex: degreeIndex(assignment.degree),
+      status: evidence.length ? "assigned" : "conditional",
+      source: Object.freeze({
+        document: assignment.source.document,
+        locator: assignment.source.locator
+      }),
+      evidence: Object.freeze(evidence),
+      availableAt: evidence.length ? Math.max(...evidence.map((item) => item.availableAt)) : null,
+      recountReason: assignment.recountReason?.trim() || null,
+      sourceVerified: false
+    });
+  });
+  const revision = Object.freeze({
+    revision: history.length + 1,
+    asOfIndex,
+    assignments: Object.freeze(normalized)
+  });
+  const nextHistory = Object.freeze([...history, revision]);
+  return Object.freeze({ history: nextHistory, latest: revision });
+}
+
 /*
  * Rule-definition contract:
  * {
@@ -1547,6 +1607,7 @@ module.exports = {
   evaluateExpandingTriangleNonConfirmation,
   evaluateTruncatedFifthFollowThrough,
   createHypothesisRevision,
+  createDegreeAssignmentRevision,
   validateNeoWaveCandidate,
   analyze,
   analyzeRetracementContext,
