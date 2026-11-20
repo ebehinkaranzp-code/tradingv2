@@ -650,6 +650,57 @@ function evaluateStage1Confirmation({
  * Parenthesized/bracketed labels are retained as alternatives, not promoted
  * to equal-strength primary labels.
  */
+/**
+ * Parse Chapter 3 structure-sequence separators.
+ * A single dash continues one standard pattern; a double plus closes one
+ * standard pattern and inserts an X-wave connector before the next pattern.
+ */
+function parseStructureSequenceNotation(sourceNotation) {
+  if (typeof sourceNotation !== "string" || !sourceNotation.trim()) {
+    return { status: "indeterminate", patterns: [], connectors: [], reason: "non-empty sequence notation is required" };
+  }
+  const parts = sourceNotation.trim().split(/(\+\+|-)/);
+  const patterns = [{ labels: [] }];
+  const connectors = [];
+  let separator = null;
+  for (const part of parts) {
+    const token = part.trim();
+    if (!token) continue;
+    if (token === "-" || token === "++") {
+      if (!patterns.at(-1).labels.length) {
+        return { status: "indeterminate", patterns: [], connectors: [], reason: "sequence separator cannot appear without a preceding label" };
+      }
+      separator = token;
+      continue;
+    }
+    if (separator === "++") {
+      connectors.push({
+        type: "X-wave",
+        afterPattern: patterns.length - 1,
+        beforePattern: patterns.length
+      });
+      patterns.push({ labels: [] });
+    } else if (separator === "-" && patterns.at(-1).labels.length === 0) {
+      return { status: "indeterminate", patterns: [], connectors: [], reason: "single-dash separator cannot appear without a preceding label" };
+    }
+    patterns.at(-1).labels.push(token);
+    separator = null;
+  }
+  if (patterns.at(-1).labels.length === 0) {
+    return { status: "indeterminate", patterns: [], connectors: [], reason: "sequence cannot end with a separator" };
+  }
+  return {
+    status: "parsed_sequence_notation",
+    patterns: patterns.map((pattern, index) => ({
+      index,
+      labels: pattern.labels,
+      sourceVerified: false
+    })),
+    connectors,
+    sourceNotation
+  };
+}
+
 function parseStructureLabelList(sourceNotation) {
   if (typeof sourceNotation !== "string" || !sourceNotation.trim()) {
     return { status: "indeterminate", candidates: [], reason: "a non-empty source notation is required" };
@@ -1006,6 +1057,7 @@ module.exports = {
   degreeIndex,
   compareDegrees,
   parseStructureLabelList,
+  parseStructureSequenceNotation,
   PRECONSTRUCTIVE_SEEDS,
   getPreconstructiveSeed,
   hypothesesFromPreconstructiveSeed,
