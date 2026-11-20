@@ -30,7 +30,27 @@ export const CONFIGS = [
  {id:12,name:"Cloud + EMA + RSI + volume",cloud:1,ema:1,rsiMin:52,vol:0.75},
  {id:13,name:"Cloud + EMA + TK + Alligator",cloud:1,ema:1,tk:1,alligator:1},
  {id:14,name:"Strict multi-confirmation",cloud:1,ema:1,tk:1,alligator:1,rsiMin:55,vol:1,body:0.6},
- {id:15,name:"Strict + breakout 20",cloud:1,ema:1,tk:1,alligator:1,rsiMin:55,vol:1,body:0.6,breakout:1}
+ {id:15,name:"Strict + breakout 20",cloud:1,ema:1,tk:1,alligator:1,rsiMin:55,vol:1,body:0.6,breakout:1},
+ {id:16,name:"RSI cross above 50",rsiCross:50},
+ {id:17,name:"RSI oversold recovery",rsiRecover:30},
+ {id:18,name:"RSI bullish regime",rsiMin:50},
+ {id:19,name:"RSI momentum + EMA50",rsiMin:52,ema50:1},
+ {id:20,name:"EMA20 above EMA50",emaCross:1},
+ {id:21,name:"Price above EMA200",ema200:1},
+ {id:22,name:"EMA50/200 golden regime",ema:1},
+ {id:23,name:"Ichimoku cloud breakout only",cloudOnly:1},
+ {id:24,name:"Ichimoku bullish TK cross",tkCross:1},
+ {id:25,name:"Ichimoku cloud + RSI cross",cloud:1,rsiCross:50},
+ {id:26,name:"Alligator bullish alignment",alligator:1},
+ {id:27,name:"Alligator expansion + volume",alligator:1,vol:0.5},
+ {id:28,name:"Donchian 20 breakout",donchian:20},
+ {id:29,name:"Donchian 55 breakout",donchian:55},
+ {id:30,name:"Donchian 20 + RSI",donchian:20,rsiMin:50},
+ {id:31,name:"Volume breakout + EMA200",vol:1,ema200:1},
+ {id:32,name:"ATR-sized bullish candle",body:0.8},
+ {id:33,name:"Cloud + Donchian 20",cloud:1,donchian:20},
+ {id:34,name:"EMA50 + RSI + volume",ema50:1,rsiMin:52,vol:0.5},
+ {id:35,name:"Multi-timeframe style trend filter",ema:1,cloud:1,rsiMin:50}
 ] as const;
 
 function avg(a:number[]):number{return a.length?a.reduce((s,x)=>s+x,0)/a.length:0}
@@ -54,7 +74,15 @@ export function makeSignals(b:Bar[],ind:Indicators,cfg:any):boolean[]{return b.m
  const keys=["spanA","spanB","kijun","ema200","rsi","atr","volz","jaw","teeth","lips"];
  if(keys.some(k=>ind[k][i]===null))return false;
  let ok=x.close>Math.max(ind.spanA[i] as number,ind.spanB[i] as number)&&x.close>(ind.kijun[i] as number);
+ if(cfg.cloudOnly)ok=x.close>Math.max(ind.spanA[i] as number,ind.spanB[i] as number);
  if(cfg.ema)ok=ok&&x.close>(ind.ema200[i] as number)&&(ind.ema50[i] as number)>(ind.ema200[i] as number);
+ if(cfg.ema50)ok=ok&&x.close>(ind.ema50[i] as number);
+ if(cfg.ema200)ok=ok&&x.close>(ind.ema200[i] as number);
+ if(cfg.emaCross)ok=ok&&i>0&&(ind.ema20[i] as number)>(ind.ema50[i] as number)&&(ind.ema20[i-1] as number)<=(ind.ema50[i-1] as number);
+ if(cfg.rsiCross)ok=ok&&i>0&&(ind.rsi[i] as number)>cfg.rsiCross&&(ind.rsi[i-1] as number)<=cfg.rsiCross;
+ if(cfg.rsiRecover)ok=ok&&i>0&&(ind.rsi[i] as number)>cfg.rsiRecover&&(ind.rsi[i-1] as number)<=cfg.rsiRecover;
+ if(cfg.tkCross)ok=ok&&i>0&&(ind.tenkan[i] as number)>(ind.kijun[i] as number)&&(ind.tenkan[i-1] as number)<=(ind.kijun[i-1] as number);
+ if(cfg.donchian){if(i<cfg.donchian)ok=false;else{let hi=-Infinity;for(let k=i-cfg.donchian;k<i;k++)hi=Math.max(hi,b[k].high);ok=ok&&x.close>hi}}
  if(cfg.tk)ok=ok&&(ind.tenkan[i] as number)>(ind.kijun[i] as number);
  if(cfg.alligator)ok=ok&&(ind.lips[i] as number)>(ind.teeth[i] as number)&&(ind.teeth[i] as number)>(ind.jaw[i] as number);
  if(cfg.rsiMin!==undefined)ok=ok&&(ind.rsi[i] as number)>=cfg.rsiMin&&(ind.rsi[i] as number)<75;
@@ -85,6 +113,6 @@ function validateBars(b:Bar[]){if(b.length<600)throw new Error("Need >=600 daily
 async function downloadBinance():Promise<Bar[]>{const start=Date.UTC(2018,0,1),now=Date.now(),today=new Date();today.setUTCHours(0,0,0,0);const end=today.getTime()-1;let cursor=start;const all:any[]=[];while(cursor<end){const q=new URLSearchParams({symbol:"BTCUSDT",interval:"1d",startTime:String(cursor),endTime:String(end),limit:"1000"});let batch:any=null,lastError:any=null;for(const base of BASES){try{const r=await fetch(base+"?"+q,{headers:{"user-agent":"TradingV2-Research-Node/1.0"}});if(!r.ok)throw new Error("HTTP "+r.status);batch=await r.json();break}catch(e){lastError=e}}if(!batch)throw lastError||new Error("Binance request failed");if(!batch.length)break;all.push(...batch);const next=Number(batch[batch.length-1][0])+1;if(next<=cursor)throw new Error("Binance pagination stalled");cursor=next;console.log("Downloaded daily candles:",all.length);if(batch.length<1000)break;await new Promise(r=>setTimeout(r,120))}
  const rows:Bar[]=all.map(x=>({time:Number(x[0]),open:Number(x[1]),high:Number(x[2]),low:Number(x[3]),close:Number(x[4]),volume:Number(x[5])}));validateBars(rows);return rows}
 function csvText(b:Bar[]):string{return "open_time,open,high,low,close,volume\n"+b.map(x=>[x.time,x.open,x.high,x.low,x.close,x.volume].join(",")).join("\n")+"\n"}
-function mdReport(report:any):string{const lines=["# Market Transition Engine — Node.js/TypeScript — 15 experiments","","BTCUSDT Binance Spot; next-open execution; long-only; 0.10% fee + 0.05% slippage per side.","Signals use closed bars only. Daily data ends at the last completed UTC day. 2024+ is reported separately.",""];for(const tf of ["daily","weekly"]){const d=report[tf];lines.push("## "+tf.toUpperCase()+" ("+d.bars+" bars)", "", "| # | Experiment | OOS trades | Win rate | Return | PF | Max DD | Exposure |","|---:|---|---:|---:|---:|---:|---:|---:|");for(const r of d.experiments){const m=r.outOfSample2024Plus;lines.push("| "+r.experiment.id+" | "+r.experiment.name+" | "+m.trades+" | "+(m.winRatePct===null?"N/A":m.winRatePct.toFixed(2)+"%")+" | "+m.returnPct.toFixed(2)+"% | "+m.profitFactor+" | "+m.maxDrawdownPct.toFixed(2)+"% | "+m.exposurePct.toFixed(2)+"% |")}lines.push("")}lines.push("## Selection policy","","Do not optimize on win rate alone. Require a meaningful trade sample, positive out-of-sample net return, PF > 1, controlled drawdown and stability. An 85% win rate is a research target, not a guarantee.");return lines.join("\n")}
+function mdReport(report:any):string{const lines=["# Market Transition Engine — Node.js/TypeScript — 35 experiments","","BTCUSDT Binance Spot; next-open execution; long-only; 0.10% fee + 0.05% slippage per side.","Signals use closed bars only. Daily data ends at the last completed UTC day. 2024+ is reported separately.",""];for(const tf of ["daily","weekly"]){const d=report[tf];lines.push("## "+tf.toUpperCase()+" ("+d.bars+" bars)", "", "| # | Experiment | OOS trades | Win rate | Return | PF | Max DD | Exposure |","|---:|---|---:|---:|---:|---:|---:|---:|");for(const r of d.experiments){const m=r.outOfSample2024Plus;lines.push("| "+r.experiment.id+" | "+r.experiment.name+" | "+m.trades+" | "+(m.winRatePct===null?"N/A":m.winRatePct.toFixed(2)+"%")+" | "+m.returnPct.toFixed(2)+"% | "+m.profitFactor+" | "+m.maxDrawdownPct.toFixed(2)+"% | "+m.exposurePct.toFixed(2)+"% |")}lines.push("")}lines.push("## Selection policy","","Do not optimize on win rate alone. Require a meaningful trade sample, positive out-of-sample net return, PF > 1, controlled drawdown and stability. An 85% win rate is a research target, not a guarantee.");return lines.join("\n")}
 async function main(){const args=process.argv.slice(2);const arg=(name:string,def:string)=>{const i=args.indexOf(name);return i>=0?args[i+1]:def};const dataPath=arg("--data","data/BTCUSDT-1d.csv"),outPath=arg("--output","research/results/market-transition-15-node.json");let daily:Bar[];if(args.includes("--download")||!fs.existsSync(dataPath)){daily=await downloadBinance();fs.mkdirSync(path.dirname(dataPath),{recursive:true});fs.writeFileSync(dataPath,csvText(daily))}else daily=parseCsv(fs.readFileSync(dataPath,"utf8"));const weekly=weeklyBars(daily);if(weekly.length<100)throw new Error("Insufficient complete weekly bars: "+weekly.length);const report={engine:"Node.js + TypeScript",symbol:"BTCUSDT",venue:"Binance Spot",execution:"Completed-bar signal; next-bar-open fills; long-only spot; 0.10% fee and 0.05% slippage per side",antiLeakage:["Ichimoku cloud at t uses Senkou values computed at t-26.","Alligator display shifts use only historical SMMA values.","Signal at close t is filled at open t+1.","Current incomplete UTC day and week are excluded."],daily:evaluate(daily,"1d"),weekly:evaluate(weekly,"1w")};fs.mkdirSync(path.dirname(outPath),{recursive:true});fs.writeFileSync(outPath,JSON.stringify(report,null,2));fs.writeFileSync(outPath.replace(/\.json$/,".md"),mdReport(report));for(const tf of ["daily","weekly"]){console.log("\n"+tf.toUpperCase());for(const r of (report as any)[tf].experiments){const m=r.outOfSample2024Plus;console.log(String(r.experiment.id).padStart(2,"0"),r.experiment.name,"n="+m.trades,"win="+m.winRatePct,"return="+m.returnPct.toFixed(2)+"%","PF="+m.profitFactor,"DD="+m.maxDrawdownPct.toFixed(2)+"%")}}console.log("Wrote",outPath)}
 if(require.main===module)main().catch((e:any)=>{console.error(e);process.exit(1)});
