@@ -5,7 +5,7 @@ const { analyzeRetracementContext } = require("./neowave_retracement.cjs");
 const RETRACEMENT_RULES = Array.from({ length: 7 }, (_, i) => ({
   id: "NW-RET-" + String(i + 1).padStart(2, "0"),
   family: "retracement",
-  status: "blocked_missing_authoritative_definition"
+  status: "activation_and_condition_diagnostics_only"
 }));
 
 const ENGINE_CERTIFICATION = Object.freeze({
