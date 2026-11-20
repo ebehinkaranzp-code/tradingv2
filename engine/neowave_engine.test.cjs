@@ -492,8 +492,12 @@ test("Structure Label notation preserves primary and wrapped alternatives", () =
     ["F3", "c3", "s5", "5", "sL3", "L5"]);
   assert.equal(result.candidates[0].role, "primary_candidate");
   assert.equal(result.candidates[4].notation, "parenthesized");
+  assert.equal(result.candidates[4].role, "lower_probability_alternative");
+  assert.equal(result.candidates[4].rank, "conditional");
   assert.equal(result.candidates[4].primary, false);
   assert.equal(result.candidates[5].notation, "bracketed");
+  assert.equal(result.candidates[5].role, "rare_or_very_unlikely");
+  assert.equal(result.candidates[5].rank, "rare");
   assert.equal(result.candidates[5].primary, false);
 });
 
@@ -567,6 +571,7 @@ test("partial Pre-Constructive labels become ranked competing hypotheses", () =>
   assert.equal(generated.candidates.length, 6);
   assert.equal(generated.candidates[0].rank, "primary");
   assert.equal(generated.candidates[4].rank, "conditional");
+  assert.equal(generated.candidates[5].rank, "rare");
   const revision = createHypothesisRevision({
     asOfIndex: 12,
     candidates: generated.candidates
