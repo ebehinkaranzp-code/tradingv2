@@ -1,4 +1,4 @@
-name: Market Transition Engine - TypeScript 15 experiments
+name: Market Transition Engine - TypeScript 35 experiments
 on:
   push:
     branches: [main]
@@ -28,14 +28,14 @@ jobs:
         run: npx tsc engine/market_transition_research.ts --target ES2022 --module commonjs --outDir dist --skipLibCheck --strict
       - name: Run Node.js tests
         run: node --test engine/market_transition_research.test.cjs
-      - name: Download Binance Spot history and run 15 daily + weekly experiments
-        run: node dist/market_transition_research.js --download --data data/BTCUSDT-1d.csv --output research/results/market-transition-15-node.json
+      - name: Download Binance Spot history and run 35 daily + weekly experiments
+        run: node dist/market_transition_research.js --download --data data/BTCUSDT-1d.csv --output research/results/market-transition-35-node.json
       - name: Archive data and reports
         uses: actions/upload-artifact@v4
         with:
-          name: market-transition-15-node-results
+          name: market-transition-35-node-results
           path: |
             data/BTCUSDT-1d.csv
             research/results/market-transition-15-node.json
-            research/results/market-transition-15-node.md
+            research/results/market-transition-35-node.md
           retention-days: 90
