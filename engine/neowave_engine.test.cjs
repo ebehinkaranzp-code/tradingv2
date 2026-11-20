@@ -7,6 +7,7 @@ const {
   DEGREE_HIERARCHY,
   degreeIndex,
   compareDegrees,
+  parseStructureLabelList,
   ENGINE_CERTIFICATION,
   confirmedPivots,
   monowaves,
@@ -272,6 +273,18 @@ test("Structure Label hypotheses are retained as causal revisions, not overwritt
   assert.equal(second.latest.asOfIndex, 14);
   assert.equal(second.latest.candidates[0].status, "supported");
   assert.equal(second.latest.candidates[0].availableAt, 14);
+});
+
+test("Structure Label notation preserves primary and wrapped alternatives", () => {
+  const result = parseStructureLabelList("{F3/c3/s5/5/(sL3)/[L5]}");
+  assert.equal(result.status, "parsed_source_notation");
+  assert.deepEqual(result.candidates.map((candidate) => candidate.label),
+    ["F3", "c3", "s5", "5", "sL3", "L5"]);
+  assert.equal(result.candidates[0].role, "primary_candidate");
+  assert.equal(result.candidates[4].notation, "parenthesized");
+  assert.equal(result.candidates[4].primary, false);
+  assert.equal(result.candidates[5].notation, "bracketed");
+  assert.equal(result.candidates[5].primary, false);
 });
 
 test("hypothesis with no evaluated conditions remains conditional", () => {
