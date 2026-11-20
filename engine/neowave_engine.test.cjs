@@ -332,7 +332,7 @@ test("Chapter 6 stage two applies the 61.8-to-less-than-100 percent rule to exte
 
   const pass = evaluateStage2Confirmation({
     ...base,
-    correction: { from: { price: 200 }, to: { price: 130 } },
+    correction: { from: { price: 200 }, to: { price: 130 }, availableAt: 14 },
     correctionComplete: true
   });
   assert.equal(pass.status, "stage2_price_retracement_pass");
@@ -340,7 +340,7 @@ test("Chapter 6 stage two applies the 61.8-to-less-than-100 percent rule to exte
 
   const fullRetrace = evaluateStage2Confirmation({
     ...base,
-    correction: { from: { price: 200 }, to: { price: 100 } },
+    correction: { from: { price: 200 }, to: { price: 100 }, availableAt: 14 },
     correctionComplete: true
   });
   assert.equal(fullRetrace.status, "stage2_price_retracement_fail");
