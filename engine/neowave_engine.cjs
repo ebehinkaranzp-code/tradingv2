@@ -1,5 +1,7 @@
 "use strict";
 
+const { analyzeRetracementContext } = require("./neowave_retracement.cjs");
+
 const RETRACEMENT_RULES = Array.from({ length: 7 }, (_, i) => ({
   id: "NW-RET-" + String(i + 1).padStart(2, "0"),
   family: "retracement",
@@ -303,5 +305,6 @@ module.exports = {
   monowaves,
   summarizeStructure,
   validateNeoWaveCandidate,
-  analyze
+  analyze,
+  analyzeRetracementContext
 };
