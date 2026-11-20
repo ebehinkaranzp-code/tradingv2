@@ -8,7 +8,7 @@ on:
       - ".github/workflows/btcusdt-20-reversal-experiments.yml"
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
   actions: read
 concurrency:
   group: btcusdt-20-reversal-experiments
@@ -19,6 +19,8 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -26,7 +28,18 @@ jobs:
         run: node --test research/btcusdt-20-reversal-experiments.test.cjs
       - name: Download full Binance Spot BTCUSDT 4h history and run 20 experiments
         run: node research/btcusdt-20-reversal-experiments.cjs --download --data data/BTCUSDT-4h.csv
-      - name: Archive source data and reproducible reports
+      - name: Persist reproducible research inputs and outputs in the repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f data/BTCUSDT-4h.csv research/results/btcusdt-20-reversal-experiments.json research/results/btcusdt-20-reversal-experiments.md
+          if git diff --cached --quiet; then
+            echo "Research archive is already up to date."
+          else
+            git commit -m "Archive BTCUSDT 20 reversal research dataset and results"
+            git push
+          fi
+      - name: Keep downloadable workflow artifact as a secondary copy
         uses: actions/upload-artifact@v4
         with:
           name: btcusdt-20-reversal-cycle-research
