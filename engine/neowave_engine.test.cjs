@@ -376,6 +376,7 @@ test("Chapter 6 stage two requires causal timestamps for full confirmation", () 
 
 test("Chapter 6 truncated fifth requires strong countertrend follow-through and full retracement", () => {
   const base = {
+    stage1Confirmed: true,
     pattern: { from: { price: 0 }, to: { price: 170 } },
     wave4: { from: { price: 180 }, to: { price: 150 } },
     wave5: { from: { price: 150 }, to: { price: 170 } },
@@ -385,7 +386,8 @@ test("Chapter 6 truncated fifth requires strong countertrend follow-through and 
   };
   const pass = evaluateTruncatedFifthFollowThrough(base);
   assert.equal(pass.status, "stage2_truncated_fifth_pass");
-  assert.equal(pass.confirmed, true);
+  assert.equal(pass.stage2Confirmed, true);
+  assert.equal(pass.overallPatternConfirmed, false);
   assert.equal(pass.wave5Coverage, 20);
   assert.equal(pass.wave4Coverage, 30);
 
