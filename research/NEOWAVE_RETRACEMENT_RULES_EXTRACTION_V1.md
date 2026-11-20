@@ -80,7 +80,7 @@ Keep `NW-RET-01..07` blocked. The next implementation unit is not a single numer
 
 
 ## First-pass review of the Pre-Constructive section (PDF pp. 39–47)
-The page images for PDF pp. 39–47 were visually checked and OCR was attempted. This is only the opening portion of the 26-page section; the remaining pages and all downstream chapters are not yet verified.
+The page images for scan PDF pp. 80–94 were visually checked. The Pre-Constructive section begins at printed p. 3-44 (scan PDF p. 95) and spans 65 pages; only selected pages and initial Rule/Condition label lists have been transcribed so far.
 
 ### Reliable methodological findings
 - The section says Rule identifiers and their Condition identifiers are replaced by one or more candidate Structure Labels for each analyzed monowave.
