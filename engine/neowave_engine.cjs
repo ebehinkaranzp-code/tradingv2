@@ -436,7 +436,7 @@ function createHypothesisRevision({ history = [], asOfIndex, candidates = [] } =
     });
 
     const rejected = conditions.some((condition) => condition.status === "fail");
-    const unresolved = conditions.some((condition) => condition.status === "indeterminate");
+    const unresolved = conditions.length === 0 || conditions.some((condition) => condition.status === "indeterminate");
     return Object.freeze({
       label: candidate.label.trim(),
       rank: candidate.rank,
