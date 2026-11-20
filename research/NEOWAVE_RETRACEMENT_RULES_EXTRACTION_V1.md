@@ -153,3 +153,8 @@ The retracement diagrams define m2 as a move opposite to m1. Rule 4's m3 follows
 
 
 The engine's `analyzeNeoWaveRetracement` wrapper attaches these partial seeds only when the measured Rule/Condition matches one of the three transcribed entries. Other combinations remain `indeterminate`; even a seed match is explicitly non-tradable and does not imply that its surrounding Pre-Constructive predicates passed.
+
+
+## Separate time-coverage measurement
+
+The engine now exposes `timeCoverageRatio` independently from price coverage. It supports explicit time-unit adjustments, but applies none by default. A caller must pass the adjustment only where the specific Pre-Constructive paragraph requires the source's additional one-time-unit convention. The function reports the exact adjustments and causal availability used.
