@@ -132,3 +132,16 @@ The source's Rules of Observation show that m0 and m2 may each consist of one mo
 ## Structure Label notation sample (Rule 3, Condition a)
 
 The supplied scan's Rule 3 Condition-a heading shows the slash-separated label list `{F3/c3/s5/5/(sL3)/[L5]}` (scan PDF p. 106, printed Chapter 3 p. 3-58). The engine now parses this notation while preserving unwrapped labels as primary candidates and parenthesized/bracketed labels as conditional alternatives. This parser only preserves source notation; it does not evaluate the conditions that select or eliminate any candidate label.
+
+
+## Partial Pre-Constructive label seeds transcribed
+
+The following heading-level candidate lists have been visually transcribed from the Persian scan and are exposed in code only as partial seeds:
+
+| Rule/Condition | Source notation | Scan page |
+|---|---|---:|
+| 1:a | `{5/(c3)/(x:c3)/[sL3]/[s5]}` | 95 |
+| 2:a | `{5/(sL3)/[c3]/[s5]}` | 96 |
+| 3:a | `{F3/c3/s5/5/(sL3)/[L5]}` | 106 |
+
+The parser preserves unwrapped labels as primary candidates and wrapped labels as alternatives. These seeds do **not** include the full condition predicates, subsequent-wave tests, or all other Rule/Condition combinations. They are not enough to emit a valid Structure Label or certify a count; all other combinations return indeterminate.
