@@ -6,22 +6,28 @@ Long-only BTCUSDT Spot reversal research. No EMA200/trend-following entry logic.
 ## Pipeline
 1. Data integrity: archived Binance Spot OHLCV, incremental updates, gap/duplicate checks, immutable snapshots and hashes.
 2. Causal multi-timeframe context: 1D cycle/major structure; 4H confirmation; 1H behavior shift; 15m execution. HTF bars become visible only after close.
-3. NeoWave structural engine: confirmed pivots, monowaves/polywaves, degree hierarchy, price/time relationships, pattern candidates, mandatory rules, invalidation and recount. A candidate is blocked if any mandatory rule is missing or indeterminate.
+3. NeoWave structural engine: confirmed pivots, monowaves/polywaves, degree hierarchy, price/time relationships, pattern candidates, mandatory applicable rules, invalidation and recount. A candidate is blocked if any applicable rule is failed or indeterminate, or if the source-verified rulebook is incomplete.
 4. Price-action reversal engine: failed breakdown, reclaim of broken support, seller exhaustion/absorption proxies, displacement away from low, retest hold, explicit invalidation.
 5. Confirmation layer: RSI/MACD divergence, volume, ATR and stochastic may confirm/rank a structurally valid setup; they cannot override a failed NeoWave rule.
 6. Execution simulator: signal on closed 15m candle, fill no earlier than next open, realistic fees/slippage, no overlapping positions, conservative stop/target ordering, risk-based sizing.
 7. Evaluation: chronological walk-forward splits, trade-level audit, benchmark, sensitivity, regime breakdown, bootstrap confidence intervals and untouched final holdout.
 
 ## Current implementation status
-- Implemented in engine/neowave_engine.cjs: causal confirmed-pivot timestamps, alternating monowave extraction, price/time diagnostics and fail-closed validation gate.
-- Seven retracement rule slots are explicitly listed. Their exact predicates are intentionally unimplemented rather than invented.
-- Pattern families and supporting NeoWave concepts are catalogued but not certified.
-- This build is a research scaffold, NOT a complete NeoWave implementation and not tradable.
+- Implemented in `engine/neowave_engine.cjs`: causal confirmed-pivot timestamps, alternating monowave extraction, price/time diagnostics, and fail-closed candidate validation.
+- The seven retracement rule IDs remain placeholders; their exact predicates have not been extracted and verified.
+- Pattern-family entries are a coverage register, not evidence that the patterns are implemented.
+- The gate now requires every catalog rule to have a source-verified definition, a document/locator, and an explicit pattern-applicability function. A rule may be not applicable to a specific candidate only when the applicability result includes a reason. Unknown applicability and any non-pass result for an applicable rule reject the candidate.
+- Catalog entries are required for engine certification; they are not all presumed mandatory for every pattern. Pattern-specific applicability must come from the source.
+- The expanded test suite passed in GitHub Actions: run `44767819291`, commit `33278682c497710656b9068014cbc9dff513fc9f`.
+- This build is still a research scaffold, NOT a complete NeoWave implementation and not tradable.
+
+## Source review
+The user-provided English scan of *Mastering Elliott Wave*, Version 2.0 (1990), has 169 pages. Only the cover/front matter, contents, preface and selected opening Chapter 1 pages have been OCR-reviewed so far. The 446-page Persian scan is available but its text layer is not reliably extractable. The first-pass contents map and source locators are in `research/NEOWAVE_SOURCE_EXTRACTION_V1.md`. Neither edition has been fully reviewed; do not infer exact rule predicates from the contents headings.
 
 ## Rulebook completeness requirement
-Each authoritative rule needs: stable ID, exact source/page, scope and degree, prerequisites, mathematical predicate, pass/fail/indeterminate semantics, invalidation behavior, and positive plus negative synthetic tests. Pattern-specific criteria must be separately specified. Ambiguous rules fail closed.
+Each authoritative rule needs: stable ID, exact source/page, scope and degree, prerequisites, mathematical predicate, pass/fail/indeterminate semantics, invalidation behavior, and positive, negative, boundary, and missing-data synthetic tests. Pattern-specific criteria must be separately specified. Ambiguous rules fail closed.
 
-An authorized NeoWave rulebook (for example, Mastering Elliott Wave and official supplements) is needed to encode the complete method. Public summaries are insufficient to claim complete coverage.
+An authorized NeoWave rulebook (for example, *Mastering Elliott Wave* and official supplements) is needed to encode the complete method. Public summaries are insufficient to claim complete coverage.
 
 ## Experiment protocol
 - Baseline: previous 20 indicator-only MTF combinations; all 20 had negative 2024+ OOS net returns. Do not optimize those thresholds further.
