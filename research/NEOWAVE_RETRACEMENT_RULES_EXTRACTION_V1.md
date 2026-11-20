@@ -54,3 +54,26 @@ The Rule 4 condition/category combination feeds into the Pre-Constructive Rules 
 - Extract Rules of Observation and the complete Rule of Proportion/Neutrality definitions.
 - Build synthetic fixtures for every activation boundary, each condition, Rule 4 categories, unknown context, and ambiguous monowave termination.
 - Only then implement the retracement rule module and enable its certification tests.
+
+
+## Pre-Constructive Rules of Logic — what the next section changes
+The section begins on printed p. 3-32 (PDF p. 39) and is described as spanning the next 26 pages. It explicitly transforms each Rule plus its lettered Condition into one or more candidate Structure Labels. The analyst must compare multiple surrounding waves and apply all conditions in each relevant paragraph; the activation band is only the entry point into this decision process.
+
+The first Rule 1 / Condition "a" material begins on printed p. 3-35 (PDF p. 40). The opening examples already refer to:
+- relative price and time lengths of m(-1), m0, m1, m2, m3 and sometimes later waves;
+- complete retracements measured against the time consumed to form a wave, with an added one-time-unit convention;
+- candidate impulse, flat, zigzag, triangle, complex-correction, terminal, and X-wave interpretations;
+- alternative X-wave locations, including an explicitly "missing" wave possibility;
+- additional conditions that remove candidate Structure Labels from the list.
+
+This confirms that the retracement rules are not a seven-way Fibonacci classifier. They are a multi-stage decision tree producing a ranked/listed set of structural hypotheses, which must later be grouped and confirmed. The exact paragraph-level predicates still need a full page-by-page extraction and positive/negative fixtures.
+
+## Tolerance and causality implications
+- The opening of the Pre-Constructive section says that Fibonacci ratios such as 61.8% and 161.8% should receive a tolerance; its example treats 61.8% as approximately 58%–66%. It also says "almost" and "close to" mean within 10% of the stated ratio.
+- The same section says time retracements must be interpreted precisely, including the extra one-time-unit convention. Price tolerance must not be silently applied to time rules.
+- The text explicitly says not to eliminate a possibility because a measured price ratio is slightly off an ideal level, and describes an Exception Rule elsewhere in the book.
+- Because conditions can refer to m3, m4, m5, prior waves, trendline breaks and subsequent retracements, a Structure Label cannot be considered available merely when m1 or m2 first forms. Its `availableAt` must be no earlier than the latest confirmed endpoint needed by the full condition. Later evidence may remove an earlier hypothesis; the engine must preserve the hypothesis history and causal timestamps.
+- A "missing" X-wave must remain a hypothesis with explicit evidence and alternative placements until later structure confirms or rejects it. The engine must not fabricate an invisible wave simply to force a preferred pattern.
+
+## Implementation consequence
+Keep `NW-RET-01..07` blocked. The next implementation unit is not a single numeric function; it is a source-backed Rule/Condition evaluator that emits candidate Structure Labels, evidence references, unresolved conditions, and a causal `availableAt`. The pattern engine then groups monowaves into higher-degree structures and applies post-constructive confirmation/invalidation rules.
