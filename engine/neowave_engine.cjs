@@ -1066,6 +1066,84 @@ function segmentPatternLabels(labels) {
   };
 }
 
+function aggregatePolywaveCandidate({ patterns, xWaves, asOfIndex } = {}) {
+  const fail = (reason) => ({
+    status: "indeterminate",
+    kind: "candidate_polywave",
+    tradable: false,
+    sourceVerified: false,
+    reason
+  });
+  if (!Array.isArray(patterns) || patterns.length < 2 ||
+      !Array.isArray(xWaves) || xWaves.length !== patterns.length - 1) {
+    return fail("a polywave candidate requires at least two patterns and exactly one X-wave connector between each adjacent pair");
+  }
+  const validComponent = (component) => component && component.from && component.to &&
+    Number.isInteger(component.from.index) && Number.isInteger(component.to.index) &&
+    component.from.index >= 0 && component.to.index > component.from.index &&
+    Number.isFinite(component.from.price) && Number.isFinite(component.to.price) &&
+    component.from.price !== component.to.price;
+  if (patterns.some((pattern) => !validComponent(pattern)) ||
+      xWaves.some((xWave) => !validComponent(xWave))) {
+    return fail("every pattern and X-wave needs ordered source indices and distinct finite endpoint prices");
+  }
+  for (let i = 0; i < xWaves.length; i++) {
+    if (patterns[i].to.index !== xWaves[i].from.index ||
+        patterns[i].to.price !== xWaves[i].from.price ||
+        xWaves[i].to.index !== patterns[i + 1].from.index ||
+        xWaves[i].to.price !== patterns[i + 1].from.price) {
+      return fail("patterns and X-waves must be exactly contiguous at shared endpoints");
+    }
+  }
+  if (asOfIndex !== undefined && (!Number.isInteger(asOfIndex) || asOfIndex < 0)) {
+    return fail("asOfIndex must be a non-negative integer when supplied");
+  }
+  const components = [...patterns, ...xWaves];
+  const availability = components.map((component) => {
+    if (Number.isFinite(component.availableAt)) return component.availableAt;
+    const fromAt = component.from.confirmedAt;
+    const toAt = component.to.confirmedAt;
+    return Number.isFinite(fromAt) && Number.isFinite(toAt) ? Math.max(fromAt, toAt) : null;
+  });
+  if (Number.isInteger(asOfIndex) && availability.some((time) => Number.isFinite(time) && time > asOfIndex)) {
+    return fail("polywave evidence contains a component confirmed after asOfIndex");
+  }
+  const causalAvailabilityVerified = availability.every(Number.isFinite);
+  const availableAt = causalAvailabilityVerified ? Math.max(...availability) : null;
+  const first = patterns[0].from;
+  const last = patterns.at(-1).to;
+  const priceCoverage = Math.abs(last.price - first.price);
+  const duration = last.index - first.index;
+  const degreeDiagnostics = xWaves.map((xWave, index) => {
+    if (!patterns[index].degree || !patterns[index + 1].degree || !xWave.degree) return null;
+    return assessXWaveDegreeRelation({
+      leftPatternDegree: patterns[index].degree,
+      rightPatternDegree: patterns[index + 1].degree,
+      xWaveDegree: xWave.degree,
+      documentedException: xWave.documentedDegreeException === true
+    });
+  }).filter(Boolean);
+  return {
+    status: "candidate_polywave",
+    kind: "candidate_polywave",
+    complete: false,
+    tradable: false,
+    sourceVerified: false,
+    patterns: patterns.length,
+    xWaveCount: xWaves.length,
+    from: first,
+    to: last,
+    direction: last.price > first.price ? "up" : "down",
+    priceCoverage,
+    duration,
+    barsPerPriceUnit: duration / priceCoverage,
+    availableAt,
+    causalAvailabilityVerified,
+    degreeDiagnostics,
+    disclaimer: "This aggregates contiguous component structures only. It does not validate component pattern families, X-wave price/time rules, or the full NeoWave polywave decision tree."
+  };
+}
+
 function analyzeStructureSequenceNotation(sourceNotation, options = {}) {
   const parsed = parseStructureSequenceNotation(sourceNotation, options);
   if (parsed.status !== "parsed_sequence_notation") {
@@ -1451,6 +1529,7 @@ module.exports = {
   parseStructureLabelList,
   parseStructureSequenceNotation,
   analyzeStructureSequenceNotation,
+  aggregatePolywaveCandidate,
   PRECONSTRUCTIVE_SEEDS,
   getPreconstructiveSeed,
   hypothesesFromPreconstructiveSeed,
