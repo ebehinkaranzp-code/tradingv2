@@ -21,10 +21,10 @@
 | Metric | Result |
 |---|---:|
 | Out-of-sample directional accuracy | 50.18% |
-| Brier score | 0.2523 |
+| Brier score | 0.2523 (naive base-rate: 0.2492) |
 | Confusion counts: true up / false up / true down / missed up | 1,038 / 961 / 222 / 290 |
 | Simulated strategy return | +22.22% |
-| Buy-and-hold return, same test span | +754.55% |
+| Buy-and-hold return, same test span | +801.05% |
 | Maximum drawdown | 66.92% |
 | Closed trades | 282 |
 | Win rate | 53.90% |
@@ -43,6 +43,6 @@
 | 2026 | 2,717 | 319 | 42.32% |
 
 ## What the errors say
-The model generated 961 false bullish calls and missed 290 upward outcomes, while correctly identifying only 222 downward outcomes. Its probability score is not better than a simple 0.25 Brier reference. The model is biased toward bullish predictions and does not reliably distinguish market regimes.
+A trivial always-up classifier would reach 52.89% accuracy, higher than this model's 50.18%; its Brier score (0.2523) is also worse than the constant base-rate baseline (0.2492). The model generated 961 false bullish calls and missed 290 upward outcomes, while correctly identifying only 222 downward outcomes. Its probability score is not better than a simple 0.25 Brier reference. The model is biased toward bullish predictions and does not reliably distinguish market regimes.
 
 **Conclusion:** this first model has not learned a useful, robust trading edge. Its +22.22% return is far below buy-and-hold on the same interval, and its 66.92% drawdown is unacceptable. Do not connect it to live orders. The next research iteration must focus on regime classification, calibrated probabilities, volatility-adjusted position sizing, drawdown controls, and separate untouched final holdout periods. Any improvement must beat buy-and-hold and simple baselines after realistic costs across multiple market regimes.
