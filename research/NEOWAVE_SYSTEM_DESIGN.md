@@ -14,7 +14,7 @@ Long-only BTCUSDT Spot reversal research. No EMA200/trend-following entry logic.
 
 ## Current implementation status
 - Implemented in `engine/neowave_engine.cjs`: causal confirmed-pivot timestamps, alternating monowave extraction, price/time diagnostics, and fail-closed candidate validation.
-- The seven retracement rule IDs remain placeholders; their exact predicates have not been extracted and verified.
+- A first-pass activation map for all seven retracement rules has been recovered from printed Chapter 3 pages 3-23–3-30 (PDF pp. 34–38). It shows that the rule selection depends on m2/m1, then on lettered m0/m1 conditions, with an additional m3/m2 category for Rule 4. The following 26-page Pre-Constructive Rules of Logic section transforms these identifiers into Structure Labels; its complete logic is not yet extracted. These seven IDs therefore remain blocked placeholders, not executable predicates.
 - Pattern-family entries are a coverage register, not evidence that the patterns are implemented.
 - The gate now requires every catalog rule to have a source-verified definition, a document/locator, and an explicit pattern-applicability function. A rule may be not applicable to a specific candidate only when the applicability result includes a reason. Unknown applicability and any non-pass result for an applicable rule reject the candidate.
 - Catalog entries are required for engine certification; they are not all presumed mandatory for every pattern. Pattern-specific applicability must come from the source.
