@@ -141,6 +141,54 @@ function monowaves(pivots) {
   return waves;
 }
 
+/**
+ * Aggregate one or more consecutive monowaves into a labeled NeoWave section
+ * (for example m0 or m2). Price coverage is measured endpoint-to-endpoint,
+ * not by summing the internal zigzag path.
+ */
+function aggregateMonowaveGroup(waves) {
+  if (!Array.isArray(waves) || waves.length === 0) {
+    throw Error("a monowave group must contain at least one wave");
+  }
+  for (let i = 0; i < waves.length; i++) {
+    const wave = waves[i];
+    if (!wave?.from || !wave?.to ||
+        !Number.isInteger(wave.from.index) || !Number.isInteger(wave.to.index) ||
+        wave.to.index <= wave.from.index ||
+        !Number.isFinite(wave.from.price) || !Number.isFinite(wave.to.price)) {
+      throw Error("invalid monowave at group index " + i);
+    }
+    if (i) {
+      const previous = waves[i - 1];
+      if (previous.to.index !== wave.from.index ||
+          previous.to.price !== wave.from.price) {
+        throw Error("monowaves in a group must be contiguous at shared endpoints");
+      }
+    }
+  }
+  const first = waves[0];
+  const last = waves.at(-1);
+  const priceChange = last.to.price - first.from.price;
+  const duration = last.to.index - first.from.index;
+  const availableTimes = waves.map((wave) => wave.availableAt)
+    .filter(Number.isFinite);
+  return {
+    from: first.from,
+    to: last.to,
+    direction: priceChange > 0 ? "up" : priceChange < 0 ? "down" : "flat",
+    priceChange,
+    absoluteChange: Math.abs(priceChange),
+    priceCoverage: Math.abs(priceChange),
+    duration,
+    constituentCount: waves.length,
+    constituentWaveIndices: waves.map((wave) => ({
+      from: wave.from.index,
+      to: wave.to.index
+    })),
+    availableAt: availableTimes.length === waves.length ? Math.max(...availableTimes) : null
+  };
+}
+
 function summarizeStructure(waves) {
   const ratios = waves.map((wave) => wave.barsPerPriceUnit).filter(Number.isFinite);
   const sorted = ratios.slice().sort((a, b) => a - b);
@@ -437,6 +485,7 @@ module.exports = {
   ENGINE_CERTIFICATION,
   confirmedPivots,
   monowaves,
+  aggregateMonowaveGroup,
   summarizeStructure,
   evaluateStage1Confirmation,
   createHypothesisRevision,
