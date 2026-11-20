@@ -79,6 +79,8 @@ test("multi-monowave section uses net endpoint coverage and latest causal availa
   const waves = monowaves(pivots);
   const group = aggregateMonowaveGroup(waves);
   assert.equal(group.constituentCount, 2);
+  assert.equal(group.kind, "candidate_group_not_source_verified_NeoWave_section");
+  assert.equal(group.sourceVerified, false);
   assert.equal(group.priceCoverage, 10);
   assert.equal(group.duration, 7);
   assert.equal(group.availableAt, 9);
