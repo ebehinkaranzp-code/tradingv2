@@ -840,6 +840,33 @@ function detectPatternBoundaryMarkers(labels) {
   };
 }
 
+function segmentPatternLabels(labels) {
+  if (!Array.isArray(labels) || !labels.length || labels.some((label) => typeof label !== "string")) {
+    return { status: "indeterminate", completedPatterns: [], openTail: [], reason: "a non-empty array of Structure Labels is required" };
+  }
+  const completedPatterns = [];
+  let current = [];
+  labels.forEach((label) => {
+    current.push(label);
+    const semantics = describeStructureLabel(label).semantics;
+    if (semantics && ["last_in_pattern", "special_last_three"].includes(semantics.position)) {
+      completedPatterns.push({
+        index: completedPatterns.length,
+        labels: current,
+        endMarker: label,
+        sourceVerified: false
+      });
+      current = [];
+    }
+  });
+  return {
+    status: completedPatterns.length ? "candidate_patterns_segmented" : "no_completed_pattern_boundary",
+    completedPatterns,
+    openTail: current,
+    sourceVerified: false
+  };
+}
+
 function parseStructureLabelList(sourceNotation) {
   if (typeof sourceNotation !== "string" || !sourceNotation.trim()) {
     return { status: "indeterminate", candidates: [], reason: "a non-empty source notation is required" };
@@ -1200,6 +1227,7 @@ module.exports = {
   STRUCTURE_LABEL_SEMANTICS,
   describeStructureLabel,
   detectPatternBoundaryMarkers,
+  segmentPatternLabels,
   parseStructureLabelList,
   parseStructureSequenceNotation,
   PRECONSTRUCTIVE_SEEDS,
