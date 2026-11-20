@@ -83,6 +83,15 @@ function endpointPrices(wave) {
   return { start, end, coverage: Math.abs(end - start) };
 }
 
+function availabilityOf(wave) {
+  if (!wave || typeof wave !== "object") return null;
+  if (Number.isFinite(wave.availableAt)) return wave.availableAt;
+  const fromAt = wave.from?.confirmedAt;
+  const toAt = wave.to?.confirmedAt;
+  return Number.isFinite(fromAt) && Number.isFinite(toAt)
+    ? Math.max(fromAt, toAt) : null;
+}
+
 function priceCoverageRatio(numeratorWave, denominatorWave) {
   const numerator = endpointPrices(numeratorWave);
   const denominator = endpointPrices(denominatorWave);
@@ -93,7 +102,10 @@ function priceCoverageRatio(numeratorWave, denominatorWave) {
     status: "measured",
     value: numerator.coverage / denominator.coverage * 100,
     numeratorCoverage: numerator.coverage,
-    denominatorCoverage: denominator.coverage
+    denominatorCoverage: denominator.coverage,
+    availableAt: Number.isFinite(availabilityOf(numeratorWave)) && Number.isFinite(availabilityOf(denominatorWave))
+      ? Math.max(availabilityOf(numeratorWave), availabilityOf(denominatorWave)) : null,
+    causalAvailabilityVerified: Number.isFinite(availabilityOf(numeratorWave)) && Number.isFinite(availabilityOf(denominatorWave))
   };
 }
 
@@ -196,6 +208,10 @@ function analyzeRetracementContext({ m0, m1, m2, m3 } = {}) {
     m2OverM1Percent: m2m1.value,
     activation,
     candidates,
+    availableAt: [m2m1, ...candidates.map(x => ({ availableAt: x.condition?.availableAt, causalAvailabilityVerified: x.condition?.causalAvailabilityVerified }))]
+      .every(x => Number.isFinite(x.availableAt))
+      ? Math.max(m2m1.availableAt, ...candidates.map(x => x.condition.availableAt)) : null,
+    causalAvailabilityVerified: Number.isFinite(m2m1.availableAt) && candidates.every(x => x.condition?.causalAvailabilityVerified === true),
     source: SOURCE,
     disclaimer: "These measurements only identify retracement-rule activation and letter/category identifiers. They do not implement the Pre-Constructive Structure Label decision tree, pattern construction, completion, confirmation, invalidation, or recount."
   };
@@ -206,6 +222,7 @@ module.exports = {
   FIB,
   CONDITION_BANDS,
   priceCoverageRatio,
+  availabilityOf,
   classifyRetracementActivation,
   classifyCondition,
   classifyRule4Category,
