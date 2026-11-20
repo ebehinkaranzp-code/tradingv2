@@ -4,6 +4,9 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const {
   RULE_CATALOG,
+  DEGREE_HIERARCHY,
+  degreeIndex,
+  compareDegrees,
   ENGINE_CERTIFICATION,
   confirmedPivots,
   monowaves,
@@ -198,6 +201,15 @@ test("hypothesis ledger rejects future evidence and non-advancing revisions", ()
   assert.throws(() => createHypothesisRevision({ asOfIndex: 11, candidates: [candidate] }), /future evidence/);
   const first = createHypothesisRevision({ asOfIndex: 12, candidates: [candidate] });
   assert.throws(() => createHypothesisRevision({ history: first.history, asOfIndex: 12, candidates: [] }), /advance strictly/);
+});
+
+test("degree hierarchy follows the source order and refuses unknown degree labels", () => {
+  assert.equal(DEGREE_HIERARCHY[0], "Grand Supercycle");
+  assert.equal(DEGREE_HIERARCHY.at(-1), "Sub-Micro");
+  assert.equal(degreeIndex("Cycle"), 2);
+  assert.equal(compareDegrees("Primary", "Minor").relation, "higher");
+  assert.equal(compareDegrees("Minute", "Minute").relation, "same");
+  assert.equal(compareDegrees("unknown", "Micro").status, "indeterminate");
 });
 
 test("all seven retracement slots and named research families are catalogued", () => {
