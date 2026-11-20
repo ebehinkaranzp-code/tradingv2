@@ -281,6 +281,32 @@ test("Chapter 6 stage two confirms extended first and third waves at the wave-4 
   assert.equal(blocked.status, "stage2_blocked");
 });
 
+test("Chapter 6 extended third wave requires more than 61.8 percent of the whole pattern to retrace", () => {
+  const base = {
+    stage1Confirmed: true,
+    patternType: "impulse",
+    extendedWave: 3,
+    pattern: { from: { price: 0 }, to: { price: 200 } },
+    wave4: { from: { price: 180 }, to: { price: 50 } },
+    wave5: { from: { price: 50 }, to: { price: 200 } }
+  };
+  const pass = evaluateStage2Confirmation({
+    ...base,
+    correction: { from: { price: 200 }, to: { price: 40 } },
+    correctionComplete: true
+  });
+  assert.equal(pass.status, "stage2_price_target_pass");
+  assert.equal(pass.wholePatternRetracementPercent, 80);
+
+  const fail = evaluateStage2Confirmation({
+    ...base,
+    correction: { from: { price: 200 }, to: { price: 100 } },
+    correctionComplete: true
+  });
+  assert.equal(fail.status, "stage2_price_target_fail");
+  assert.equal(fail.extensionEvidence, false);
+});
+
 test("Chapter 6 stage two applies the 61.8-to-less-than-100 percent rule to extended wave five", () => {
   const base = {
     stage1Confirmed: true,
