@@ -214,19 +214,21 @@ test("Chapter 6 stage-one confirmation uses the source timing window and pattern
   const standardPass = evaluateStage1Confirmation({
     patternType: "standard", waveStartTime: 10, waveEndTime: 20, breakAt: 30
   });
-  assert.equal(standardPass.status, "stage1_confirmed");
+  assert.equal(standardPass.status, "stage1_timing_pass");
+  assert.equal(standardPass.overallPatternConfirmed, false);
+  assert.equal(standardPass.tradable, false);
 
   const trianglePass = evaluateStage1Confirmation({
     patternType: "triangle", waveStartTime: 20, waveEndTime: 25, breakAt: 30
   });
-  assert.equal(trianglePass.status, "stage1_confirmed");
+  assert.equal(trianglePass.status, "stage1_timing_pass");
   assert.equal(trianglePass.referenceLine, "0-B");
   assert.equal(trianglePass.timingWave, "c");
 
   const late = evaluateStage1Confirmation({
     patternType: "standard", waveStartTime: 10, waveEndTime: 20, breakAt: 30.001
   });
-  assert.equal(late.status, "stage1_not_confirmed");
+  assert.equal(late.status, "stage1_timing_fail");
   assert.equal(late.confirmed, false);
 });
 
