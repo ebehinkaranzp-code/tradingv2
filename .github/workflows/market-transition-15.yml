@@ -11,7 +11,7 @@ permissions:
   contents: read
   actions: read
 concurrency:
-  group: market-transition-15
+  group: market-transition-35
   cancel-in-progress: false
 jobs:
   research:
@@ -36,6 +36,6 @@ jobs:
           name: market-transition-35-node-results
           path: |
             data/BTCUSDT-1d.csv
-            research/results/market-transition-15-node.json
+            research/results/market-transition-35-node.json
             research/results/market-transition-35-node.md
           retention-days: 90
