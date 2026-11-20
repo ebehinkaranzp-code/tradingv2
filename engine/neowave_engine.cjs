@@ -383,8 +383,9 @@ function evaluateStage2Confirmation({
   const validWave = (wave) => wave && Number.isFinite(wave.from?.price) &&
     Number.isFinite(wave.to?.price) && wave.from.price !== wave.to.price;
   if (!validWave(pattern) || !validWave(wave4) || !validWave(wave5) ||
-      !validWave(correction) || correction.from.price !== pattern.to.price) {
-    return { ...base, status: "indeterminate", reason: "pattern, wave 4, wave 5 and a contiguous post-pattern correction need finite distinct endpoints" };
+      !validWave(correction) || correction.from.price !== pattern.to.price ||
+      wave5.from.price !== wave4.to.price || wave5.to.price !== pattern.to.price) {
+    return { ...base, status: "indeterminate", reason: "pattern, wave 4, wave 5 and the post-pattern correction need finite, contiguous endpoints" };
   }
   const patternDirection = pattern.to.price > pattern.from.price ? "up" : "down";
   const correctionDirection = correction.to.price > correction.from.price ? "up" : "down";
