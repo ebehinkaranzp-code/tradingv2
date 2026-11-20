@@ -41,7 +41,7 @@ After selecting Rule 4's lettered Condition from m0/m1, the source requires a Ca
 The Rule 4 condition/category combination feeds into the Pre-Constructive Rules of Logic. It is not a stand-alone pattern label.
 
 ## Critical caveats before implementation
-1. **Pre-Constructive Logic is integral.** The Pre-Constructive section (listed in the Chapter 3 contents at printed p. 3-44; scan PDF p. 94 onward) says the Rule identifiers and their Condition identifiers must be transformed into Structure Labels using the following 26 pages of instructions. The book warns not to read that section straight through and requires real-time chart context. The activation map alone is not sufficient to implement the seven rules.
+1. **Pre-Constructive Logic is integral.** The Pre-Constructive section (listed in the Chapter 3 contents at printed p. 3-44; scan PDF p. 94 onward) says the Rule identifiers and their Condition identifiers must be transformed into Structure Labels using the following 65 pages of instructions. The book warns not to read that section straight through and requires real-time chart context. The activation map alone is not sufficient to implement the seven rules.
 2. **Tolerance conflict requires resolution.** Printed p. 3-30 labels Rule 3 as an “exactly 61.8%” retracement, while the beginning of the Pre-Constructive section (Pre-Constructive section, scan PDF p. 94 onward) says Fibonacci relationships should receive a slight range, giving 61.8% as approximately 58%–66% (about ±4 percentage points). The engine must not use floating-point exact equality or assume a tolerance policy without reconciling the full rule text and diagrams.
 3. **Boundary semantics need explicit verification.** Several bands use “at least”, “less than”, “between”, “inclusive”, and “more than”. Rule 1's 161.8% boundary is unclear in the scan. Overlap/gap tests are required before coding.
 4. **Monowave identity comes first.** The source says the terminal points of m0, m1, m2 and m3 must be determined using Rules of Observation before applying retracement rules. It also allows some labeled waves to consist of one or more monowaves.
@@ -49,7 +49,7 @@ The Rule 4 condition/category combination feeds into the Pre-Constructive Rules 
 6. **Implementation remains diagnostic-only.** The engine measures activation/condition/category evidence but does not implement the Pre-Constructive Structure Label decision trees or certify any pattern.
 
 ## Required next extraction
-- Complete the 26-page Pre-Constructive Rules of Logic section (listed at printed p. 3-44 and beginning in the scan around PDF p. 94) and transcribe the rule/condition-to-Structure-Label mappings as concise original logic tables.
+- Complete the 65-page Pre-Constructive Rules of Logic section (listed at printed p. 3-44 and beginning in the scan around PDF p. 94) and transcribe the rule/condition-to-Structure-Label mappings as concise original logic tables.
 - Review the full Rule 1–7 pages and diagrams at higher resolution to settle boundary/tolerance details.
 - Extract Rules of Observation and the complete Rule of Proportion/Neutrality definitions.
 - Build synthetic fixtures for every activation boundary, each condition, Rule 4 categories, unknown context, and ambiguous monowave termination.
@@ -57,7 +57,7 @@ The Rule 4 condition/category combination feeds into the Pre-Constructive Rules 
 
 
 ## Pre-Constructive Rules of Logic — what the next section changes
-The section is listed at printed p. 3-44 and begins around scan PDF p. 94; it is described as spanning the next 26 pages. It explicitly transforms each Rule plus its lettered Condition into one or more candidate Structure Labels. The analyst must compare multiple surrounding waves and apply all conditions in each relevant paragraph; the activation band is only the entry point into this decision process.
+The section is listed at printed p. 3-44 and begins around scan PDF p. 94; it is described as spanning the next 65 pages. It explicitly transforms each Rule plus its lettered Condition into one or more candidate Structure Labels. The analyst must compare multiple surrounding waves and apply all conditions in each relevant paragraph; the activation band is only the entry point into this decision process.
 
 The first Rule 1 / Condition "a" material begins on scan PDF p. 95 onward. The opening examples already refer to:
 - relative price and time lengths of m(-1), m0, m1, m2, m3 and sometimes later waves;
@@ -131,7 +131,7 @@ The source's Rules of Observation show that m0 and m2 may each consist of one mo
 
 ## Structure Label notation sample (Rule 3, Condition a)
 
-The supplied scan's Rule 3 Condition-a heading shows the slash-separated label list `{F3/c3/s5/5/(sL3)/[L5]}` (scan PDF p. 106, printed Chapter 3 p. 3-58). The engine now parses this notation while preserving unwrapped labels as primary candidates and parenthesized/bracketed labels as conditional alternatives. This parser only preserves source notation; it does not evaluate the conditions that select or eliminate any candidate label.
+The supplied scan's Rule 3 Condition-a heading shows the slash-separated label list `{F3/c3/s5/5/(sL3)/[L5]}` (scan PDF p. 106, printed Chapter 3 p. 3-58). The engine now parses this notation while preserving unwrapped labels as primary candidates and parenthesized labels as lower-probability alternatives and bracketed labels as rare or highly unlikely alternatives. This parser only preserves source notation; it does not evaluate the conditions that select or eliminate any candidate label.
 
 
 ## Partial Pre-Constructive label seeds transcribed
@@ -161,3 +161,8 @@ The engine now exposes `timeCoverageRatio` independently from price coverage. It
 
 
 For matching measured contexts, `analyzeNeoWaveRetracement` now turns the partial seed list into competing Structure Label hypotheses. Because the complete Pre-Constructive predicates have not been evaluated, every generated hypothesis remains conditional. This preserves alternatives without falsely selecting one.
+
+
+## Probability notation verified from the Pre-Constructive introduction
+
+The introductory page (printed p. 3-44; scan PDF p. 95) explicitly distinguishes the wrappers: unwrapped labels are the most likely; labels in parentheses have lower probability than unwrapped labels; labels in brackets are rare or very unlikely. The engine parser now preserves three separate ranks: `primary`, `conditional` and `rare`. The Pre-Constructive decision tree spans 65 pages, not 26; earlier draft notes stating 26 pages were incorrect and have been corrected.
