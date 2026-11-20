@@ -12,3 +12,5 @@ test("reject signal vector length mismatch",()=>assert.throws(()=>backtest(bars(
 
 test("all 20 added experiment signals are deterministic and aligned",()=>{const b=bars(420),ind=indicators(b);for(const cfg of CONFIGS.slice(15)){const sig=makeSignals(b,ind,cfg);assert.equal(sig.length,b.length);assert.ok(sig.every(x=>typeof x==="boolean"))}});
 test("RSI cross and Donchian signals do not inspect future bars",()=>{const b=bars(420),ind=indicators(b);for(const cfg of [CONFIGS[15],CONFIGS[27]]){const base=makeSignals(b,ind,cfg);const changed=b.map(x=>({...x}));changed[changed.length-1].high*=2;changed[changed.length-1].close*=2;const after=makeSignals(changed,indicators(changed),cfg);assert.deepEqual(base.slice(0,-1),after.slice(0,-1))}});
+
+test("standalone RSI experiment does not silently require Ichimoku cloud",()=>{const n=3,b=bars(n),ind={};for(const k of ["spanA","spanB","kijun","ema200","ema50","ema20","rsi","atr","volz","jaw","teeth","lips"])ind[k]=Array(n).fill(1);ind.spanA=Array(n).fill(1000);ind.spanB=Array(n).fill(1000);ind.kijun=Array(n).fill(1000);ind.rsi=[49,51,52];const sig=makeSignals(b,ind,CONFIGS[15]);assert.equal(sig[1],true)});
