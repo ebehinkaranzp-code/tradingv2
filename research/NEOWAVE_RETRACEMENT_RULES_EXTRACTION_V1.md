@@ -77,3 +77,41 @@ This confirms that the retracement rules are not a seven-way Fibonacci classifie
 
 ## Implementation consequence
 Keep `NW-RET-01..07` blocked. The next implementation unit is not a single numeric function; it is a source-backed Rule/Condition evaluator that emits candidate Structure Labels, evidence references, unresolved conditions, and a causal `availableAt`. The pattern engine then groups monowaves into higher-degree structures and applies post-constructive confirmation/invalidation rules.
+
+
+## First-pass review of the Pre-Constructive section (PDF pp. 39–47)
+The page images for PDF pp. 39–47 were visually checked and OCR was attempted. This is only the opening portion of the 26-page section; the remaining pages and all downstream chapters are not yet verified.
+
+### Reliable methodological findings
+- The section says Rule identifiers and their Condition identifiers are replaced by one or more candidate Structure Labels for each analyzed monowave.
+- The candidate list is contextual and sequential: inspect actual surrounding price action and later waves, apply all conditions in a paragraph, and update the label list as evidence develops.
+- Labels in parentheses/brackets indicate lower-probability or conditional alternatives, not equivalent-strength candidates.
+- When m1 is the first observed monowave and there is no prior market action, the entire initial Structure list is carried forward; the method does not pretend that m0 or earlier context exists.
+- When a label is being reassessed after a confirmed/compacted pattern, the source distinguishes the base structure from surrounding labels and warns against treating compacted waves as if they were ordinary individual waves.
+- The section explicitly warns against reading the decision tree straight through without live chart context. It recommends working one wave at a time and repeatedly reassessing prior labels.
+- Price/time calculations use wave termination points. Time comparisons may add one standard time unit to the measured wave duration; this convention must be applied only where the source specifies it.
+- It describes an Exception Rule: if all but one of the listed conditions are followed and one is missed only slightly, the proposed label may still be used. This must not be generalized into permission to ignore hard invalidations elsewhere.
+- The goal of reassessment includes identifying a possible “missing” wave/X-wave. Such a wave is a hypothesis with alternate locations, not a license to invent unobserved price data.
+
+### Structure-label logic recovered at a high level
+The opening Rule 1 and Rule 2 conditions demonstrate that a single activation band can produce several competing structural interpretations (including corrective, impulse/terminal, triangle, and complex-correction possibilities). The list is then pruned by later evidence such as:
+- whether subsequent monowaves exceed the endpoint of m1;
+- relative price/time length of preceding and following waves;
+- whether a later wave is fully retraced, and whether that retracement is faster or slower than the wave took to form;
+- overlap/shared price territory between nonadjacent waves;
+- trendline breaks within specified time constraints;
+- whether m3/m4/m5 are longer/shorter or meet stated retracement proportions;
+- whether a proposed X-wave placement is plausible or remains missing/ambiguous.
+
+These are not complete predicates and are not sufficient to reproduce the book's complete decision tables. Rule 4's extra m3/m2 categories add another branch dimension and a large number of context-dependent conditions.
+
+### Engineering implications
+1. The engine must represent a **set of competing hypotheses**, not a single deterministic wave label chosen from one ratio.
+2. Each hypothesis needs evidence/provenance, conditional-vs-primary rank, source locator, unresolved predicates, and `availableAt` equal to the latest confirmed bar required by every condition used.
+3. New waves can prune or alter the list; preserve versioned hypothesis history rather than rewriting history with future information.
+4. Distinguish price retracement from time retracement. Time comparisons use bar/time units and source-specific +1 conventions; do not reuse price tolerance.
+5. "Exception Rule" should be modeled as a separate, explicitly scoped override with a source locator and bounded tolerance, not a blanket pass.
+6. Do not automatically certify a pattern because a Structure Label appears in a list. Later chapters define construction, grouping, completion, and confirmation.
+
+## Production gate correction
+The engine's previous public validator accepted caller-supplied `sourceVerified: true` and arbitrary callbacks, which could make synthetic test definitions appear tradable. That was not a safe production certification boundary. The engine now has an explicit closed certification manifest; the validator remains non-tradable regardless of caller-supplied fake provenance until the source-backed rulebook and independent rule tests are genuinely complete. Synthetic tests may test local evaluator behavior, but cannot certify production NeoWave.
