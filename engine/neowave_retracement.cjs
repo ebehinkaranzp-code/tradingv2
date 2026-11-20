@@ -19,8 +19,8 @@ const FIB = Object.freeze({
   RATIO_161_8: 161.8,
   RATIO_261_8: 261.8,
   RULE_3_TOLERANCE_LOW: 58,
-  RULE_3_TOLERANCE_HIGH: 66
-});
+  RULE_3_TOLERANCE_HIGH: 66,
+  // The Rule 3 condition prose says 261.8%, while the source summary diagram\n  // labels the corresponding boundary 2.168 (216.8%). Preserve the conflict.\n  RULE_3_CONDITION_DIAGRAM_BOUNDARY: 216.8,\n  RULE_3_CONDITION_TEXT_BOUNDARY: 261.8\n});
 
 const CONDITION_BANDS = Object.freeze({
   1: [
@@ -154,6 +154,18 @@ function classifyCondition(ruleNumber, m0OverM1Percent) {
   const bands = CONDITION_BANDS[ruleNumber];
   if (!bands || !Number.isFinite(m0OverM1Percent) || m0OverM1Percent < 0) {
     return { status: "indeterminate", condition: null, reason: "known rule number and finite non-negative m0/m1 percentage are required" };
+  }
+  // Rule 3's prose and summary diagram disagree: the prose gives 261.8%,
+  // while the diagram labels 2.168 (216.8%). Do not silently select either.
+  if (ruleNumber === 3 &&
+      m0OverM1Percent > FIB.RULE_3_CONDITION_DIAGRAM_BOUNDARY &&
+      m0OverM1Percent <= FIB.RULE_3_CONDITION_TEXT_BOUNDARY) {
+    return {
+      status: "indeterminate",
+      condition: null,
+      reason: "source conflict: Rule 3 condition 'e' ends at 261.8% in the prose but at 216.8% (2.168) in the summary diagram",
+      source: SOURCE
+    };
   }
   const matches = bands.filter(b => inBand(m0OverM1Percent, b));
   if (matches.length !== 1) {
