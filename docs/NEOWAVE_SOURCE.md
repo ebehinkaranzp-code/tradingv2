@@ -13,6 +13,12 @@
 - Intended use: supplementary source for clarifications, edge cases, pattern identification, and rule interpretation.
 - Access status on 2026-11-20: the category page timed out when accessed; its contents have not yet been retrieved or reviewed. Do not treat this link as already-read material.
 
+
+## Alternate Persian PDF URL
+- URL: https://shirazneowave.ir/Download/mastering-elliot-wave%20%28Glenn%20Neely%29.pdf
+- Access status on 2026-11-20: direct web retrieval timed out; a direct download attempt also failed. The PDF has not been retrieved or reviewed.
+- Treat this as a separate candidate URL for the same book; do not assume it is a working mirror or that its contents have been verified.
+
 ## Archival status
 This repository stores bibliographic references and research provenance, not copies of the book or website articles. The linked PDF and FAQ page are hosted by a third party and could not be retrieved through the available web access in this session. The full book and website articles may be copyrighted; do not mirror or commit complete PDFs, verbatim articles, or substantial transcriptions without documented redistribution permission.
 
