@@ -2,7 +2,7 @@
 
 **Status:** partial. Based on the supplied Persian translation scan only. This note does not claim that the entire Chapter 6 procedure or all later confirmation rules have been implemented.
 
-## First-stage confirmation (printed Chapter 6, p. 6-2)
+## First-stage confirmation (printed Chapter 6, p. 6-2; scan PDF p. 237)
 
 For a candidate pattern whose fifth wave has completed:
 
@@ -13,17 +13,9 @@ For a candidate pattern whose fifth wave has completed:
 
 The code's Chapter 6 first-stage diagnostic only checks this timing window after a confirmed trendline-break event has been supplied. It does not detect the trendline break itself, identify the pattern, or certify a complete NeoWave count.
 
-## Scope not yet implemented
+## Other Chapter 6 topics still outstanding
 
-The Chapter 6 contents list also identifies:
-- Stage 2;
-- extended 1st, 3rd and 5th waves;
-- truncated fifth waves;
-- corrections;
-- requirements for pattern confirmation;
-- triangles.
-
-The remaining text and diagrams for those sections must be transcribed and tested before those rules can be enabled. A first-stage pass is not a complete pattern confirmation.
+The source also covers corrective-pattern confirmation and triangle-specific requirements. The available scan pages for those topics are incomplete; only the initial 0-B / c-wave timing rule has been implemented through the first-stage diagnostic. Full corrective-pattern confirmation remains blocked. A first-stage pass is not a complete pattern confirmation.
 
 
 ## Second-stage confirmation — standard impulse (printed Chapter 6 pp. 6-3–6-4; scan PDF pp. 238–239)
@@ -36,7 +28,7 @@ After stage one, identify which wave is extended. The source then specifies:
 
 The code's `evaluateStage2Confirmation` implements these price checks only after stage one passes. It requires contiguous wave-4, wave-5, full-pattern and correction endpoints. It does not infer which wave is extended, detect the end of the correction, or certify a complete market count. For an extended fifth, the caller must explicitly state whether the correction is complete; otherwise the result remains pending.
 
-The source also describes a truncated fifth (wave 5 shorter than wave 4). The engine now checks that condition, requires a post-pattern move opposite the impulse, and checks that the entire impulse retraces without a new trend extreme beforehand. Because the source's 'strong countertrend' criterion is qualitative, the caller must explicitly attest it; the engine does not invent a numerical strength threshold.
+The source also describes a truncated fifth (wave 5 shorter than wave 4). The engine's stage-two-only diagnostic checks that condition, requires stage one to pass, requires a post-pattern move opposite the impulse, and checks that the entire impulse retraces without a new trend extreme beforehand. It does not by itself confirm the entire pattern. Because the source's 'strong countertrend' criterion is qualitative, the caller must explicitly attest it; the engine does not invent a numerical strength threshold.
 
 ## Correction confirmation caveat (printed Chapter 6 p. 6-5; scan PDF p. 240)
 
