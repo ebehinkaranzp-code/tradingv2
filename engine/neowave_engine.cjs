@@ -322,12 +322,22 @@ function evaluateFiveSectionGuidelines(sections) {
   const statuses = checks.map((check) => check.status);
   const status = statuses.includes("fail") ? "fail"
     : statuses.includes("indeterminate") ? "indeterminate" : "pass";
+  const availability = sections.map((section) => {
+    if (Number.isFinite(section.availableAt)) return section.availableAt;
+    const fromAt = section.from.confirmedAt;
+    const toAt = section.to.confirmedAt;
+    return Number.isFinite(fromAt) && Number.isFinite(toAt) ? Math.max(fromAt, toAt) : null;
+  });
+  const causalAvailabilityVerified = availability.every(Number.isFinite);
   return {
     status,
     tradable: false,
+    sourceVerified: false,
     source: { document: "Mastering Elliott Wave", locator: "Chapter 5, printed p. 5-3, Necessary Structural Rules" },
     checks,
     measurements: metrics,
+    availableAt: causalAvailabilityVerified ? Math.max(...availability) : null,
+    causalAvailabilityVerified,
     disclaimer: "This checklist is necessary-conditions diagnostics only; it does not identify a pattern family or establish completion/confirmation."
   };
 }
