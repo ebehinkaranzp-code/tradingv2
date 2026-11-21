@@ -183,3 +183,14 @@ The Persian scan images for PDF pp. 115–119 were visually reviewed after the e
 - Scan PDF pp. 117–118 continue Rule 4:a conditions; they are not a complete independent summary page. Rule 4:b begins on p. 119. No unshown Rule 4 categories or conditions are inferred from these pages.
 
 This pass does not resolve the earlier Rule 3 prose/diagram discrepancy, the missing printed pages, or the full Rule 4 decision tree.
+
+
+## Additional visual source pass: Rule 4, Conditions c and d (scan PDF pp. 123–124)
+
+A further visual pass reached the next Rule 4 branches:
+
+- **Rule 4:c** is headed on scan PDF p. 123. The visible heading-level label notation is `{c3/(F3)/(x:c3)}`. The page separates the m3/m2 category bands in its discussion; the visible Category i branch is 100% to below 161.8%, followed by a separate 161.8%–261.8% branch. The paragraphs continue to test the timing and price behavior of m(-1), m0, m1, m2, m3 and later waves, including possible X-wave placements.
+- **Rule 4:d** begins on scan PDF p. 124. Its visible heading-level notation is `{F3/(c3)/(x:c3)}`. The text groups Category i and Category ii (100%–261.8%, inclusive) in one discussion before proceeding to further context tests. The diagram also shows additional m1 retracement levels, so this branch cannot be represented by a single m3/m2 threshold alone.
+- These observations reinforce that the Rule 4 evaluator must key hypotheses by **Rule 4 condition + m3/m2 category + contextual predicates**, not just by the condition letter. The heading notation is retained here as a source note only; no new executable seeds are added.
+
+The pages reviewed here are not a complete transcription of Rule 4. The remaining category branches, all follow-on predicates, and the rest of the Pre-Constructive section still require page-by-page extraction.
