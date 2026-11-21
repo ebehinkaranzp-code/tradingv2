@@ -218,8 +218,10 @@ function aggregateMonowaveGroup(waves) {
     if (!wave?.from || !wave?.to ||
         !Number.isInteger(wave.from.index) || !Number.isInteger(wave.to.index) ||
         wave.to.index <= wave.from.index ||
-        !Number.isFinite(wave.from.price) || !Number.isFinite(wave.to.price)) {
-      throw Error("invalid monowave at group index " + i);
+        !Number.isFinite(wave.from.price) || !Number.isFinite(wave.to.price) ||
+        (wave.availableAt != null &&
+          (!Number.isInteger(wave.availableAt) || wave.availableAt < wave.to.index))) {
+      throw Error("invalid monowave or pre-endpoint availability at group index " + i);
     }
     if (i) {
       const previous = waves[i - 1];
