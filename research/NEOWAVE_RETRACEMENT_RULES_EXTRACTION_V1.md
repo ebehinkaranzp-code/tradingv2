@@ -171,3 +171,15 @@ The introductory page (printed p. 3-44; scan PDF p. 95) explicitly distinguishes
 ## Scan completeness gap
 
 The introductory text describes a 65-page Pre-Constructive section beginning at printed p. 3-44. The supplied scan reaches printed p. 3-99 at scan PDF p. 150, then jumps to Chapter 4 at scan PDF p. 151 (printed p. 4-10). Nine intermediate printed pages are absent from the supplied scan; their chapter assignment cannot be established from the available pages. No rules from those missing pages are inferred or implemented.
+
+
+## Additional visual source pass: Rule 4, Conditions a and b (scan PDF pp. 116–119)
+
+The Persian scan images for PDF pp. 115–119 were visually reviewed after the earlier first-pass extraction.
+
+- **Rule 4:a** appears on scan PDF p. 116. Its heading-level Structure Label notation is `{F3/c3/s5/[sL3]}`. The page heading identifies the Rule 4 category as m3 at least 100% but below 161.8% of m2 (Category i). The following paragraphs continue the contextual pruning conditions; the heading list alone is not an executable mapping.
+- **Rule 4:b** appears on scan PDF p. 119. Its heading-level notation is `{F3/c3/s5/(sL3)/(x:c3)/[L5]}`. This page also shows the 100%–below-161.8% m3/m2 category (Category i). The text again requires subsequent-wave and prior-wave context, time/price comparisons, and later pattern evidence.
+- Rule 4 therefore cannot be represented by a Rule/Condition pair alone: its third dimension (Category i/ii/iii from m3/m2) must remain attached to the hypothesis key. These two visually recovered headings are recorded as **partial source observations**, not added to the executable `PRECONSTRUCTIVE_SEEDS` table, because the complete category-specific decision branches have not yet been extracted.
+- Scan PDF pp. 117–118 continue Rule 4:a conditions; they are not a complete independent summary page. Rule 4:b begins on p. 119. No unshown Rule 4 categories or conditions are inferred from these pages.
+
+This pass does not resolve the earlier Rule 3 prose/diagram discrepancy, the missing printed pages, or the full Rule 4 decision tree.
