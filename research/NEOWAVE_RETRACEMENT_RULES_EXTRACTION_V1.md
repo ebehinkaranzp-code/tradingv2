@@ -1,9 +1,9 @@
 # NeoWave Retracement Rules — first-pass extraction
 
 **Status: extracted activation map, NOT an executable rulebook.**  
-Primary source: Glenn Neely, *Mastering Elliott Wave*, Version 2.0, 1990.  
-Reviewed scan: English image PDF.  
-Source locators: printed Chapter 3 pages 3-23 through 3-32; supplied PDF pages 34–39. Rule 1 begins on printed p. 3-23/PDF p. 34. Rules 2–7 are printed pp. 3-24–3-30/PDF pp. 35–38. The graphical summary is printed pp. 3-30–3-31/PDF p. 38. The Pre-Constructive Rules of Logic begin printed p. 3-32/PDF p. 39.
+Primary source: Glenn Neely, *Mastering Elliott Wave*, Persian translation scan supplied in this conversation. The English scan has not been verified in this repository.  
+Reviewed scan: Persian page images; OCR is unreliable, so disputed wording is retained as unresolved.  
+Source locators checked against the supplied Persian page images: Rules 1–7 are shown across printed Chapter 3 pp. 3-30–3-40 (scan PDF pp. 80–91); the graphical summary is printed pp. 3-42–3-43 (scan PDF pp. 92–93). The Pre-Constructive section begins after the summary (scan PDF p. 94 onward). The prior draft's scan-page locators were incorrect and have been replaced.
 
 ## Measurement basis recovered
 The text instructs the analyst to identify monowave termination points first, then measure the price coverage of m2 relative to m1 and express it as a percentage:
@@ -26,7 +26,7 @@ These are only activation bands. They do not determine the resulting Elliott/Neo
 
 ## Condition maps recovered (m0 as a percentage of m1)
 
-- Rule 1: (a) below 61.8%; (b) at least 61.8% but below 100%; (c) 100% through 161.8% inclusive; (d) above 161.8%. The wording around the 161.8% boundary on printed p. 3-23 needs verification because the scan/OCR appears to append “inclusive” ambiguously.
+- Rule 1: (a) below 61.8%; (b) at least 61.8% but below 100%; (c) 100% through 161.8% inclusive; (d) above 161.8%. The wording around the 161.8% boundary on printed p. 3-30 needs verification because the scan/OCR appears to append “inclusive” ambiguously.
 - Rule 2: (a) below 38.2%; (b) 38.2% to below 61.8%; (c) 61.8% to below 100%; (d) 100% through 161.8% inclusive; (e) above 161.8%.
 - Rule 3: (a) below 38.2%; (b) 38.2% to below 61.8%; (c) 61.8% to below 100%; (d) 100% to below 161.8%; (e) 161.8% through 261.8% inclusive; (f) above 261.8%.
 - Rule 4: (a) below 38.2%; (b) 38.2% to below 100%; (c) 100% to below 161.8%; (d) 161.8% through 261.8% inclusive; (e) above 261.8%.
@@ -41,15 +41,15 @@ After selecting Rule 4's lettered Condition from m0/m1, the source requires a Ca
 The Rule 4 condition/category combination feeds into the Pre-Constructive Rules of Logic. It is not a stand-alone pattern label.
 
 ## Critical caveats before implementation
-1. **Pre-Constructive Logic is integral.** Printed p. 3-32 says the Rule identifiers and their Condition identifiers must be transformed into Structure Labels using the following 26 pages of instructions. The book warns not to read that section straight through and requires real-time chart context. The activation map alone is not sufficient to implement the seven rules.
-2. **Tolerance conflict requires resolution.** Printed p. 3-23 labels Rule 3 as an “exactly 61.8%” retracement, while the beginning of the Pre-Constructive section (printed p. 3-33/PDF p. 40) says Fibonacci relationships should receive a slight range, giving 61.8% as approximately 58%–66% (about ±4 percentage points). The engine must not use floating-point exact equality or assume a tolerance policy without reconciling the full rule text and diagrams.
+1. **Pre-Constructive Logic is integral.** The Pre-Constructive section (listed in the Chapter 3 contents at printed p. 3-44; scan PDF p. 94 onward) says the Rule identifiers and their Condition identifiers must be transformed into Structure Labels using the following 65 pages of instructions. The book warns not to read that section straight through and requires real-time chart context. The activation map alone is not sufficient to implement the seven rules.
+2. **Tolerance conflict requires resolution.** Printed p. 3-30 labels Rule 3 as an “exactly 61.8%” retracement, while the beginning of the Pre-Constructive section (Pre-Constructive section, scan PDF p. 94 onward) says Fibonacci relationships should receive a slight range, giving 61.8% as approximately 58%–66% (about ±4 percentage points). The engine must not use floating-point exact equality or assume a tolerance policy without reconciling the full rule text and diagrams.
 3. **Boundary semantics need explicit verification.** Several bands use “at least”, “less than”, “between”, “inclusive”, and “more than”. Rule 1's 161.8% boundary is unclear in the scan. Overlap/gap tests are required before coding.
 4. **Monowave identity comes first.** The source says the terminal points of m0, m1, m2 and m3 must be determined using Rules of Observation before applying retracement rules. It also allows some labeled waves to consist of one or more monowaves.
 5. **Context matters.** m0 may be composed of multiple monowaves; the source's diagrams show it can vary widely in length. Rule 4's m3/m2 category is an extra dimension.
-6. **No implementation yet.** The existing `NW-RET-01..07` entries remain blocked placeholders. No retracement predicate or pattern conclusion is certified by this note.
+6. **Implementation remains diagnostic-only.** The engine measures activation/condition/category evidence but does not implement the Pre-Constructive Structure Label decision trees or certify any pattern.
 
 ## Required next extraction
-- Complete the 26-page Pre-Constructive Rules of Logic section (printed pp. 3-32 onward) and transcribe the rule/condition-to-Structure-Label mappings as concise original logic tables.
+- Complete the 65-page Pre-Constructive Rules of Logic section (listed at printed p. 3-44 and beginning in the scan around PDF p. 94) and transcribe the rule/condition-to-Structure-Label mappings as concise original logic tables.
 - Review the full Rule 1–7 pages and diagrams at higher resolution to settle boundary/tolerance details.
 - Extract Rules of Observation and the complete Rule of Proportion/Neutrality definitions.
 - Build synthetic fixtures for every activation boundary, each condition, Rule 4 categories, unknown context, and ambiguous monowave termination.
@@ -57,9 +57,9 @@ The Rule 4 condition/category combination feeds into the Pre-Constructive Rules 
 
 
 ## Pre-Constructive Rules of Logic — what the next section changes
-The section begins on printed p. 3-32 (PDF p. 39) and is described as spanning the next 26 pages. It explicitly transforms each Rule plus its lettered Condition into one or more candidate Structure Labels. The analyst must compare multiple surrounding waves and apply all conditions in each relevant paragraph; the activation band is only the entry point into this decision process.
+The section is listed at printed p. 3-44 and begins around scan PDF p. 94; it is described as spanning the next 65 pages. It explicitly transforms each Rule plus its lettered Condition into one or more candidate Structure Labels. The analyst must compare multiple surrounding waves and apply all conditions in each relevant paragraph; the activation band is only the entry point into this decision process.
 
-The first Rule 1 / Condition "a" material begins on printed p. 3-35 (PDF p. 40). The opening examples already refer to:
+The first Rule 1 / Condition "a" material begins on scan PDF p. 95 onward. The opening examples already refer to:
 - relative price and time lengths of m(-1), m0, m1, m2, m3 and sometimes later waves;
 - complete retracements measured against the time consumed to form a wave, with an added one-time-unit convention;
 - candidate impulse, flat, zigzag, triangle, complex-correction, terminal, and X-wave interpretations;
@@ -80,7 +80,7 @@ Keep `NW-RET-01..07` blocked. The next implementation unit is not a single numer
 
 
 ## First-pass review of the Pre-Constructive section (PDF pp. 39–47)
-The page images for PDF pp. 39–47 were visually checked and OCR was attempted. This is only the opening portion of the 26-page section; the remaining pages and all downstream chapters are not yet verified.
+The page images for scan PDF pp. 80–94 were visually checked. The Pre-Constructive section begins at printed p. 3-44 (scan PDF p. 95) and spans 65 pages; only selected pages and initial Rule/Condition label lists have been transcribed so far.
 
 ### Reliable methodological findings
 - The section says Rule identifiers and their Condition identifiers are replaced by one or more candidate Structure Labels for each analyzed monowave.
@@ -115,3 +115,89 @@ These are not complete predicates and are not sufficient to reproduce the book's
 
 ## Production gate correction
 The engine's previous public validator accepted caller-supplied `sourceVerified: true` and arbitrary callbacks, which could make synthetic test definitions appear tradable. That was not a safe production certification boundary. The engine now has an explicit closed certification manifest; the validator remains non-tradable regardless of caller-supplied fake provenance until the source-backed rulebook and independent rule tests are genuinely complete. Synthetic tests may test local evaluator behavior, but cannot certify production NeoWave.
+
+
+## Additional source-boundary conflict: Rule 3 Condition e
+
+The Persian scan's Rule 3 prose on printed Chapter 3 p. 3-32 states that Condition e covers m0 between 161.8% and 261.8% of m1, with Condition f above 261.8%. The summary diagram on the following rule-identification page labels the corresponding upper boundary as 2.168 (216.8%), not 2.618 (261.8%). This is a source-internal discrepancy, not a rounding issue. The engine therefore reports Rule 3 m0/m1 values above 216.8% and up to 261.8% as indeterminate; it does not silently choose the prose or diagram. The exact 216.8% endpoint follows the diagram's Condition e endpoint, while values above 261.8% follow the prose's Condition f range. This decision must be revisited against the English scan and surrounding source context before certification.
+
+The same summary diagram groups Rules 5, 6, and 7 under the common m0/m1 condition bands: a below 100%; b from 100% to below 161.8%; c from 161.8% through 261.8%; d above 261.8%. These are identifiers only and do not replace the Pre-Constructive Structure Label decision tree.
+
+
+## Monowave groups and endpoint measurement (Chapter 3, printed pp. 3-3 onward)
+
+The source's Rules of Observation show that m0 and m2 may each consist of one monowave or a group of monowaves. Their start/end boundaries are determined from the surrounding confirmed price action; the internal zigzag does not change the definition of the group's overall price coverage. Ratios for grouped waves must therefore use the group's termination endpoints, not the sum of all internal up/down segments. The engine now exposes `aggregateMonowaveGroup` for contiguous constituent monowaves and reports the net endpoint coverage plus the latest constituent confirmation time. It does not decide which monowaves belong together; that grouping still requires the source's full observation and context rules.
+
+
+## Structure Label notation sample (Rule 3, Condition a)
+
+The supplied scan's Rule 3 Condition-a heading shows the slash-separated label list `{F3/c3/s5/5/(sL3)/[L5]}` (scan PDF p. 106, printed Chapter 3 p. 3-58). The engine now parses this notation while preserving unwrapped labels as primary candidates and parenthesized labels as lower-probability alternatives and bracketed labels as rare or highly unlikely alternatives. This parser only preserves source notation; it does not evaluate the conditions that select or eliminate any candidate label.
+
+
+## Partial Pre-Constructive label seeds transcribed
+
+The following heading-level candidate lists have been visually transcribed from the Persian scan and are exposed in code only as partial seeds:
+
+| Rule/Condition | Source notation | Scan page |
+|---|---|---:|
+| 1:a | `{5/(c3)/(x:c3)/[sL3]/[s5]}` | 95 |
+| 2:a | `{5/(sL3)/[c3]/[s5]}` | 96 |
+| 3:a | `{F3/c3/s5/5/(sL3)/[L5]}` | 106 |
+
+The parser preserves unwrapped labels as primary candidates and wrapped labels as alternatives. These seeds do **not** include the full condition predicates, subsequent-wave tests, or all other Rule/Condition combinations. They are not enough to emit a valid Structure Label or certify a count; all other combinations return indeterminate.
+
+
+## Directional sequence checks
+
+The retracement diagrams define m2 as a move opposite to m1. Rule 4's m3 follows m2 and moves opposite to it when measuring the next leg. The executable context analyzer now refuses to classify a same-direction m2/m1 pair and leaves Rule 4's category indeterminate unless m3 is measurable and reverses m2. These checks prevent magnitude-only ratios from being mislabeled as retracements.
+
+
+The engine's `analyzeNeoWaveRetracement` wrapper attaches these partial seeds only when the measured Rule/Condition matches one of the three transcribed entries. Other combinations remain `indeterminate`; even a seed match is explicitly non-tradable and does not imply that its surrounding Pre-Constructive predicates passed.
+
+
+## Separate time-coverage measurement
+
+The engine now exposes `timeCoverageRatio` independently from price coverage. It supports explicit time-unit adjustments, but applies none by default. A caller must pass the adjustment only where the specific Pre-Constructive paragraph requires the source's additional one-time-unit convention. The function reports the exact adjustments and causal availability used.
+
+
+For matching measured contexts, `analyzeNeoWaveRetracement` now turns the partial seed list into competing Structure Label hypotheses. Because the complete Pre-Constructive predicates have not been evaluated, every generated hypothesis remains conditional. This preserves alternatives without falsely selecting one.
+
+
+## Probability notation verified from the Pre-Constructive introduction
+
+The introductory page (printed p. 3-44; scan PDF p. 95) explicitly distinguishes the wrappers: unwrapped labels are the most likely; labels in parentheses have lower probability than unwrapped labels; labels in brackets are rare or very unlikely. The engine parser now preserves three separate ranks: `primary`, `conditional` and `rare`. The Pre-Constructive decision tree spans 65 pages, not 26; earlier draft notes stating 26 pages were incorrect and have been corrected.
+
+
+## Scan completeness gap
+
+The introductory text describes a 65-page Pre-Constructive section beginning at printed p. 3-44. The supplied scan reaches printed p. 3-99 at scan PDF p. 150, then jumps to Chapter 4 at scan PDF p. 151 (printed p. 4-10). Nine intermediate printed pages are absent from the supplied scan; their chapter assignment cannot be established from the available pages. No rules from those missing pages are inferred or implemented.
+
+
+## Additional visual source pass: Rule 4, Conditions a and b (scan PDF pp. 116–119)
+
+The Persian scan images for PDF pp. 115–119 were visually reviewed after the earlier first-pass extraction.
+
+- **Rule 4:a** appears on scan PDF p. 116. Its heading-level Structure Label notation is `{F3/c3/s5/[sL3]}`. The page heading identifies the Rule 4 category as m3 at least 100% but below 161.8% of m2 (Category i). The following paragraphs continue the contextual pruning conditions; the heading list alone is not an executable mapping.
+- **Rule 4:b** appears on scan PDF p. 119. Its heading-level notation is `{F3/c3/s5/(sL3)/(x:c3)/[L5]}`. This page also shows the 100%–below-161.8% m3/m2 category (Category i). The text again requires subsequent-wave and prior-wave context, time/price comparisons, and later pattern evidence.
+- Rule 4 therefore cannot be represented by a Rule/Condition pair alone: its third dimension (Category i/ii/iii from m3/m2) must remain attached to the hypothesis key. These two visually recovered headings are recorded as **partial source observations**, not added to the executable `PRECONSTRUCTIVE_SEEDS` table, because the complete category-specific decision branches have not yet been extracted.
+- Scan PDF pp. 117–118 continue Rule 4:a conditions; they are not a complete independent summary page. Rule 4:b begins on p. 119. No unshown Rule 4 categories or conditions are inferred from these pages.
+
+This pass does not resolve the earlier Rule 3 prose/diagram discrepancy, the missing printed pages, or the full Rule 4 decision tree.
+
+
+## Additional visual source pass: Rule 4, Conditions c and d (scan PDF pp. 123–124)
+
+A further visual pass reached the next Rule 4 branches:
+
+- **Rule 4:c** is headed on scan PDF p. 123. The visible heading-level label notation is `{c3/(F3)/(x:c3)}`. The page separates the m3/m2 category bands in its discussion; the visible Category i branch is 100% to below 161.8%, followed by a separate 161.8%–261.8% branch. The paragraphs continue to test the timing and price behavior of m(-1), m0, m1, m2, m3 and later waves, including possible X-wave placements.
+- **Rule 4:d** begins on scan PDF p. 124. Its visible heading-level notation is `{F3/(c3)/(x:c3)}`. The text groups Category i and Category ii (100%–261.8%, inclusive) in one discussion before proceeding to further context tests. The diagram also shows additional m1 retracement levels, so this branch cannot be represented by a single m3/m2 threshold alone.
+- These observations reinforce that the Rule 4 evaluator must key hypotheses by **Rule 4 condition + m3/m2 category + contextual predicates**, not just by the condition letter. The heading notation is retained here as a source note only; no new executable seeds are added.
+
+The pages reviewed here are not a complete transcription of Rule 4. The remaining category branches, all follow-on predicates, and the rest of the Pre-Constructive section still require page-by-page extraction.
+
+
+## Additional visual source pass: Rule 4, Condition e (scan PDF p. 126)
+
+- **Rule 4:e** is headed on scan PDF p. 126. The visible Structure Label notation is `{F3/(x:c3)/(c3)}` (the scan's order is preserved). The page discusses Rule 4 Categories i and ii together, i.e. m3/m2 from 100% through 261.8% inclusive, before applying additional contextual filters.
+- The page's prose continues to use prior and following waves, time/price retracement, possible missing X-wave placement, and pattern context to remove or retain alternatives. This heading list is not a complete Rule 4:e evaluator.
+- Rule 4's partial visual record now includes headings a–e across scan PDF pp. 116, 119, 123–126. It remains non-executable because the full branch predicates and all category interactions have not been transcribed and tested.
