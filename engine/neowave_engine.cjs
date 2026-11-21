@@ -1102,11 +1102,22 @@ function aggregatePolywaveCandidate({ patterns, xWaves, asOfIndex } = {}) {
   }
   const components = [...patterns, ...xWaves];
   const availability = components.map((component) => {
-    if (Number.isFinite(component.availableAt)) return component.availableAt;
+    if (component.availableAt != null) {
+      return Number.isInteger(component.availableAt) && component.availableAt >= component.to.index
+        ? component.availableAt : NaN;
+    }
     const fromAt = component.from.confirmedAt;
     const toAt = component.to.confirmedAt;
-    return Number.isFinite(fromAt) && Number.isFinite(toAt) ? Math.max(fromAt, toAt) : null;
+    if (fromAt != null || toAt != null) {
+      if (!Number.isInteger(fromAt) || !Number.isInteger(toAt) ||
+          fromAt < component.from.index || toAt < component.to.index) return NaN;
+      return Math.max(fromAt, toAt);
+    }
+    return null;
   });
+  if (availability.some(Number.isNaN)) {
+    return fail("component availability must be an integer no earlier than its final endpoint");
+  }
   if (Number.isInteger(asOfIndex) && availability.some((time) => Number.isFinite(time) && time > asOfIndex)) {
     return fail("polywave evidence contains a component confirmed after asOfIndex");
   }
