@@ -934,3 +934,39 @@ test("engine exposes source-located retracement diagnostics without certifying a
   assert.equal(result.tradable, false);
   assert.equal(result.activation.ruleIds[0], "NW-RET-03");
 });
+
+
+test("time coverage rejects inconsistent or incomplete endpoint durations", () => {
+  const consistent = engineTimeCoverageRatio(
+    { startIndex: 10, endIndex: 20, duration: 10 },
+    { startIndex: 0, endIndex: 20, duration: 20 }
+  );
+  assert.equal(consistent.status, "measured");
+  assert.equal(consistent.value, 50);
+
+  const staleDuration = engineTimeCoverageRatio(
+    { startIndex: 10, endIndex: 20, duration: 12 },
+    { startIndex: 0, endIndex: 20, duration: 20 }
+  );
+  assert.equal(staleDuration.status, "indeterminate");
+  assert.equal(staleDuration.value, null);
+
+  const reversed = engineTimeCoverageRatio(
+    { startIndex: 20, endIndex: 10, duration: 10 },
+    { duration: 20 }
+  );
+  assert.equal(reversed.status, "indeterminate");
+
+  const incomplete = engineTimeCoverageRatio(
+    { startIndex: 10, duration: 10 },
+    { duration: 20 }
+  );
+  assert.equal(incomplete.status, "indeterminate");
+
+  const normalizedDurationOnly = engineTimeCoverageRatio(
+    { duration: 10 },
+    { duration: 20 }
+  );
+  assert.equal(normalizedDurationOnly.status, "measured");
+  assert.equal(normalizedDurationOnly.value, 50);
+});
