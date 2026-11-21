@@ -970,3 +970,15 @@ test("time coverage rejects inconsistent or incomplete endpoint durations", () =
   assert.equal(normalizedDurationOnly.status, "measured");
   assert.equal(normalizedDurationOnly.value, 50);
 });
+
+
+test("multi-monowave section rejects availability before its final endpoint", () => {
+  const impossible = [
+    {
+      from: { index: 1, price: 10 },
+      to: { index: 3, price: 12 },
+      availableAt: 2
+    }
+  ];
+  assert.throws(() => aggregateMonowaveGroup(impossible), /pre-endpoint availability/);
+});
