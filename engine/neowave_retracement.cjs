@@ -106,14 +106,32 @@ function availabilityOf(wave) {
 
 function endpointDuration(wave) {
   if (!wave || typeof wave !== "object") return null;
-  if (Number.isFinite(wave.duration) && wave.duration > 0) return wave.duration;
-  const start = Number.isFinite(wave.from?.index) ? wave.from.index
-    : Number.isFinite(wave.startIndex) ? wave.startIndex
-    : Number.isFinite(wave.startTime) ? wave.startTime : null;
-  const end = Number.isFinite(wave.to?.index) ? wave.to.index
-    : Number.isFinite(wave.endIndex) ? wave.endIndex
-    : Number.isFinite(wave.endTime) ? wave.endTime : null;
-  return start !== null && end !== null && end > start ? end - start : null;
+
+  const firstFinite = (...values) => values.find(Number.isFinite);
+  const start = firstFinite(wave.from?.index, wave.startIndex, wave.startTime);
+  const end = firstFinite(wave.to?.index, wave.endIndex, wave.endTime);
+  const hasStart = start !== undefined;
+  const hasEnd = end !== undefined;
+  const suppliedDuration = wave.duration;
+
+  // If any endpoint is present, require a complete, forward-ordered pair.
+  // A caller-supplied duration must agree with those endpoints; otherwise a
+  // stale or fabricated duration could silently override the observed span.
+  if (hasStart || hasEnd) {
+    if (!hasStart || !hasEnd || end <= start) return null;
+    const measured = end - start;
+    if (suppliedDuration !== undefined) {
+      if (!Number.isFinite(suppliedDuration) || suppliedDuration <= 0 ||
+          Math.abs(suppliedDuration - measured) > EPSILON) return null;
+      return suppliedDuration;
+    }
+    return measured;
+  }
+
+  // Duration-only inputs remain supported for callers whose time unit is
+  // already normalized and whose endpoints are intentionally unavailable.
+  return Number.isFinite(suppliedDuration) && suppliedDuration > 0
+    ? suppliedDuration : null;
 }
 
 /**
