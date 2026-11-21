@@ -194,3 +194,10 @@ A further visual pass reached the next Rule 4 branches:
 - These observations reinforce that the Rule 4 evaluator must key hypotheses by **Rule 4 condition + m3/m2 category + contextual predicates**, not just by the condition letter. The heading notation is retained here as a source note only; no new executable seeds are added.
 
 The pages reviewed here are not a complete transcription of Rule 4. The remaining category branches, all follow-on predicates, and the rest of the Pre-Constructive section still require page-by-page extraction.
+
+
+## Additional visual source pass: Rule 4, Condition e (scan PDF p. 126)
+
+- **Rule 4:e** is headed on scan PDF p. 126. The visible Structure Label notation is `{F3/(x:c3)/(c3)}` (the scan's order is preserved). The page discusses Rule 4 Categories i and ii together, i.e. m3/m2 from 100% through 261.8% inclusive, before applying additional contextual filters.
+- The page's prose continues to use prior and following waves, time/price retracement, possible missing X-wave placement, and pattern context to remove or retain alternatives. This heading list is not a complete Rule 4:e evaluator.
+- Rule 4's partial visual record now includes headings a–e across scan PDF pp. 116, 119, 123–126. It remains non-executable because the full branch predicates and all category interactions have not been transcribed and tested.
