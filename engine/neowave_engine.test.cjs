@@ -982,3 +982,33 @@ test("multi-monowave section rejects availability before its final endpoint", ()
   ];
   assert.throws(() => aggregateMonowaveGroup(impossible), /pre-endpoint availability/);
 });
+
+
+test("polywave aggregation rejects component availability before the final endpoint", () => {
+  const patterns = [
+    { from: { index: 0, price: 100 }, to: { index: 5, price: 150 }, availableAt: 4 },
+    { from: { index: 10, price: 140 }, to: { index: 15, price: 190 }, availableAt: 16 }
+  ];
+  const xWaves = [
+    { from: { index: 5, price: 150 }, to: { index: 10, price: 140 }, availableAt: 11 }
+  ];
+  const early = aggregatePolywaveCandidate({ patterns, xWaves, asOfIndex: 20 });
+  assert.equal(early.status, "indeterminate");
+
+  const negative = aggregatePolywaveCandidate({
+    patterns: [{ ...patterns[0], availableAt: -1 }, patterns[1]],
+    xWaves,
+    asOfIndex: 20
+  });
+  assert.equal(negative.status, "indeterminate");
+
+  const malformedConfirmation = aggregatePolywaveCandidate({
+    patterns: [{
+      from: { index: 0, price: 100, confirmedAt: -1 },
+      to: { index: 5, price: 150, confirmedAt: 6 }
+    }, patterns[1]],
+    xWaves,
+    asOfIndex: 20
+  });
+  assert.equal(malformedConfirmation.status, "indeterminate");
+});
